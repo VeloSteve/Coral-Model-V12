@@ -1,0 +1,11 @@
+
+*.m~
+*.asv
+*.swp
+*.png
+*.fig
+*.gif
+*.psd
+*.jpg
+codegen/*
+gui_scratch/*

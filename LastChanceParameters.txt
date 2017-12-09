@@ -1,0 +1,35 @@
+% After this comment block, no further comments are allowed!  This rest is
+% a JSON string broken into lines for editability.  This is only to be used
+% as input for testing the model when the GUI or a suitable script is unavailable.
+% Also, be sure to obey the format given.
+{
+    "E":false,
+    "OA":false,
+    "RCP":"rcp85",
+    "allPDFs":false,
+    "architecture":"PC",
+    "codeBase":"D:/GitHub/Coral-Model-V12/",
+    "doCoralCoverFigure":true,
+    "doCoralCoverMaps":false,
+    "doDetailedStressStats":false,
+    "doGenotypeFigure":false,
+    "doGrowthRateFigure":false,
+    "doPlots":true,
+    "doProgressBar":false,
+    "everyx":500,
+    "keyReefs":5,
+    "m_mapPath":"D:/GitHub/m_map/",
+    "matPath":"D:/GitHub/Coral-Model-V12/mat_files/",
+    "newMortYears":false,
+    "outputBase":"D:/CoralTest/V12Test/",
+    "saveVarianceStats":false,
+    "sgPath":"D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/",
+    "sharedData":"D:/GitHub/Coral-Model-Data/",
+    "skipPostProcessing":false,
+    "specialSubset":"no",
+    "sstPath":"D:/GitHub/Coral-Model-Data/ProjectionsPaper/",
+    "superAdvantage":0,
+    "superMode":0,
+    "superStart":2035,
+    "useThreads":1
+}
