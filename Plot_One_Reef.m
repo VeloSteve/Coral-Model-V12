@@ -148,29 +148,10 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         plotSST1 = plot(time,temp,'k');  %(1069:1693) gives 1960-2011
         hold on;
         Loc = strcat(num2str(lat),',',num2str(lon));
-        if Data == 1 % ESM2M
-            %     if OA ==1
-            %         plot(time,Omega,'b');  %(1069:1693) gives 1960-2011
-            %         legend('ESM2MSST','Omega' ,'Location','NorthWest');
-            %         ylim([0 32]);
-            %         title(strcat('SST and Omega at',RCP ,'- ', LOC)) %
-            %         ylabel('SST (C) and Omega')
-            %     end
-            
-            % no legend - moved prop to title
-            %legend(strcat('ESM2M', RCP, ';prop ',num2str(shortprop) ),'Location','NorthWest');
-            hold on;
-            %title(strcat('SST ESM2M',RCP ,';  latlon:', Loc)); %
-            %title(strcat('SST ESM2M',RCP ,';prop ', num2str(shortprop),';  latlon:', Loc));
-            title(strcat(RCP ,'  prop ', num2str(shortprop),  '  latlon:', Loc));
-            
-            ylabel('SST (C) ');
-        elseif Data == 2 % HadISST
-            legend('HadISST','Location','NorthWest');
-            title(strcat('SST',';prop ', num2str(shortprop),';  latlon:', Loc)); %
-            ylabel('SST (C)');
-            
-        end
+        % Original titles had a reference to ESM2M or HadISST
+        title(strcat(RCP ,'  prop ', num2str(shortprop),  '  latlon:', Loc));
+        ylabel('SST (C)');
+
         plotSST2 = plot([time(1) time(end)],[hist hist],'r');
 
         xlabel('Time (years)');
@@ -297,8 +278,7 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     
     %% Save with Date Stamp
     format shortg;
-    % The print line takes over half the time of the whole routine.  Break it
-    % down and see why.
+
     if Data == 1
         name = strcat('SDC_',dateString,'_',num2str(k),'_normSST',RCP,LOC,'prop',num2str(shortprop),'_E',num2str(E));
     else
