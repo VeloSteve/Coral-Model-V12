@@ -1,5 +1,5 @@
 classdef modelIntParameter < modelParameter
-    %modelParameter A value which controls a model option.
+    %modelIntParameter A value which controls a model option.
     %   Every parameter should be defined as an instance of this class so
     %   important information about that parameter is available.  Example
     %   parameters include output directories, evolution on/off, super
@@ -30,6 +30,7 @@ classdef modelIntParameter < modelParameter
             % using rem (remainder);
             if rem(def, 1) == 0 && rem(min, 1) == 0 && rem(max, 1) == 0
                 p.default = def;
+                p.value = def;
                 p.minimum = min;
                 p.maximum = max;
             else
@@ -38,9 +39,17 @@ classdef modelIntParameter < modelParameter
         end
         
         
-        function set(obj, v)
+        function obj = set(obj, v)
+            if isfloat(v)
+                if floor(v) == v
+                    v = cast(v, 'int32');
+                else
+                    error('Value of %s must be a whole number, not %d.', obj.name, v);
+                end
+            end
             if isinteger(v)
-                if v >= obj.min && v <= obj.max
+                % Note that v may be an array rather than a single integer.
+                if min(v) >= obj.minimum && max(v) <= obj.maximum
                     obj.value = v;
                 else
                     error('Value of %s must be between %d and %d.  %d is not.', obj.name, obj.min, obj.max, v);
@@ -49,6 +58,11 @@ classdef modelIntParameter < modelParameter
                 error('You can not set an integer to a non-integer value.');
             end
         end
+        
+        function [v] = get(obj)
+            v = obj.value;
+        end
+
     end
 end
 

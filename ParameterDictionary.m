@@ -1,21 +1,21 @@
 classdef ParameterDictionary
-    % ParameterDictionary Define all variable input parameters here including
-    %their datatypes, allowed, and current values.
-    %   This function serves as both a text and programmatic reference to all
-    %   parameters to the model.  Every parameter given should have a match
-    %   here.  The defaults defined here should be rarely changed and
-    %   considered code modifications.  Any other change should be applied from
-    %   the outside by a script or GUI.
-    %
-    %   Since this is just a wrapper around a Map, subclassing containers.Map
-    %   seems like the right thing to do, but it's a known problem that this
-    %   doesn't work well.  
-    
-    %{"RCP":"rcp85","OA":1,"E":true,"everyx":1,"useTestThreads":5,"doProgressBar":true,"keyReefs":[],
-    %    "superStart":2035,"superMode":0,"superAdvantage":0,"newMortYears":false,"doCoralCoverFigure":false,"superSym":"None"}
-    %%
-    properties
-        params
+% ParameterDictionary All Coral Model parameters, with constraints.
+%
+%   This object defines all variable input parameters including their
+%   datatypes with allowed and current values.  Default values are hardcoded
+%   into this object.
+%   The object serves as both a text and programmatic reference to all
+%   parameters to the coral model.  Every parameter used should have a match
+%   here.  The defaults defined here should be rarely changed and
+%   considered code modifications.  Any other change should be applied from
+%   the outside by a script or GUI.
+%
+%   Since this is just a wrapper around a Map, subclassing containers.Map
+%   seems like the right thing to do, but it's a known problem that this
+%   doesn't work well.
+
+    properties %(Access=private)
+        params  % a containers.Map for storing parameters
     end
     
     %%
@@ -26,11 +26,13 @@ classdef ParameterDictionary
     end
     %%
     methods
-        % Set up all allowed model parameters.  The model*Parameter calls
-        % use arguments (name, type, default, min, max), (name, type
-        % default), or (name, type, default, allowed values) depending on
-        % type.
-        function p = ParameterDictionary()
+
+        function p = ParameterDictionary(inputType, inValue)
+            % Define each allowed model parameter as an object.
+            % 
+            % The model*Parameter calls use arguments (name, type, default,
+            % min, max), (name, type default), or (name, type, default,
+            % allowed values) depending on type.
             p.params = containers.Map;
             
             % Bookkeeping
@@ -45,9 +47,11 @@ classdef ParameterDictionary
             addOne(p, modelCharParameter('sgPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
             % Mapping code - not ours, so don't publish the repository.
             addOne(p, modelCharParameter('m_mapPath', 'string', 'D:/GitHub/m_map/'));
+            addOne(p, modelCharParameter('GUIBase', 'string', 'C:/'));
             
             % Science
             addOne(p, modelCharParameter('RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp 85'}));
+            addOne(p, modelCharParameter('dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
             addOne(p, modelLogicalParameter('OA', 'logical', false));
             addOne(p, modelLogicalParameter('E', 'logical', false));
             addOne(p, modelIntParameter('superStart', 'integer', 2035, 1861, 2100));
@@ -78,21 +82,65 @@ classdef ParameterDictionary
             addOne(p, modelLogicalParameter('doGrowthRateFigure', 'logical', false));
             addOne(p, modelLogicalParameter('doDetailedStressStats', 'logical', false));
             addOne(p, modelLogicalParameter('saveVarianceStats', 'logical', false));
-
+            
+            % All allowed parameters are now defined.  If arguments are
+            % given set parameters from there.  This provides validation.
+            if nargin == 0
+                % okay, use defaults
+            elseif nargin ~= 2
+                error('ParameterDictionary constructor requires zero or two arguments.');
+            else
+                % Inputs specify either a file containing just a JSON
+                % string on a single line, or the JSON string itself.
+                if strcmp(inputType, 'handle') || strcmp(inputType, 'file')         
+                    if strcmp(inputType, 'file')
+                        pf = fopen(inValue, 'r');
+                    else
+                        pf = inValue;
+                    end
+                    if pf ~= -1
+                        txt = fgetl(pf);
+                    else
+                        error('Specified parameter file did not open.');
+                    end
+                    p.setFromJSON(txt);
+                elseif strcmp(inputType, 'json')
+                    p.setFromJSON(inValue);
+                else
+                    error('Only inputs of type ''file'' or ''json'' are supported.');
+                end
+            end
         end
         
-        % Set an existing value.  New values may not be added "on the fly".
         function obj = set(obj, name, value)
-            % MATLAB will raise an error if there's not existing value called
-            % name.
+            % SET Set a value for an existing parameter
+
+            % MATLAB will raise an error if there's no existing value called
+            % "name" of if the type can't be matched.
             p = obj.params(name);
-            p.set(value);
+            if isnumeric(value)
+                fprintf('PD setting %s to %d\n', name, value);
+            else
+                fprintf('PD setting %s to %s\n', name, value);
+            end
+            p = p.set(value);  % Note that the object must be returned.
+            % Setting the object isn't enough!  Must replace it in the
+            % dictionary.
+            obj.addOne(p);
         end   
         
-        % Put all parameters into a structure.  This may be used directly,
-        % but is also used by getJSON.
+        function val = get(obj, name)
+            % GET Get a value for an existing parameter
+
+            % MATLAB will raise an error if there's no existing value called
+            % "name".
+            p = obj.params(name);
+            val = p.get();  % Note that the object must be returned.
+       end 
+        
         function str = getStruct(obj)
             % Put all parameters into a single structure.
+            % This may be used directly, but is also used by getJSON.
             % This is done regardless of datatype - TODO: is that okay?
             for i = keys(obj.params)
                 key = i{1};
@@ -105,17 +153,17 @@ classdef ParameterDictionary
             end
         end
         
-        % Turn all parameters into a JSON string.  No particular order is
-        % enforced - only the names matter.
         function s = getJSON(obj)
+            % Return all parameters as a JSON string.
             str = getStruct(obj);
             s = jsonencode(str);
         end
         
         
-        % Accept a JSON string and set variables with matching name.
-        % It's an error to send a variable not defined in the dictionary.
+        
         function setFromJSON(obj, s)
+            % Accept a JSON string and set variables with matching names.
+            % It's an error to send a variable not defined in the dictionary.
             str = jsondecode(s);
             fields = fieldnames(str);
 
@@ -129,7 +177,20 @@ classdef ParameterDictionary
               addOne(obj, p);
             end
         end
-            
+               
+        function dName = getDirectoryName(obj, suffix)
+            % Returns a string suitable for naming an output directory.
+            format shortg; c = clock;
+            dateString = strcat(num2str(c(1)),num2str(c(2),'%02u'),num2str(c(3),'%02u')); % today's date stamp
+            s = obj.getStruct();  % Could get variables one-by-one, but this seems easier.
+            modelChoices = strcat(s.dataset,s.RCP,'.E',num2str(s.E), ...
+                '.OA',num2str(s.OA), '_sM',num2str(s.superMode),'_sA', ...
+                num2str(s.superAdvantage), '_',dateString);
+            dName = strcat(s.outputBase, modelChoices, suffix);
+        end
+        
+
+        
     end
 end
 

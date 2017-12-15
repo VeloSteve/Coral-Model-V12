@@ -39,15 +39,21 @@ classdef modelLogicalParameter < modelParameter
             else
                 error('Default must be numeric or a MATLAB logical.')
             end
+            p.value = p.default;
         end
         
         
-        function set(obj, v)
+        function obj = set(obj, v)
             if islogical(v)
                 obj.value = v;
             else
                 error('%s can only be set to a logical value!', obj.name);
             end
+        end
+        
+        function [v] = get(obj)
+            v = obj.value;
+            fprintf('mLP returning %s %d\n', v, v);
         end
     end
 end

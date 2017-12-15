@@ -7,7 +7,7 @@ classdef modelCharParameter < modelParameter
     
     properties
         default char
-        possible char
+        possible  % If this is char, it seems to force all strings to the same length!
         value char
     end
     
@@ -26,6 +26,7 @@ classdef modelCharParameter < modelParameter
             end
             if ischar(def)
                 p.default = def;
+                p.value = def;
             else
                 error('Default must be a string.')
             end
@@ -39,16 +40,24 @@ classdef modelCharParameter < modelParameter
         end
         
         
-        function set(obj, v)
-            if isstring(v)
+        function obj = set(obj, v)
+            if ischar(v)
                 if ~isempty(obj.possible) && any(strcmp(obj.possible, v));
+                    obj.value = v;
+                elseif isempty(obj.possible)
+                    % No constraints on this parameter.
                     obj.value = v;
                 else
                     error('Value %s is not in the list of possible values of %s.', v, obj.name);
                 end
             else
-                error('You can not set a string to %d', v);
+                error('You can not set a string for %s to %s\n', obj.name, v);
             end
+        end
+        
+        function [v] = get(obj)
+            v = obj.value;
+            fprintf('mCP returning %s for %s \n', v, obj.name);
         end
     end
 end

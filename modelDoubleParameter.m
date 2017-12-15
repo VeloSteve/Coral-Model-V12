@@ -27,6 +27,7 @@ classdef modelDoubleParameter < modelParameter
             end
             if isfloat(def) && isfloat(min) && isfloat(max)
                 p.default = def;
+                p.value = def;
                 p.minimum = min;
                 p.maximum = max;
             else
@@ -36,8 +37,8 @@ classdef modelDoubleParameter < modelParameter
         
         
         function obj = set(obj, v)
-            if isdouble(v)
-                if v >= obj.min && v <= obj.max
+            if isfloat(v)
+                if v >= obj.minimum && v <= obj.maximum
                     obj.value = v;
                 else
                     error('Value of %s must be between %f and %f.  %f is not.', obj.name, obj.min, obj.max, v);
@@ -45,6 +46,11 @@ classdef modelDoubleParameter < modelParameter
             else
                 error('You can not set a double to the given value.');
             end
+        end
+        
+        function [v] = get(obj)
+            v = obj.value;
+            fprintf('mDP returning %s %d\n', v, v);
         end
     end
 end
