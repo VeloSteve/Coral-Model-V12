@@ -14,136 +14,39 @@ timerStart = tic;
 if nargin < 1
     error('The coral model requires input parameters.');
 end
-% Get a structure of run parameters in any of several ways.  The first is
-% preferred.
-if isa(parameters, 'ParameterDictionary')
-    p = pDictionary.getStruct();
-else
-    % If it's not a ParameterDictionary, see if it's a JSON string.
-    try p = jsondecode(parameters)
-        
-        disp('Got input values from a JSON string.');
-    catch ME
-        if (strcmp(ME.identifier,'MATLAB:json:ExpectedValue'))
-            % Not a valid JSON string.  Try initializing from a file.
-            fh = fopen('LastChanceParameters.txt');
-            if fh == -1
-                error('Failed to open LastChanceParameters.txt');
-            end
-            json = '';
-            while ~feof(fh)
-                line = strtrim(fgets(fh));
-                if ~strncmp(line, '%', 1)
-                    json = strcat(json, line);
-                end
-            end
-            fprintf('Decoding %s\n', json);
-            
-            try p = jsondecode(json)
-                disp('Got input values from LastChanceParameters.txt');
-            catch ME
-                disp('Invalid input in LastChanceParameters.txt !');
-                rethrow(ME);
-            end
- 
-        else
-            % Some other error.  Don't try to handle it here.
-            rethrow(ME)
-        end
-    end
-end
+% Get a structure of run parameters in any of several ways.
+p = getInputStructure(parameters);
 
-%% Clear variables which I want to examine between runs, but not carry over.
+% Clear variables which I want to examine between runs, but not carry over.
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
 
-%% Constants NOT controllable from the GUI or scripts are set first:
+% Constants NOT controllable from the GUI or scripts are set first:
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
+dt = 0.125;         % The fraction of a month for 2nd order R-K time steps
 
-%% New code, December 2017, getting variables previously hardcoded from a file.
-% Note that assigning these programatically is tempting, and there are
-% ways. However, MATLAB code is parsed befor any such code, possibly
-% causing confusion between functions and variables with the same name.
-% Just do it the verbose but simple way:
-% Science variables
-RCP = p.RCP;
-E = p.E;
-OA = p.OA;
-superMode = p.superMode;
-superAdvantage = p.superAdvantage;
-% Bookkeeping variables
-outputPath = p.outputBase;  % Note name change.
-sgPath = p.sgPath;
-sstPath = p.sstPath;
-matPath = p.matPath;
-m_mapPath = p.m_mapPath;
-% Computing variables
-architecture = p.architecture;
-useThreads = p.useThreads; % Note name change
-everyx = p.everyx;
-specialSubset = p.specialSubset;
-% Output variables
-keyReefs = p.keyReefs;
-skipPostProcessing = p.skipPostProcessing;
-doProgressBar = p.doProgressBar;
-doPlots = p.doPlots;
-doCoralCoverMaps = p.doCoralCoverMaps;
-doCoralCoverFigure = p.doCoralCoverFigure;
-doGrowthRateFigure = p.doGrowthRateFigure;
-doGenotypeFigure = p.doGenotypeFigure;
-doDetailedStressStats = p.doDetailedStressStats;
-allPDFs = p.allPDFs;
-saveVarianceStats = p.saveVarianceStats;
-newMortYears = p.newMortYears;
 
-%% Super symbiont options
-startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
-if superMode >= 3 && superMode <=5
-    fn = strcat('longMortYears_', RCP, '_', num2str(E));
-    load(fn, 'longMortYears');
-    superStartYear = longMortYears;
-    % XXX - next two lines for testing only!!!
-    %subFrom = (superStartYear > 1882);
-    %superStartYear = superStartYear - 20*subFrom;
-elseif superMode >= 6
-    fn = strcat('firstBleachYears_', RCP, '_', num2str(E));
-    load(fn, 'firstBleachYears');
-    superStartYear = firstBleachYears;
-elseif superAdvantage == 0.0
-    % If there's no advantage it's a case where there's no addition.
-    % Delay to the end or we'll end up "seeding" extra symbionts.
-    if strcmp(RCP, 'control400')
-        last = 1860+400+1;
-    else
-        last = 2100 + 1;
-    end
-    superStartYear = last*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
-else  
-    % Start the symbionts in this fixed year for all reefs.
-    superStartYear = superStart*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
-end
-assert(length(superStartYear) == maxReefs, 'By-year symbiont starts should have a start year for every reef.');
+% New code, December 2017.  Variables were previously hardcoded in this file.
+% Now they are received as inputs.  This call is admittedly ugly, but it
+% does serve as a list of all variable arguments.  This is intended to
+% allow A_Coral_Model to never be edited during normal use.
+[RCP, E, OA, superMode, superAdvantage, superStart,...
+ outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
+ architecture, useThreads, everyx, specialSubset, ...
+ keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
+ doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
+ doGenotypeFigure, doDetailedStressStats, allPDFs, ...
+ saveVarianceStats, newMortYears] = explodeVariables(p);
 
-%superInitYears = [2025 2035]; % Years from which adaptation temp is selected.
-superSeedFraction = 10^-3;      % Fraction of S_seed to use for seeding super symbionts.
-% sizing notes: for massive,
-% KSm = 3000000
-% seed = 100000
-% KSm/seed = 30
-% the seed fraction is a fraction of this value.
-% for 0.01 -> KSm/introduced = 3000
-% for 0.0001 -> KSm/introduced = 300000
-oneShot = true;  % After supersymbiont introduction, set its seed to zero.
-assert(startSymFractions(2) == 0, 'Start with no symbionts if they are to be suppressed at first.');
-assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
-
+%% Handle super symbiont options
+[startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
+    setupSuperSymbionts(superMode, RCP, E, superAdvantage, superStart, maxReefs);
 
 %% Put keyReefs in order without duplicates.  Shouldn't matter, but why not?
 keyReefs = unique(keyReefs);
 
-
-%% A list of reefs for which to save data at maximum resolution for detailed
+% A list of reefs for which to save data at maximum resolution for detailed
 %  analysis or plotting.
 dataReefs = [];
 
@@ -154,7 +57,6 @@ dataReefs = [];
 %     is greater than the value specified in Matlab's Parallel Preferences.
 fprintf('%d Threads from GUI or script\n', useThreads);
 [multiThread, queueMax] = parallelSetup(useThreads);
-
 
 if multiThread
     queue =  parallel.FevalFuture.empty;
@@ -169,9 +71,6 @@ end
 fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
 %% Less frequently changed model parameters
-% 0.125 is our default
-% XXX testing:
-dt = 0.125;  % The fraction of a month for R-K time steps
 
 % SST DATASET?
 Data = 1; % 1=ESM2M_norm;  2=HADISST (through 3/16/16)
@@ -417,8 +316,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -587,7 +486,7 @@ for parSet = 1:queueMax
         if parSwitch && mod(reefCount, printFreq) == 0
             pct = (100*reefCount/length(toDoPart{parSet}));
             if  doProgressBar
-                pf = fopen(strcat('gui_scratch/Prog_', num2str(parSet)), 'w');
+                pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
                 fprintf(pf, '%d', round(pct));
                 fclose(pf);
             else
