@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, ...
     lastYearAlive, events85_2010, eventsAllYears, frequentBleaching, ...
-    mortState, bleachState, fullYearRange, modelChoices, filePrefix )
+    mortState, bleachState, fullYearRange, modelChoices)
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -45,7 +45,7 @@ activeLatLon(1:length(activeReefs), 2) = Reefs_latlon(activeReefs, 2);
 customColors = customScale();
 
 tName = strcat(modelChoices,'. Year Corals No Longer Persist');
-fileBase = strcat(fullDir, filePrefix,'_LastYrCoralMap');
+fileBase = strcat(fullDir, modelChoices,'_LastYrCoralMap');
 % Green points everywhere
 oneMap(12, activeLatLon(:, 1), activeLatLon(:, 2), [0 0.8 0], yearRange, parula, tName,'', false);
 
@@ -65,7 +65,7 @@ end
 
 %% Make map showing # all bleaching events bn 1985-2010
 tName = 'Bleaching Events Between 1985-2010';
-fileBase = strcat(fullDir, filePrefix,'_MortEvents8510Map');
+fileBase = strcat(fullDir, modelChoices,'_MortEvents8510Map');
 outFile = strcat(fileBase, '.pdf');
 oneMap(13, activeLatLon(:, 1), activeLatLon(:, 2), events85_2010(activeReefs), [], jet, tName, outFile, false);
 % Another one with postprocessing...
@@ -78,19 +78,19 @@ end
 %% Figure 14 Make map showing # all bleaching events
 rangeText = sprintf('%d-%d',fullYearRange);
 tName = strcat('Bleaching Events Between ', rangeText);
-outFile = strcat(fullDir, filePrefix,'_AllMortEventsMap','.pdf');
+outFile = strcat(fullDir, modelChoices,'_AllMortEventsMap','.pdf');
 oneMap(14, activeLatLon(:, 1), activeLatLon(:, 2), eventsAllYears(activeReefs), [], jet, tName, outFile, false);
 
 
 %% Figure 15  Same as 14 but with restricted color scale
 cRange = [0, 20];
-outFile = strcat(fullDir, filePrefix,'_AllMortEventsMap_Scale20','.pdf');
+outFile = strcat(fullDir, modelChoices,'_AllMortEventsMap_Scale20','.pdf');
 oneMap(15, activeLatLon(:, 1), activeLatLon(:, 2), eventsAllYears(activeReefs), cRange, jet, tName, outFile, false);
 
 
 %% Figure 16  Same as 14 but with log2 of the number of events
 % tName = 'Bleaching Events Between 1861-2100 (log base 2)';
-% outFile = strcat(fullDir, filePrefix, '_AllMortEventsMap_log2', '.pdf');
+% outFile = strcat(fullDir, modelChoices, '_AllMortEventsMap_log2', '.pdf');
 % oneMap(16, activeLatLon(:, 1), activeLatLon(:, 2), log2(eventsAllYears(activeReefs)), [], jet, tName, outFile, false);
 
 
@@ -127,7 +127,7 @@ end
 % Convert from indices to year.  NaN stays NaN.
 firstUnhealthy = firstUnhealthy + fullYearRange(1) - 1;
 tName = strcat(modelChoices,'. First Year of Unhealthy Reef');
-fileBase = strcat(fullDir, filePrefix, '_FirstUnHealthyReef');
+fileBase = strcat(fullDir, modelChoices, '_FirstUnHealthyReef');
 
 outFile = strcat(fileBase, '.pdf');
 oneMap(17, activeLatLon(:, 1), activeLatLon(:, 2), firstUnhealthy(activeReefs), [], customColors, tName, outFile, false);
@@ -159,7 +159,7 @@ end
 lastHealthy = lastHealthy + fullYearRange(1) - 1;
 lastYearRange = [1950 2100];
 tName = strcat(modelChoices,'. Last Year of Healthy Reef');
-fileBase = strcat(fullDir, filePrefix, '_LastHealthyReef');
+fileBase = strcat(fullDir, modelChoices, '_LastHealthyReef');
 outFile = strcat(fileBase, '.pdf');
 oneMap(18, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
 % This one may be post-processed, so save .fig
@@ -203,7 +203,7 @@ end
 lastHealthy = lastHealthy + fullYearRange(1) - 1;
 lastYearRange = [1950 2100];
 tName = strcat(modelChoices,'. Last Year of Healthy Reef');
-fileBase = strcat(fullDir, filePrefix, '_LastHealthyBothTypes');
+fileBase = strcat(fullDir, modelChoices, '_LastHealthyBothTypes');
 outFile = strcat(fileBase, '.pdf');
 oneMap(19, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
 % This one may be post-processed, so save .fig
@@ -246,7 +246,7 @@ end
 lastHealthy = lastHealthy + fullYearRange(1) - 1;
 lastYearRange = [1950 2100];
 tName = strcat(modelChoices,'. Last Year of Healthy Reef');
-fileBase = strcat(fullDir, filePrefix, '_LastHealthyBothTypesV2');
+fileBase = strcat(fullDir, modelChoices, '_LastHealthyBothTypesV2');
 outFile = strcat(fileBase, '.pdf');
 oneMap(20, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
 % This one may be post-processed, so save .fig

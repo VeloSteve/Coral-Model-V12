@@ -14,15 +14,15 @@ classdef modelLogicalParameter < modelParameter
     end
     
     methods
-        function p = modelLogicalParameter(n, type, def)
+        function p = modelLogicalParameter(cat, n, type, def)
             %modelParameter Construct an instance of this class
             %   Detailed explanation goes here
-            if nargin < 3
-                error('Logical parameters must be defined with a name, type, and default.');
+            if nargin < 4
+                error('Logical parameters must be defined with a category, name, type, and default.');
             end
             % The two parameters sent to the superclass are mostly
             % handled there.
-            p@modelParameter(n, type);
+            p@modelParameter(cat, n, type);
             if ~strcmp(type, 'logical')
                 error('Integer parameters must be specified by name as integers.');
             end
@@ -54,6 +54,14 @@ classdef modelLogicalParameter < modelParameter
         function [v] = get(obj)
             v = obj.value;
             fprintf('mLP returning %s %d\n', v, v);
+        end
+        
+        function vs = asString(obj)
+            if obj.value
+                vs = 'true';
+            else
+                vs = 'false';
+            end
         end
     end
 end

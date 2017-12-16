@@ -12,15 +12,15 @@ classdef modelCharParameter < modelParameter
     end
     
     methods
-        function p = modelCharParameter(n, type, def, poss)
+        function p = modelCharParameter(cat, n, type, def, poss)
             %modelParameter Construct an instance of this class
             %   Detailed explanation goes here
-            if nargin < 3
-                error('String parameters must be defined with a name, type, and default; a cell array of allowed values is optional.');
+            if nargin < 4
+                error('String parameters must be defined with a category, name, type, and default; a cell array of allowed values is optional.');
             end
             % The two parameters sent to the superclass are mostly
             % handled there.
-            p@modelParameter(n, type);
+            p@modelParameter(cat, n, type);
             if ~strcmp(type, 'string')
                 error('String parameters must be specified by name as strings.');
             end
@@ -30,7 +30,7 @@ classdef modelCharParameter < modelParameter
             else
                 error('Default must be a string.')
             end
-            if nargin == 4
+            if nargin == 5
                 if iscellstr(poss)
                     p.possible = poss;    
                 else

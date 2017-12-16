@@ -13,15 +13,15 @@ classdef modelDoubleParameter < modelParameter
     end
     
     methods
-        function p = modelDoubleParameter(n, type, def, min, max)
+        function p = modelDoubleParameter(cat, n, type, def, min, max)
             %modelParameter Construct an instance of this class
             %   Detailed explanation goes here
-            if nargin < 5
-                error('Double parameters must be defined with a name, type, default, min, and max.');
+            if nargin < 6
+                error('Double parameters must be defined with a category, name, type, default, min, and max.');
             end
             % The two parameters sent to the superclass are mostly
             % handled there.
-            p@modelParameter(n, type);
+            p@modelParameter(cat, n, type);
             if ~strcmp(type, 'double')
                 error('Double parameters must be specified by name as double.');
             end
@@ -41,7 +41,7 @@ classdef modelDoubleParameter < modelParameter
                 if v >= obj.minimum && v <= obj.maximum
                     obj.value = v;
                 else
-                    error('Value of %s must be between %f and %f.  %f is not.', obj.name, obj.min, obj.max, v);
+                    error('Value of %s must be between %f and %f.  %f is not.', obj.name, obj.minimum, obj.maximum, v);
                 end
             else
                 error('You can not set a double to the given value.');
@@ -51,6 +51,10 @@ classdef modelDoubleParameter < modelParameter
         function [v] = get(obj)
             v = obj.value;
             fprintf('mDP returning %s %d\n', v, v);
+        end
+        
+        function vs = asString(obj)
+            vs = num2str(obj.value);
         end
     end
 end

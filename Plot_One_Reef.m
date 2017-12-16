@@ -12,7 +12,7 @@
 % hist - historical mean temperature
 % C    - Coral population history
 % S    - Symbiont population history
-% Data - 1 for ESM2M, 2 for HadISST dataset
+% dataset - ESM2M, or HadISST for file name.
 % I    - index of a reference date in the time array
 % gi   - symbiont genotype
 % ri   - symbiont growth rate
@@ -22,7 +22,6 @@
 % pdfDirectory  - Output directory for the current run
 % LOC  - location of current cell, like Loc but with underscores
 % E    - evolution on or off
-% dateString - today's date as formatted in the calling program
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evolutionary model for coral cover (from Baskett et al. 2009)     %
@@ -30,8 +29,8 @@
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
-            hist, Data, SGPath, outputPath, k, pdfDirectory, LOC, ...
-            E, dateString, months)
+            hist, dataset, SGPath, k, pdfDirectory, LOC, ...
+            E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
     persistent figHandle DHM Time; %#ok<PSET>
@@ -279,14 +278,11 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     %% Save with Date Stamp
     format shortg;
 
-    if Data == 1
-        name = strcat('SDC_',dateString,'_',num2str(k),'_normSST',RCP,LOC,'prop',num2str(shortprop),'_E',num2str(E));
-    else
-        name = strcat('SDC_',dateString,'_',num2str(k),'_HADISST',LOC,'prop',num2str(shortprop),'_E',num2str(E));
-    end
-    fullName = strcat(outputPath, pdfDirectory, name);
+    name = strcat('SDC_',num2str(k),'_',dataset,RCP,LOC,'prop',num2str(shortprop),'_E',num2str(E));
+
+    fullName = strcat(pdfDirectory, name);
     if verLessThan('matlab', '8.2')
-        saveas(gcf, name, 'fig');
+        saveas(gcf, fullname, 'fig');
     else
         savefig(strcat(fullName, '.fig'));
     end

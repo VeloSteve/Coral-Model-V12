@@ -35,53 +35,53 @@ classdef ParameterDictionary
             % allowed values) depending on type.
             p.params = containers.Map;
             
-            % Bookkeeping
-            addOne(p, modelCharParameter('codeBase', 'string', 'D:/GitHub/Coral-Model-V12/'));
-            addOne(p, modelCharParameter('sharedData', 'string', 'D:/GitHub/Coral-Model-Data/'));
-            addOne(p, modelCharParameter('outputBase', 'string', 'D:/CoralTest/V12Test/'));
+            % Paths
+            addOne(p, modelCharParameter('path', 'codeBase', 'string', 'D:/GitHub/Coral-Model-V12/'));
+            addOne(p, modelCharParameter('path', 'sharedData', 'string', 'D:/GitHub/Coral-Model-Data/'));
+            addOne(p, modelCharParameter('path', 'outputBase', 'string', 'D:/CoralTest/V12Test/'));
             % Model constants and psw2 values for each case.
-            addOne(p, modelCharParameter('matPath', 'string', 'D:/GitHub/Coral-Model-V12/mat_files/'));
+            addOne(p, modelCharParameter('path', 'matPath', 'string', 'D:/GitHub/Coral-Model-V12/mat_files/'));
             % ESM2M_SSTR_JD data
-            addOne(p, modelCharParameter('sstPath', 'string', 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/'));
+            addOne(p, modelCharParameter('path', 'sstPath', 'string', 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/'));
             % DHM and Omega data
-            addOne(p, modelCharParameter('sgPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
+            addOne(p, modelCharParameter('path', 'sgPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
             % Mapping code - not ours, so don't publish the repository.
-            addOne(p, modelCharParameter('m_mapPath', 'string', 'D:/GitHub/m_map/'));
-            addOne(p, modelCharParameter('GUIBase', 'string', 'C:/'));
+            addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
+            addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
             
             % Science
-            addOne(p, modelCharParameter('RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp 85'}));
-            addOne(p, modelCharParameter('dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
-            addOne(p, modelLogicalParameter('OA', 'logical', false));
-            addOne(p, modelLogicalParameter('E', 'logical', false));
-            addOne(p, modelIntParameter('superStart', 'integer', 2035, 1861, 2100));
-            addOne(p, modelIntParameter('superMode', 'integer', 0, 0, 6));
-            addOne(p, modelDoubleParameter('superAdvantage', 'double', 0.0, 0.0, 10.0));
+            addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp 85'}));
+            addOne(p, modelCharParameter('science', 'dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
+            addOne(p, modelLogicalParameter('science', 'OA', 'logical', false));
+            addOne(p, modelLogicalParameter('science', 'E', 'logical', false));
+            addOne(p, modelIntParameter('science', 'superStart', 'integer', 2035, 1861, 2100));
+            addOne(p, modelIntParameter('science', 'superMode', 'integer', 0, 0, 6));
+            addOne(p, modelDoubleParameter('science', 'superAdvantage', 'double', 0.0, 0.0, 10.0));
 
             
             % Computing
             % TODO everyx can be  a string or integer in V11!  Redefine it?
-            addOne(p, modelCharParameter('architecture', 'string','PC', {'PC', 'Mac', 'Linux'}));
-            addOne(p, modelIntParameter('everyx', 'integer', 1, 1, 1925));
-            addOne(p, modelCharParameter('specialSubset', 'string', 'no', {'no', 'eq', 'lo', 'hi', 'keyOnly'}));
+            addOne(p, modelCharParameter('comp', 'architecture', 'string','PC', {'PC', 'Mac', 'Linux'}));
+            addOne(p, modelIntParameter('comp', 'everyx', 'integer', 1, 1, 1925));
+            addOne(p, modelCharParameter('comp', 'specialSubset', 'string', 'no', {'no', 'eq', 'lo', 'hi', 'keyOnly', 'useEveryx'}));
             pc = parcluster('local');
             maxW = pc.NumWorkers;
-            addOne(p, modelIntParameter('useThreads', 'integer', 2, 1, maxW));
-            addOne(p, modelLogicalParameter('skipPostProcessing', 'logical', false));
-            addOne(p, modelLogicalParameter('doProgressBar', 'logical', false));
+            addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
+            addOne(p, modelLogicalParameter('comp', 'skipPostProcessing', 'logical', false));
+            addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
             
             % Output options
-            addOne(p, modelIntParameter('keyReefs', 'integer', 5, 1, 1925));
-            addOne(p, modelLogicalParameter('newMortYears', 'logical', false));
-            addOne(p, modelLogicalParameter('doCoralCoverFigure', 'logical', true));
-            addOne(p, modelLogicalParameter('allPDFs', 'logical', false));
-            addOne(p, modelLogicalParameter('doPlots', 'logical', true));
-            addOne(p, modelLogicalParameter('doCoralCoverFigure', 'logical', true));
-            addOne(p, modelLogicalParameter('doCoralCoverMaps', 'logical', true));
-            addOne(p, modelLogicalParameter('doGenotypeFigure', 'logical', false));
-            addOne(p, modelLogicalParameter('doGrowthRateFigure', 'logical', false));
-            addOne(p, modelLogicalParameter('doDetailedStressStats', 'logical', false));
-            addOne(p, modelLogicalParameter('saveVarianceStats', 'logical', false));
+            addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925));
+            addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
+            addOne(p, modelLogicalParameter('output', 'allPDFs', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'doPlots', 'logical', true));
+            addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
+            addOne(p, modelLogicalParameter('output', 'doCoralCoverMaps', 'logical', true));
+            addOne(p, modelLogicalParameter('output', 'doGenotypeFigure', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'doGrowthRateFigure', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'doDetailedStressStats', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'saveVarianceStats', 'logical', false));
             
             % All allowed parameters are now defined.  If arguments are
             % given set parameters from there.  This provides validation.
@@ -177,18 +177,49 @@ classdef ParameterDictionary
               addOne(obj, p);
             end
         end
+        
+        function mc = getModelChoices(obj)
+            s = obj.getStruct();  % Could get variables one-by-one, but this seems easier.
+            mc = strcat(s.dataset, '.', s.RCP, '.E', num2str(s.E), ...
+                '.OA', num2str(s.OA), '.sM', num2str(s.superMode), '.sA', ...
+                num2str(s.superAdvantage));
+        end
                
         function dName = getDirectoryName(obj, suffix)
             % Returns a string suitable for naming an output directory.
+            % This is meant to return a name which identifies key
+            % parameters of the current run.  It is not a full path.
             format shortg; c = clock;
             dateString = strcat(num2str(c(1)),num2str(c(2),'%02u'),num2str(c(3),'%02u')); % today's date stamp
-            s = obj.getStruct();  % Could get variables one-by-one, but this seems easier.
-            modelChoices = strcat(s.dataset,s.RCP,'.E',num2str(s.E), ...
-                '.OA',num2str(s.OA), '_sM',num2str(s.superMode),'_sA', ...
-                num2str(s.superAdvantage), '_',dateString);
-            dName = strcat(s.outputBase, modelChoices, suffix);
+            name = strcat(obj.getModelChoices(), '.', dateString);
+            dName = strcat(obj.get('outputBase'), name, suffix);
         end
         
+        function vars = print(obj, category)
+            if nargin == 2
+                filter = category;
+            else
+                filter = '';
+            end
+            
+            % Parameter categories to print, in order
+            cats = {'science', 'path', 'comp', 'output'};
+            vars = sprintf('Category  Name                    Value \n');
+            for c = 1:4
+                cat = cats{c};
+                if isempty(filter) || strcmp(filter, cat)
+                    for i = keys(obj.params)
+                        key = i{1};
+                        par = obj.params(key);
+                        if ~strcmp(par.category, cat)
+                            continue;
+                        end
+                        vars = sprintf('%s%-9s %-24s %-15s \n', vars, par.category, par.name, par.asString());    
+                    end
+                end
+            end
+
+        end
 
         
     end

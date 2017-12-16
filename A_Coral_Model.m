@@ -15,7 +15,9 @@ if nargin < 1
     error('The coral model requires input parameters.');
 end
 % Get a structure of run parameters in any of several ways.
-p = getInputStructure(parameters);
+% Be sure we ALSO have a ParameterDictionary because it can be used to
+% generate path names.
+[ps, pd] = getInputStructure(parameters);
 
 % Clear variables which I want to examine between runs, but not carry over.
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
@@ -31,13 +33,13 @@ dt = 0.125;         % The fraction of a month for 2nd order R-K time steps
 % Now they are received as inputs.  This call is admittedly ugly, but it
 % does serve as a list of all variable arguments.  This is intended to
 % allow A_Coral_Model to never be edited during normal use.
-[RCP, E, OA, superMode, superAdvantage, superStart,...
+[dataset, RCP, E, OA, superMode, superAdvantage, superStart,...
  outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
  architecture, useThreads, everyx, specialSubset, ...
  keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
- saveVarianceStats, newMortYears] = explodeVariables(p);
+ saveVarianceStats, newMortYears] = explodeVariables(ps);
 
 %% Handle super symbiont options
 [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
@@ -47,8 +49,8 @@ dt = 0.125;         % The fraction of a month for 2nd order R-K time steps
 keyReefs = unique(keyReefs);
 
 % A list of reefs for which to save data at maximum resolution for detailed
-%  analysis or plotting.
-dataReefs = [];
+%  analysis or plotting.  Not in the GUI - mainly for diagnistics.
+dataReefs = [17 23];
 
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
@@ -72,14 +74,6 @@ fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
 %% Less frequently changed model parameters
 
-% SST DATASET?
-Data = 1; % 1=ESM2M_norm;  2=HADISST (through 3/16/16)
-if Data == 1
-    dataset = 'ESM2M';
-else
-    dataset = 'HadISST';
-end
-
 initYear = '2001';  % SelV and hist will be initialized from 1861 to this year.
 %% Parameters for the bleaching model (massive first, then branching)
 % Values in the comments to the right were used for 4PM 1/9/2017 outputs.
@@ -102,27 +96,24 @@ end
 
 
 %% Some useful paths and text strings to be used later.
-format shortg; c = clock; dateString = strcat(num2str(c(1)),num2str(c(2),'%02u'),num2str(c(3),'%02u')); % today's date stamp
-% A string frequently used in titles and file names:
-modelChoices = strcat(dataset, RCP,'.E',num2str(E),'.OA',num2str(OA));
-pdfDirectory = strcat(modelChoices,...
-    '_sM',num2str(superMode),'_sA',num2str(superAdvantage),'_',dateString,'_figs/');
-mkdir(outputPath, pdfDirectory);
-
+% A string for building long ugly file names that reflect the run
+% parameters.
+modelChoices = pd.getModelChoices();
+% pdfDirectory contains the per-reef pdfs and a mat file
+% mapDirectory contains maps, console output, and miscellaneous figures
+pdfDirectory = strcat(pd.getDirectoryName('_figs/'));
+mapDirectory = strcat(pd.getDirectoryName('_maps/'));
+mkdir(pdfDirectory);
+mkdir(mapDirectory);
 mkdir(strcat(outputPath, 'bleaching'));
-% Map directory is used for maps, but also for miscellaneous text and
-% plotted output, since it is the least cluttered of the directories.
-mapDirectory = strrep(pdfDirectory, '_figs', '_maps');
-mkdir(outputPath, mapDirectory);
-fullMapDir = strcat(outputPath, mapDirectory);
 
 % Initialize a file for logging most of what goes to the console.
-echoFile = fopen(strcat(outputPath, mapDirectory, 'console.txt'), 'w+');
+echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
 logTwo(echoFile); % Required first call to set output path.
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 % Extract SSTs for a ALL reef grid cells
-[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
+[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
 lenTIME = length(TIME);
 assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 
@@ -146,10 +137,12 @@ if OA == 1
     % less logic inside the time interations.
     [Omega_factor] = omegaToFactor(Omega_all);
     % TEMPORARY:
-    OFmean = mean(Omega_factor, 1);
-    %Plot_ArbitraryYvsYears(OFmean, TIME, 'Omega Effect on Growth', 'Growth rate factor');
-    Omean = mean(Omega_all, 1);
-    %Plot_ArbitraryYvsYears(Omean, TIME, 'Omega vs Time', 'Aragonite saturation state')
+    %{
+        OFmean = mean(Omega_factor, 1);
+        Plot_ArbitraryYvsYears(OFmean, TIME, 'Omega Effect on Growth', 'Growth rate factor');
+        Omean = mean(Omega_all, 1);
+        Plot_ArbitraryYvsYears(Omean, TIME, 'Omega vs Time', 'Aragonite saturation state');
+    %}
 else
     % Wasteful to make a big empty array, but it makes entering the
     % parallel loop simpler.  Note that only the last value is set.
@@ -161,20 +154,17 @@ clearvars Omega_all;
 %% SUB-SAMPLE REEF GRID CELLS
 % Since just iterating with "everyx" won't hit all keyReefs, build a list
 % of reefs for the current run.
-if strcmp(specialSubset, 'no') && isnumeric(everyx)
-    if everyx >= 10000
-        % Only use keyReefs
-        toDo = [];
-    else
-        toDo = 1:everyx:maxReefs;   % as specified by everyx
-    end
+if strcmp(specialSubset, 'no')
+    toDo = 1:maxReefs;
+elseif strcmp(specialSubset, 'useEveryx') && isnumeric(everyx)
+    toDo = 1:everyx:maxReefs;   % as specified by everyx
 elseif strcmp(specialSubset, 'keyOnly')
     toDo = [];
 else
     % specialSubset can specify a reef area (eq, lo, hi)
     toDo = latitudeBin(specialSubset, Reefs_latlon);
 end
-toDo = unique([toDo keyReefs]); % add keyReefs defined above
+toDo = unique([toDo keyReefs dataReefs]); % add keyReefs defined above
 if isempty(toDo)
     error('No reefs specified.  Exiting.');
 end
@@ -248,7 +238,7 @@ fullYearRange = [startYear startYear+years-1];
 
 time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time 4X times (8X when dt = 0.125)
 % Set index for mean historical Temp between 1861-2000 (ESM2M_historical; yrs used in Baskett et al 2009)
-% Note: original code had a different end point for Data=2 than Data=1.
+% Note: original code had a different end point for SST dataset ESM2M vs. HadISST.
 initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYear), time);
 
 % Convert years for symbiont activation to indexes in the time array for
@@ -437,13 +427,13 @@ parfor (parSet = 1:queueMax, parSwitch)
                 suff = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC_Reef%d', RCP, E, superMode, superAdvantage, k);
             end
             if doGenotypeFigure
-                genotypeFigure(fullMapDir, suff, k, time, gi, suppressSI); %#ok<UNRCH>
+                genotypeFigure(mapDirectory, suff, k, time, gi, suppressSI); %#ok<UNRCH>
             end
             if doGrowthRateFigure
                 % Growth rate vs. T as well
                 % TODO: dies when suppressSI = 0
                 if strcmp(RCP(1:3), 'rcp') %#ok<UNRCH>
-                    growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
+                    growthRateFigure(mapDirectory, suff, datestr(time(suppressSI), 'yyyy'), ...
                         k, temp, fullYearRange, gi, vgi, suppressSI, ...
                         coralSymConstants, SelVx, RCP);         
                 end
@@ -465,8 +455,8 @@ parfor (parSet = 1:queueMax, parSwitch)
         if doPlots && (any(keyReefs == k) || allPDFs)
             % Now that we have new stats, reproduce the per-reef plots.
             Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
-                  hist, Data, sgPath, outputPath, k, ...
-                  pdfDirectory, LOC, E, dateString, lenTIME);
+                  hist, dataset, sgPath, k, ...
+                  pdfDirectory, LOC, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
@@ -632,27 +622,28 @@ if ~skipPostProcessing
     end
 
     format shortg;
-    filePrefix = strcat(modelChoices,'_',dateString);
     % Don't save all this data if we're just optimizing.
     if doPlots
-        % fname = strcat(filePrefix,'.mat');
-        fname = strcat(outputPath, pdfDirectory, filePrefix, '.mat');
+        % Save parameters which created this run.  Note that ps (the
+        % parameter structure) makes most of the others redundant, but
+        % those are small so leave them for easy reference.
+        fname = strcat(pdfDirectory, modelChoices, '.mat');
         save(fname, 'toDo', ...
             'E','OA','pdfDirectory','dataset', ...
-            'Reefs_latlon','everyx','RCP','reefsThisRun');
+            'Reefs_latlon','everyx','RCP','reefsThisRun', 'ps');
 
         if doCoralCoverMaps
             addpath(m_mapPath);
-            MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, ...
+            MapsCoralCoverClean(mapDirectory, Reefs_latlon, toDo, lastYearAlive, ...
                 events85_2010, eventsAllYears, frequentBleaching, ...
                 mortState, bleachState, ...
                 fullYearRange, ...
-                modelChoices, filePrefix); %#ok<UNRCH>
+                modelChoices); %#ok<UNRCH>
         end
 
         if doCoralCoverFigure
             coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
-                    superAdvantage, fullMapDir) %#ok<UNRCH>
+                    superAdvantage, mapDirectory) %#ok<UNRCH>
         end
     end
     % Note that percentMortality is not used in normal runs, but it is
@@ -670,8 +661,8 @@ if ~skipPostProcessing
         if everyx ~= 1
             disp('WARNING: saving mortality and bleaching should only be done when all reefs are computed.');
         end
-        saveMortYears(mortState, startYear, RCP, E, OA, fullMapDir, ...
-            modelChoices, filePrefix, Reefs_latlon, bleachState, maxReefs);
+        saveMortYears(mortState, startYear, RCP, E, OA, mapDirectory, ...
+            modelChoices, Reefs_latlon, bleachState, maxReefs);
     end
 
     logTwo('Bleaching by event = %6.4f\n', Bleaching_85_10_By_Event);

@@ -6,10 +6,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Extract SSTs from normalized GFDL-ESM2M (JD) or HADISST
-function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP)
+function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP)
     % Get ESM2M Normalized SSTs for a ALL reef grid cells
 
-    if Data == 1 % GFDL-ESM2M_norm (John's normalized dataset)
+    if strcmp(dataset, 'ESM2M') % GFDL-ESM2M_norm (John's normalized dataset)
         if strcmp(RCP, 'rcp26');load(strcat(sstPath, 'ESM2M_SSTR_JD.mat'),'ModelTime','SSTR_2M26_JD','ESM2M_reefs_JD');
             SST = SSTR_2M26_JD; clear SSTR_2M85_JD;  % RCP2.6
         elseif strcmp(RCP, 'rcp45');load(strcat(sstPath, 'ESM2M_SSTR_JD.mat'),'ModelTime','SSTR_2M45_JD','ESM2M_reefs_JD');
@@ -24,7 +24,7 @@ function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 
             SST = SSTR; clear SSTR;  % control
             ESM2M_reefs_JD = ESMUnique_W;  % kludge so the name fits code below.
         else
-            fprintf('ERROR: SST data choice %s is not defined for Data = %d\n', RCP, Data);
+            fprintf('ERROR: SST data choice %s is not defined for dataset = %s\n', RCP, dataset);
         end
         % 'ESM2M_reefs_JD' gives lat/lon (1925 x 2)
         % 'SSTR_2M85_JD' is temp in C ; size (1925 x 2880)
@@ -35,7 +35,7 @@ function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 
         % the first entry.
         startYear = str2double(datestr(TIME(1), 'yyyy'));
         
-    elseif Data == 2 % HadISST (through March 16, 2016)
+    elseif strcmp(dataset, 'HadISST') % HadISST (through March 16, 2016)
         load('~/Dropbox/Matlab/SymbiontGenetics/HadISST_SSTs.mat','time','HAD_latlon','SST_reefs');
         % 'HAD_latlon' gives lat/lon (1539 x 2)
         % 'SST_reefs' is temp in C ; size (1539 x 1755)
@@ -45,10 +45,7 @@ function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 
         % Old hardwire: strdate = 1870;
         startYear = str2double(datestr(TIME(1), 'yyyy'));
     else
-        fprintf('Data option %d is not defined.\n', Data);
+        fprintf('Data option %s is not defined.\n', dataset);
     end
 
-    % JSR Never used, so don't initialize.
-    %MassBleachEvents = NaN(length(Reefs_latlon),1);
-    %MassBleachYrs = NaN(length(Reefs_latlon),size(SST,2)/12);
 end

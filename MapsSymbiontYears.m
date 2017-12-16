@@ -5,7 +5,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapsSymbiontYears(fullDir, modelChoices, filePrefix, years, Reefs_latlon )
+function [] = MapsSymbiontYears(fullDir, modelChoices, years, Reefs_latlon )
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -37,8 +37,8 @@ colorbar('Ticks',[2000 2020 2040 2060 2080 2100],...
     'Limits',[2000 2100],...
     'Color',[0.15 0.15 0.15]);
 title(strcat(modelChoices,'. Year Enhanced Symbionts are Introduced'))
-print('-dpdf', '-r200', strcat(fullDir, filePrefix,'_SymbiontIntro','.pdf'));
-savefig(strcat(fullDir, filePrefix,'_SymbiontIntro', '.fig'));
+print('-dpdf', '-r200', strcat(fullDir, modelChoices,'_SymbiontIntro','.pdf'));
+savefig(strcat(fullDir, modelChoices,'_SymbiontIntro', '.fig'));
 
 hold off;
 

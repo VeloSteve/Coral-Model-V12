@@ -13,15 +13,15 @@ classdef modelIntParameter < modelParameter
     end
     
     methods
-        function p = modelIntParameter(n, type, def, min, max)
+        function p = modelIntParameter(cat, n, type, def, min, max)
             %modelParameter Construct an instance of this class
             %   Detailed explanation goes here
-            if nargin < 5
-                error('Integer parameters must be defined with a name, type, default, min, and max.');
+            if nargin < 6
+                error('Integer parameters must be defined with a category, name, type, default, min, and max.');
             end
             % The two parameters sent to the superclass are mostly
             % handled there.
-            p@modelParameter(n, type);
+            p@modelParameter(cat, n, type);
             if ~strcmp(type, 'integer')
                 error('Integer parameters must be specified by name as integers.');
             end
@@ -52,7 +52,7 @@ classdef modelIntParameter < modelParameter
                 if min(v) >= obj.minimum && max(v) <= obj.maximum
                     obj.value = v;
                 else
-                    error('Value of %s must be between %d and %d.  %d is not.', obj.name, obj.min, obj.max, v);
+                    error('Value of %s must be between %d and %d.  %d is not.', obj.name, obj.minimum, obj.maximum, v);
                 end
             else
                 error('You can not set an integer to a non-integer value.');
@@ -61,6 +61,19 @@ classdef modelIntParameter < modelParameter
         
         function [v] = get(obj)
             v = obj.value;
+        end
+        
+        function vs = asString(obj)
+            if length(obj.value) == 1
+                vs = num2str(obj.value);
+            else
+                vs = '';
+                comma = '';
+                for i = 1:length(obj.value)
+                    vs = strcat(vs, comma, num2str(obj.value(i)));
+                    comma = ',';
+                end
+            end
         end
 
     end
