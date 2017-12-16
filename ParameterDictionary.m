@@ -69,7 +69,9 @@ classdef ParameterDictionary
             addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
             addOne(p, modelLogicalParameter('comp', 'skipPostProcessing', 'logical', false));
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
-            
+            % Model source
+            addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
+
             % Output options
             addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925));
             addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
@@ -88,7 +90,7 @@ classdef ParameterDictionary
             if nargin == 0
                 % okay, use defaults
             elseif nargin ~= 2
-                error('ParameterDictionary constructor requires zero or two arguments.');
+                error('ParameterDictionary constructor requires zero or two arguments.  The first can be ''handle'', ''file'', or ''json''.');
             else
                 % Inputs specify either a file containing just a JSON
                 % string on a single line, or the JSON string itself.
@@ -107,9 +109,20 @@ classdef ParameterDictionary
                 elseif strcmp(inputType, 'json')
                     p.setFromJSON(inValue);
                 else
-                    error('Only inputs of type ''file'' or ''json'' are supported.');
+                    error('Only inputs of type ''handle'', ''file'' or ''json'' are supported.');
                 end
             end
+            
+            % To be sure it's not overwritten by a saved value, set the
+            % model version here.
+            [mp, ~, ~] = fileparts(which('ParameterDictionary'));
+            dirParts = split(mp, {'/', '\'});
+            sd = dirParts{end};
+            format shortg; c = clock;
+            dateString = strcat(num2str(c(1)),num2str(c(2),'%02u'),num2str(c(3),'%02u'));
+            txt = strcat(sd, {' as of '}, dateString);
+            p.set('modelVersion', txt{1});
+
         end
         
         function obj = set(obj, name, value)
