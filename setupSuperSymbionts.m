@@ -2,6 +2,8 @@ function [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
     setupSuperSymbionts(superMode, RCP, E, superAdvantage, superStart, maxReefs)
 %SETUPSUPERSYMBIONTS Set symbiont internal variables based on input choices.
 
+    % Some MATLAB doesn't like mixing int32 and double, so
+    superStart = double(superStart);
     startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
     if superMode >= 3 && superMode <=5
         fn = strcat('longMortYears_', RCP, '_', num2str(E));
