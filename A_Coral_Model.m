@@ -165,6 +165,8 @@ else
     toDo = latitudeBin(specialSubset, Reefs_latlon);
 end
 toDo = unique([toDo keyReefs dataReefs]); % add keyReefs defined above
+% toDo entries make sense as integers, but MATLAB likes doubles!
+toDo = double(toDo);
 if isempty(toDo)
     error('No reefs specified.  Exiting.');
 end
@@ -417,7 +419,7 @@ parfor (parSet = 1:queueMax, parSwitch)
 
         if any(dataReefs == k) % Save detailed history
             matName = strcat('DetailedSC_Reef', num2str(k), '_', modelChoices, '.mat');
-            saveAsMat(matName, C, S, time, temp);
+            saveAsMat(strcat(mapDirectory, matName), C, S, time, temp);
         end
         if doPlots && (doGrowthRateFigure || doGenotypeFigure) && any(keyReefs == k)  % temporary genotype diagnostic
             suff = '';
