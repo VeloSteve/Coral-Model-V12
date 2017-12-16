@@ -113,8 +113,8 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     end
         
     hold off;
-    print('-dpdf', '-r200', '-bestfit', strcat(fullDir, oh, 'GrowthCurve', suffix, '.pdf'));
-    savefig(strcat(fullDir, 'GrowthCurve', suffix, '.fig'));
+    print(figHandle, '-dpdf', '-r200', '-bestfit', strcat(fullDir, oh, 'GrowthCurve', suffix, '.pdf'));
+    savefig(figHandle, strcat(fullDir, 'GrowthCurve', suffix, '.fig'));
 end
 
 % Find the low and high temperature for the given range of years.  This
