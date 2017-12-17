@@ -15,7 +15,7 @@ function [ps, pd] = getInputStructure(parameters)
         pd = parameters;
     else
         % If it's not a ParameterDictionary, see if it's a JSON string.
-        try ps = jsondecode(parameters)
+        try ps = jsondecode(parameters);
             % TODO: store this in a ParameterDictionary so inputs are
             % validated.
             disp('Got input values from a JSON string.');
@@ -36,7 +36,7 @@ function [ps, pd] = getInputStructure(parameters)
                 end
                 fprintf('Decoding %s\n', json);
 
-                try ps = jsondecode(json)
+                try ps = jsondecode(json);
                     disp('Got input values from LastChanceParameters.txt');
                 catch ME
                     disp('Invalid input in LastChanceParameters.txt !');

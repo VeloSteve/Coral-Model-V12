@@ -42,7 +42,7 @@ classdef modelCharParameter < modelParameter
         
         function obj = set(obj, v)
             if ischar(v)
-                if ~isempty(obj.possible) && any(strcmp(obj.possible, v));
+                if ~isempty(obj.possible) && any(strcmp(obj.possible, v))
                     obj.value = v;
                 elseif isempty(obj.possible)
                     % No constraints on this parameter.

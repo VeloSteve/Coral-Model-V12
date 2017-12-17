@@ -42,10 +42,8 @@ function Plot_ArbitraryYvsYears(Y, time, tText, yText)
         fprintf('B Length of time = %d and Y = %d after factor of %d\n', length(time), length(Y), factor);
     end
 
-
-    fh = figure();
-
-    ph = plot(time, Y, 'k'); 
+    figure();
+    plot(time, Y, 'k'); 
 
     title(tText);
     ylabel(yText);

@@ -29,7 +29,7 @@ m_grid('box','fancy','linestyle','none','backcolor',[.9 .99 1], 'fontsize', 11, 
 [LONG,LAT] = m_ll2xy(Reefs_latlon(:, 1), Reefs_latlon(:,2)); hold on % convert reef points to M-Map lat long
 %caxis([min(years), max(years)]);
 caxis([2000, 2100]);  % Limit and make consistent
-scat = scatter(LONG, LAT, 5, years); %[.7 .7 .7]) % plot reefs  onto map
+scatter(LONG, LAT, 5, years); %[.7 .7 .7]) % plot reefs  onto map
 
 colormap(hot); %(flipud(jet))
 %colorbar

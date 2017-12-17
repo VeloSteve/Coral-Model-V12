@@ -26,11 +26,11 @@
       <param.EnableDebugging>false</param.EnableDebugging>
       <param.GenerateReport>true</param.GenerateReport>
       <param.LaunchReport>false</param.LaunchReport>
-      <param.ReportPotentialDifferences>true</param.ReportPotentialDifferences>
+      <param.ReportPotentialDifferences>false</param.ReportPotentialDifferences>
       <param.DefaultTestFile />
       <param.MergeInstrumentationResults>false</param.MergeInstrumentationResults>
       <param.VerificationMode>option.VerificationMode.None</param.VerificationMode>
-      <param.VerificationStatus>option.VerificationStatus.Passed</param.VerificationStatus>
+      <param.VerificationStatus>option.VerificationStatus.FailedTest</param.VerificationStatus>
       <param.CustomSourceCode />
       <param.CustomHeaderCode />
       <param.CustomInitializer />
@@ -162,7 +162,7 @@
       <param.GenerateCodeReplacementReport>false</param.GenerateCodeReplacementReport>
       <param.HighlightPotentialDataTypeIssues>false</param.HighlightPotentialDataTypeIssues>
       <param.LaunchReport>false</param.LaunchReport>
-      <param.ReportPotentialDifferences>true</param.ReportPotentialDifferences>
+      <param.ReportPotentialDifferences>false</param.ReportPotentialDifferences>
       <param.SILDebugging>false</param.SILDebugging>
       <param.SILPILCheckConstantInputs>true</param.SILPILCheckConstantInputs>
       <param.SILPILSyncGlobalData>true</param.SILPILSyncGlobalData>
@@ -741,9 +741,9 @@
       </unset>
     </profile>
     <param.objective>option.objective.c</param.objective>
-    <param.WorkflowStep>verifyCompatibility</param.WorkflowStep>
+    <param.WorkflowStep>generateCode</param.WorkflowStep>
     <param.TestSnippets>
-      <item>A_Coral_Model('asdffff')</item>
+      <item>A_Coral_Model(pd)</item>
     </param.TestSnippets>
     <param.DefaultImportExportVariable>config</param.DefaultImportExportVariable>
     <param.ExternalFcnMajority>column</param.ExternalFcnMajority>
@@ -762,7 +762,7 @@
     <param.AutoInferUnboundedSizeThreshold>2048</param.AutoInferUnboundedSizeThreshold>
     <param.EnableFixedPointStep>false</param.EnableFixedPointStep>
     <param.EnableScreener>true</param.EnableScreener>
-    <param.AnnotationChecksum>1506914737</param.AnnotationChecksum>
+    <param.AnnotationChecksum>3981236499</param.AnnotationChecksum>
     <var.LegacyTarget />
     <var.MirrorOnOpen>false</var.MirrorOnOpen>
     <param.FixedPointEnabled>false</param.FixedPointEnabled>
@@ -774,7 +774,7 @@
     <var.gc.preBuildChecksum />
     <var.cfi.lastOutputRoot>codegen\mex\timeIteration</var.cfi.lastOutputRoot>
     <var.cfi.preBuildChecksum>912836625</var.cfi.preBuildChecksum>
-    <var.lastCfiTestSnippet>A_Coral_Model('asdffff')</var.lastCfiTestSnippet>
+    <var.lastCfiTestSnippet>A_Coral_Model(pd)</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
     <var.lastUserSourceChecksum />
     <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
@@ -842,7 +842,7 @@
     <param.gpu.EnableCUSOLVER>false</param.gpu.EnableCUSOLVER>
     <param.gpu.EnableCUFFT>false</param.gpu.EnableCUFFT>
     <param.gpu.Benchmarking>false</param.gpu.Benchmarking>
-    <param.gpu.SafeBuild>true</param.gpu.SafeBuild>
+    <param.gpu.SafeBuild>false</param.gpu.SafeBuild>
     <param.gpu.ComputeCapability />
     <param.gpu.CustomComputeCapability />
     <param.gpu.CompilerFlags />
@@ -947,7 +947,7 @@
     </unset>
     <fileset.entrypoints>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Marker>1512787850162</Marker>
+        <Marker>1513533287189</Marker>
       </file>
     </fileset.entrypoints>
     <fileset.testbench>

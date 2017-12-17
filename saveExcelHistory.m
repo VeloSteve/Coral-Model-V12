@@ -19,7 +19,6 @@ function [ ] = saveExcelHistory( basePath, now, RCP, E, everyx, queueMax, ...
                 switch choice
                     case 'Skip saving'
                         disp([choice ' not saving.'])
-                        unsure = 0;
                         return;
                     case 'Try again'
                         disp([choice ' re-checking file.'])

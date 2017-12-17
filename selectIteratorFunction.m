@@ -13,7 +13,7 @@ function handle =  selectIteratorFunction(select, arch)
     sourceDate1 = sourceFile1.datenum;
     sourceFile2 = dir('Runge_Kutta_2.m');
     sourceDate2 = sourceFile2.datenum;
-    if strcmp(arch, 'Mac'); select = 0; end;  % Kludge so Macs work without compiled code.
+    if strcmp(arch, 'Mac'); select = 0; end  % Kludge so Macs work without compiled code.
     switch select
         case 23040
             % 1861 to 2100, dt = 0.125
