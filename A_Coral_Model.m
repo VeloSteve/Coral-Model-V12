@@ -75,25 +75,6 @@ fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 %% Less frequently changed model parameters
 
 initYear = '2001';  % SelV and hist will be initialized from 1861 to this year.
-%% Parameters for the bleaching model (massive first, then branching)
-% Values in the comments to the right were used for 4PM 1/9/2017 outputs.
-% Keep for comparison.
-% BLEACHING
-bleachParams.sBleach = [0.3 0.3];         % Dropping to this value is bleaching   [0.22 .32]
-bleachParams.cBleach = [0.1 0.1];          % Dropping to this value is bleaching   [0.1 0.1]
-% New on 1/10/17
-bleachParams.sRecoverySeedMult = [4 4];     % Required for recovery.
-bleachParams.cRecoverySeedMult = [4 4];     % Required for recovery. Should be greater than cSeedThresholdMult
-% MORTALITY
-bleachParams.cSeedThresholdMult = [2 2];   % Seed multiplier for mortality (a)     [3 20]
-bleachParams.yearsToMortality = 5;          % Years of continuous bleaching before mortality.   5
-
-% Above values may be overridden by the optimizer.
-if exist('optimizerMode', 'var') && exist('optimizerBleachParams', 'var')
-    % Only change the parts of the struct which are given.
-    bleachParams = updateIfGiven(bleachParams, optimizerBleachParams);
-end
-
 
 %% Some useful paths and text strings to be used later.
 % A string for building long ugly file names that reflect the run
@@ -190,21 +171,13 @@ pswInputs = pswInputs(:, propTest);
 %% Load growth, carrying capacity and other constants:
 % Load .mat file for Coral and Symbiont genetics constants
 % As of 1/3/2017 the file contains a structure rather than individual
-% variables.
-load(strcat(matPath, 'Coral_Sym_constants_3.mat'));
+% variables.  As of 12/17/2017 it also includes the bleachParams structure
+% which defines bleaching and recovery thresholds.
+load(strcat(matPath, 'Coral_Sym_constants_4.mat'));
 assert(length(startSymFractions) == coralSymConstants.Sn, ...
     'Symbiont start fractions should match number of symbionts.');
 
 % Define the seed values below which populations are not allowed to drop.
-
-% original:
-%{
-C_seed = [0.1*10^7 0.01*10^7]; % mass branch
-% original:
-S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
-%}
-
-% NEW SEEDS:
 % 1% of K for massive and 0.1% for branching corals.
 % The values are 741,250 and 102,500 square cm of coral per 625 square m of reef.
 C_seed = [coralSymConstants.KCm*0.01 coralSymConstants.KCb*0.001];
