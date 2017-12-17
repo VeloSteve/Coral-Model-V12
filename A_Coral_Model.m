@@ -58,18 +58,7 @@ dataReefs = [17 23];
 % > 0 tries to start the requested number of workers, failing if the value
 %     is greater than the value specified in Matlab's Parallel Preferences.
 fprintf('%d Threads from GUI or script\n', useThreads);
-[multiThread, queueMax] = parallelSetup(useThreads);
-
-if multiThread
-    queue =  parallel.FevalFuture.empty;
-    % Call plot function with no arguments.  If the workers have been used
-    % before this clears their variables.  If not it gets the plot routine
-    % loaded onto them.
-    spmd
-        Plot_One_Reef();
-        graphCompare();
-    end
-end
+[queueMax] = parallelSetup(useThreads);
 fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
 %% Less frequently changed model parameters
@@ -101,35 +90,24 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-    % To hardwire OA for testing control cases: Normally just pass RCP!
-    % RCPfake = 'rcp60';
-    %[Omega_all] = GetOmega(sgPath, RCPfake);
-    
+   
     [Omega_all] = GetOmega(sgPath, RCP);
-    % Enlarge the array to match the extended control400 array
-    %{
-    copyLine = Omega_all(:, 2880);
-    for iii = lenTIME:-1:2881
-        Omega_all(:, iii) = copyLine;
+    if strcmp(RCP, 'control400')
+        % Enlarge the array to match the extended control400 array
+        copyLine = Omega_all(:, 2880);
+        for iii = lenTIME:-1:2881
+            Omega_all(:, iii) = copyLine;
+        end
     end
-    %}
     
     % Convert omegas to growth-factor multipliers so there's
     % less logic inside the time interations.
     [Omega_factor] = omegaToFactor(Omega_all);
-    % TEMPORARY:
-    %{
-        OFmean = mean(Omega_factor, 1);
-        Plot_ArbitraryYvsYears(OFmean, TIME, 'Omega Effect on Growth', 'Growth rate factor');
-        Omean = mean(Omega_all, 1);
-        Plot_ArbitraryYvsYears(Omean, TIME, 'Omega vs Time', 'Aragonite saturation state');
-    %}
 else
-    % Wasteful to make a big empty array, but it makes entering the
+    % It is wasteful to make a big empty array, but it makes entering the
     % parallel loop simpler.  Note that only the last value is set.
     Omega_factor(maxReefs, lenTIME) = 0.0;
 end
-disp('dummy');
 clearvars Omega_all;
 
 %% SUB-SAMPLE REEF GRID CELLS
@@ -166,16 +144,17 @@ if exist('optimizerMode', 'var')
 else
     propTest = getPropTest(E, RCP, bleachingTarget);
 end
-pswInputs = pswInputs(:, propTest);
+pswInputs = pswInputs(:, propTest); %#ok<NODEF>
 
 %% Load growth, carrying capacity and other constants:
 % Load .mat file for Coral and Symbiont genetics constants
 % As of 1/3/2017 the file contains a structure rather than individual
 % variables.  As of 12/17/2017 it also includes the bleachParams structure
 % which defines bleaching and recovery thresholds.
-load(strcat(matPath, 'Coral_Sym_constants_4.mat'));
+load(strcat(matPath, 'Coral_Sym_constants_4.mat'), 'bleachParams', 'coralSymConstants');
+bleachParams = bleachParams;  %#ok<ASGSL,NODEF> % Trick so parallel workers see the loaded variable.
 assert(length(startSymFractions) == coralSymConstants.Sn, ...
-    'Symbiont start fractions should match number of symbionts.');
+    'Symbiont start fractions should match number of symbionts.'); %#ok<NODEF>
 
 % Define the seed values below which populations are not allowed to drop.
 % 1% of K for massive and 0.1% for branching corals.
@@ -193,9 +172,9 @@ S_seed = [msSeed bsSeed msSeed bsSeed];
 if E==0
     vM = 0;     % Mutational variance (degC^2/yr) (convert to months/12)
 else
+    % Mutational variance (degC^2/yr) (convert to months/12)
     vM = coralSymConstants.ve*.001/12;
-end %%(1.142*10^-5)/12 ;    % Mutational variance (degC^2/yr) (convert to months/12)
-vMT   = vM;                    % Mutational variance (degC^2/yr) (convert to months/12)
+end 
 MutV  = [vM vM];               % Mutational variance matrix for symbiont calcs
 MutVx = repmat(MutV,1,coralSymConstants.Sn);     % Mutational variance matrix for coral calcs
 % January 2016, more variables need replication when Sn > 1
@@ -260,7 +239,6 @@ for i = queueMax:-1:1
     suppressSIM10_chunk{i} = superStartIndexM10(min(toDoPart{i}):max(toDoPart{i}));
 
     % Outputs
-    resultSim_chunk{i} = nan(1,1);
     bleachEvents_chunk{i} = false(1,1);
     bleachState_chunk{i} = false(1,1);
     mortState_chunk{i} = false(1,1);
@@ -363,7 +341,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         if doDormandPrince
                 % Compute outside the loop once this is working, but for
                 % now make a time array in month units each time.
-                tMonths = linspace(0, months, timeSteps+1)';
+                tMonths = linspace(0, months, timeSteps+1)'; %#ok<UNRCH>
                 tic
                 [SPD, CPD, tPD] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
                     temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
@@ -402,12 +380,12 @@ parfor (parSet = 1:queueMax, parSwitch)
                 suff = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC_Reef%d', RCP, E, superMode, superAdvantage, k);
             end
             if doGenotypeFigure
-                genotypeFigure(mapDirectory, suff, k, time, gi, suppressSI); %#ok<UNRCH>
+                genotypeFigure(mapDirectory, suff, k, time, gi, suppressSI);
             end
             if doGrowthRateFigure
                 % Growth rate vs. T as well
                 % TODO: dies when suppressSI = 0
-                if strcmp(RCP(1:3), 'rcp') %#ok<UNRCH>
+                if strcmp(RCP(1:3), 'rcp')
                     growthRateFigure(mapDirectory, suff, datestr(time(suppressSI), 'yyyy'), ...
                         k, temp, fullYearRange, gi, vgi, suppressSI, ...
                         coralSymConstants, SelVx, RCP);         
@@ -579,7 +557,7 @@ if ~skipPostProcessing
     frequentBleaching = defineFrequentBleaching(bleachEvents);
     
     if saveVarianceStats
-        assert(length(toDo) == maxReefs, 'Only save variance data when running all reefs!'); %#ok<UNRCH>
+        assert(length(toDo) == maxReefs, 'Only save variance data when running all reefs!');
         % Save selectional variance and last year of cover for binned plotting
         % by case.  Note that these numbers are computed inside the parallel
         % loop, but it's easier to recompute them here than to build and
@@ -613,19 +591,18 @@ if ~skipPostProcessing
                 events85_2010, eventsAllYears, frequentBleaching, ...
                 mortState, bleachState, ...
                 fullYearRange, ...
-                modelChoices); %#ok<UNRCH>
+                modelChoices);
         end
 
         if doCoralCoverFigure
             coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
-                    superAdvantage, mapDirectory) %#ok<UNRCH>
+                    superAdvantage, mapDirectory)
         end
     end
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
     oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
-    [percentBleached, percentMortality] = ...
-        Stats_Tables(bleachState, mortState, lastYearAlive, ...
+    Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
         bleachParams, doDetailedStressStats, oMode);
 

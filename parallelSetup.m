@@ -1,4 +1,4 @@
-function [multiThread, queueMax] = parallelSetup(n)
+function [queueMax] = parallelSetup(n)
     % Cases: n undefined - use existing pool
     %        n = existing pool size - use exising pool
     %        n = 0 - leave existing pool alone (if any). Don't use it.
@@ -47,4 +47,17 @@ function [multiThread, queueMax] = parallelSetup(n)
         fprintf('Multithreaded computation is off.');
     end
     queueMax = threads;
+    
+    if multiThread
+        % I'm not sure whether this line does anything.  Check some time.
+        queue =  parallel.FevalFuture.empty;
+        % Call plot function with no arguments.  If the workers have been used
+        % before this clears their variables.  If not it gets the plot routine
+        % loaded onto them.
+        spmd
+            Plot_One_Reef();
+            graphCompare();
+        end
+    end
+    
 end
