@@ -260,8 +260,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -440,9 +440,11 @@ for parSet = 1:queueMax
 
     end % End of reef areas for one parallel chunk
     % Progress is now 100% for this chunk.
-    pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
-    fprintf(pf, '%d', 100);
-    fclose(pf);
+    if  doProgressBar
+        pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
+        fprintf(pf, '%d', 100);
+        fclose(pf);
+    end
     
     bleachEvents_chunk{parSet} = par_bleachEvents;
     bleachState_chunk{parSet} = par_bleachState;
