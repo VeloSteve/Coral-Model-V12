@@ -49,7 +49,6 @@ classdef modelParameter
                 error('Parameter type must be a string, and one of integer, logical, double, or string.');         
             end
         end
-           
         
         function vs = asString(obj)
             % Returns the value as a string - non-char parameters should

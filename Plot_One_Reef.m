@@ -20,7 +20,6 @@
 % outputPath  - Directory for m-files and output subdirectories
 % k    - number of the current reef grid cell
 % pdfDirectory  - Output directory for the current run
-% LOC  - location of current cell, like Loc but with underscores
 % E    - evolution on or off
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,8 +28,7 @@
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
-            hist, dataset, SGPath, k, pdfDirectory, LOC, ...
-            E, months)
+            hist, dataset, SGPath, k, pdfDirectory, E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
     persistent figHandle DHM Time; %#ok<PSET>
@@ -66,6 +64,11 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         time = decimate(time, factor, 'fir');
         temp = decimate(temp, factor, 'fir');
     end
+
+    % Labels used in several places
+    Loc = strcat(lat,',',lon);
+    LOC = strcat('_', lat,'_',lon, '_');
+
     
     % Needed every time for output:
     shortprop = sprintf('%.2f', psw2); 
@@ -103,7 +106,6 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         set(plotSST2, 'YData', [hist hist]);
         % Only SST has a variable title.
         subplot(2,2,1); % 1 row, 3 columns
-        Loc = strcat(num2str(lat),',',num2str(lon));
         %title(strcat('SST ESM2M',RCP ,';prop ', num2str(shortprop),';  latlon:', Loc));
         title(strcat(RCP ,'  prop ', num2str(shortprop),'  latlon:', Loc));
 

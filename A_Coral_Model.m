@@ -12,7 +12,7 @@ timerStart = tic;
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    error('The coral model requires input parameters.');
+    error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
 % Get a structure of run parameters in any of several ways.
 % Be sure we ALSO have a ParameterDictionary because it can be used to
@@ -51,7 +51,7 @@ keyReefs = unique(keyReefs);
 
 % A list of reefs for which to save data at maximum resolution for detailed
 %  analysis or plotting.  Not in the GUI - mainly for diagnistics.
-dataReefs = [17 23];
+dataReefs = [];
 
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
@@ -91,7 +91,6 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-   
     [Omega_all] = GetOmega(sgPath, RCP);
     if strcmp(RCP, 'control400')
         % Enlarge the array to match the extended control400 array
@@ -99,8 +98,7 @@ if OA == 1
         for iii = lenTIME:-1:2881
             Omega_all(:, iii) = copyLine;
         end
-    end
-    
+    end 
     % Convert omegas to growth-factor multipliers so there's
     % less logic inside the time interations.
     [Omega_factor] = omegaToFactor(Omega_all);
@@ -112,25 +110,9 @@ end
 clearvars Omega_all;
 
 %% SUB-SAMPLE REEF GRID CELLS
-% Since just iterating with "everyx" won't hit all keyReefs, build a list
-% of reefs for the current run.
-if strcmp(specialSubset, 'no')
-    toDo = 1:maxReefs;
-elseif strcmp(specialSubset, 'useEveryx') && isnumeric(everyx)
-    toDo = 1:everyx:maxReefs;   % as specified by everyx
-elseif strcmp(specialSubset, 'keyOnly')
-    toDo = [];
-else
-    % specialSubset can specify a reef area (eq, lo, hi)
-    toDo = latitudeBin(specialSubset, Reefs_latlon);
-end
-toDo = unique([toDo keyReefs dataReefs]); % add keyReefs defined above
-% toDo entries make sense as integers, but MATLAB likes doubles!
-toDo = double(toDo);
-if isempty(toDo)
-    error('No reefs specified.  Exiting.');
-end
-reefsThisRun = length(toDo);
+% Build a list of reefs for the current run.
+[toDo, reefsThisRun] = ...
+    reefsToDo(specialSubset, everyx, maxReefs, keyReefs, dataReefs, Reefs_latlon);
 logTwo('Modeling %d reefs.\n', reefsThisRun);
 
 
@@ -191,9 +173,11 @@ stepsPerYear = 12/dt;
 % All years in this run:
 fullYearRange = [startYear startYear+years-1];
 
-time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time 4X times (8X when dt = 0.125)
-% Set index for mean historical Temp between 1861-2000 (ESM2M_historical; yrs used in Baskett et al 2009)
-% Note: original code had a different end point for SST dataset ESM2M vs. HadISST.
+time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time so there's a point for every Runge-Kutta time step.
+% Set index for mean historical Temp between 1861-2000 (ESM2M_historical; yrs
+% used in Baskett et al 2009) Note: original code had a different end point for
+% SST dataset ESM2M vs. HadISST. TODO: figure out whether this index max sense
+% for runs with Dormand-Prince, which doesn't have fixed step sizes.
 initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYear), time);
 
 % Convert years for symbiont activation to indexes in the time array for
@@ -225,7 +209,7 @@ timeSteps = length(time) - 1;      % number of time steps to calculate
 % Several arrays are built in the parallel loop and then used for
 % later analysis.  Parfor doesn't like indexing into part of an array.  The
 % trick is to make a local array for each iteration inside the parfor, and
-% then assemble them into the desired shape afterwards.  Note: all the "nan(1,1)"
+% then assemble them into the desired shape afterwards.  Note: all the "false(1,1)"
 % entries are there because the parfor needs to have the "empty" output
 % arrays defined before the loop.  Instead of creating the contents at full
 % size and passing big arrays of nan to the workers, it make more sense to
@@ -233,11 +217,13 @@ timeSteps = length(time) - 1;      % number of time steps to calculate
 for i = queueMax:-1:1
     kOffset(i) = min(toDoPart{i}); % Number of first reef in these chunks.
     % Inputs
-    LatLon_chunk{i} = Reefs_latlon(min(toDoPart{i}):max(toDoPart{i}),1:2);
-    SST_chunk{i} = SST(min(toDoPart{i}):max(toDoPart{i}), :);
-    Omega_chunk{i} = Omega_factor(min(toDoPart{i}):max(toDoPart{i}), :);
-    suppressSI_chunk{i} = superStartIndex(min(toDoPart{i}):max(toDoPart{i}));
-    suppressSIM10_chunk{i} = superStartIndexM10(min(toDoPart{i}):max(toDoPart{i}));
+    iStart = min(toDoPart{i});
+    iEnd = max(toDoPart{i});
+    LatLon_chunk{i} = Reefs_latlon(iStart:iEnd,1:2);
+    SST_chunk{i} = SST(iStart:iEnd, :);
+    Omega_chunk{i} = Omega_factor(iStart:iEnd, :);
+    suppressSI_chunk{i} = superStartIndex(iStart:iEnd);
+    suppressSIM10_chunk{i} = superStartIndexM10(iStart:iEnd);
 
     % Outputs
     bleachEvents_chunk{i} = false(1,1);
@@ -253,15 +239,14 @@ for i = queueMax:-1:1
     Massive_dom_chunk{i} = zeros(length(time), 1);
 
 end
-% TODO input arrays such as SST and Reefs_latlon are sent at full size to
-% each worker.  Consider sending just the correct subset to each.
 
 %% RUN EVOLUTIONARY MODEL
+% Get the correct compiled solver for this case.
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -305,7 +290,6 @@ parfor (parSet = 1:queueMax, parSwitch)
         suppressSIM10 = par_SupressSIM10(kChunk);
         lat = num2str(round(reefLatlon(2)));
         lon = num2str(round(reefLatlon(1)));
-        LOC = strcat('_', num2str(lat),'_',num2str(lon),'_');
 
         % Interpolate data and create time stamp
         %% Set timestep and interpolate temperature, omega, and time stamp
@@ -410,7 +394,7 @@ parfor (parSet = 1:queueMax, parSwitch)
             % Now that we have new stats, reproduce the per-reef plots.
             Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
                   hist, dataset, sgPath, k, ...
-                  pdfDirectory, LOC, E, lenTIME);
+                  pdfDirectory, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
@@ -445,7 +429,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         fprintf(pf, '%d', 100);
         fclose(pf);
     end
-    
+    % Collect per-worker parts back into the _chunk arrays.
     bleachEvents_chunk{parSet} = par_bleachEvents;
     bleachState_chunk{parSet} = par_bleachState;
     mortState_chunk{parSet} = par_mortState;
