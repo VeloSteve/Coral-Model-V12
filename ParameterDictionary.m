@@ -131,11 +131,13 @@ classdef ParameterDictionary
             % MATLAB will raise an error if there's no existing value called
             % "name" of if the type can't be matched.
             p = obj.params(name);
+            %{
             if isnumeric(value)
                 fprintf('PD setting %s to %d\n', name, value);
             else
                 fprintf('PD setting %s to %s\n', name, value);
             end
+            %}
             p = p.set(value);  % Note that the object must be returned.
             % Setting the object isn't enough!  Must replace it in the
             % dictionary.
@@ -186,7 +188,7 @@ classdef ParameterDictionary
               % Set the value of the existing object.
               p = obj.params(name);
               p.value = val;
-              fprintf('Set parameter object %s to %d\n', name, val);
+              % fprintf('Set parameter object %s to %d\n', name, val);
               addOne(obj, p);
             end
         end

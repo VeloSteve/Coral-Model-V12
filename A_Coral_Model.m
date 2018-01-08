@@ -18,7 +18,7 @@ end
 % Be sure we ALSO have a ParameterDictionary because it can be used to
 % generate path names.
 [ps, pd] = getInputStructure(parameters);
-pd.print();
+pd.print()
 
 % Clear variables which I want to examine between runs, but not carry over.
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
@@ -245,8 +245,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;

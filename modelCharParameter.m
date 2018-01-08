@@ -57,7 +57,7 @@ classdef modelCharParameter < modelParameter
         
         function [v] = get(obj)
             v = obj.value;
-            fprintf('mCP returning %s for %s \n', v, obj.name);
+            % fprintf('mCP returning %s for %s \n', v, obj.name);
         end
     end
 end

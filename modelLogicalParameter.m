@@ -53,7 +53,7 @@ classdef modelLogicalParameter < modelParameter
         
         function [v] = get(obj)
             v = obj.value;
-            fprintf('mLP returning %s %d\n', v, v);
+            % fprintf('mLP returning %s %d\n', v, v);
         end
         
         function vs = asString(obj)

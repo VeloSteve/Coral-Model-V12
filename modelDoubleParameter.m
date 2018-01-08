@@ -50,7 +50,7 @@ classdef modelDoubleParameter < modelParameter
         
         function [v] = get(obj)
             v = obj.value;
-            fprintf('mDP returning %s %d\n', v, v);
+            %   fprintf('mDP returning %s %d\n', v, v);
         end
         
         function vs = asString(obj)
