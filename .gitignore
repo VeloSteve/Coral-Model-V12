@@ -7,5 +7,6 @@
 *.gif
 *.psd
 *.jpg
+*.prj
 codegen/*
 gui_scratch/*
