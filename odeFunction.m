@@ -52,11 +52,13 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     
     % Start getting interpolated values not needed in the original RK
     % approach.
-    T = interp1q(tMonths, temp, t);
+    T = interp1(tMonths, temp, t, 'spline');
     rm  = a*exp(b*T);  % Faster than interpolating already-made values!
     %rm = interp1q(tMonths, rmVec, t);
-    G = interp1q(tMonths, gVec, t);
-    riNow = interp1q(tMonths, ri, t);
+    % G is a pair of values for massive and branching.
+    G = interp1(tMonths, gVec, t, 'spline');
+    % ri is four values
+    riNow = interp1(tMonths, ri, t, 'spline');
 
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
     dSdT = Sold ./ (KSx .* Cold) .* (riNow .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK
@@ -64,8 +66,12 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     
     % We can't set a seed value rigidly, but we can refuse to drop if below
     % the seed.
-    dSdT = dSdT .* max(0, sign(Sold-S_seed)); % max part is one when above seed, zero otherwise
-    dCdT = repmat(dCdT, 1, Sn) .* max(0, sign(Cold-repmat(C_seed, 1, Sn))); % max part is one when above seed, zero otherwise
+    % Treat dS as zero when less than zero and old value is below seed.
+    flag = dSdT > 0 | Sold-S_seed > 0;
+    dSdT = dSdT .* flag; % .* max(0, sign(Sold-S_seed)); % max part is one when above seed, zero otherwise
+    flag = dCdT > 0 | Cold(1:Cn)-C_seed > 0;
+    dCdT = dCdT .* flag; % repmat(dCdT, 1, Sn) .* max(0, sign(Cold-repmat(C_seed, 1, Sn))); % max part is one when above seed, zero otherwise
+    dCdT = repmat(dCdT, 1, Sn);
     
     dydt = [dSdT dCdT]';
 

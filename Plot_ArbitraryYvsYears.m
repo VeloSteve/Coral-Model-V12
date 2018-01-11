@@ -3,7 +3,7 @@
 %  responsibility to ensure that the y values cover the same span of time
 %  as the time vector.  If the number of values is different (e.g. Y is
 %  monthly or yearly) the required time points will be selected.
-function Plot_ArbitraryYvsYears(Y, time, tText, yText)
+function Plot_ArbitraryYvsYears(Y, time, tText, yText, fn)
 
     disp('In PAYY');
     fontSize = 18;
@@ -12,7 +12,8 @@ function Plot_ArbitraryYvsYears(Y, time, tText, yText)
     % ???
     tickStart = floor(1850*365.25);
     tickEnd = floor(2100*365.25);
-    tickVals = tickStart:fiftyYears:tickEnd;
+    %tickVals = tickStart:fiftyYears:tickEnd;
+    tickVals = tickStart:365.25*25:tickEnd;
     %tickVals = 1850:50:2100;
     disp(tickEnd)
     disp(time(end));
@@ -42,7 +43,11 @@ function Plot_ArbitraryYvsYears(Y, time, tText, yText)
         fprintf('B Length of time = %d and Y = %d after factor of %d\n', length(time), length(Y), factor);
     end
 
-    figure();
+    if nargin == 5
+        figure(fn);
+    else
+        figure();
+    end
     plot(time, Y, 'k'); 
 
     title(tText);

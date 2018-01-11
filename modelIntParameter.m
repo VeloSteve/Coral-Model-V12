@@ -13,17 +13,20 @@ classdef modelIntParameter < modelParameter
     end
     
     methods
-        function p = modelIntParameter(cat, n, type, def, min, max)
+        function p = modelIntParameter(cat, n, type, def, min, max, nullOK)
             %modelParameter Construct an instance of this class
             %   Detailed explanation goes here
             if nargin < 6
-                error('Integer parameters must be defined with a category, name, type, default, min, and max.');
+                error('Integer parameters must be defined with a category, name, type, default, min, and max.  A 7th argument may be used to indicate that null values are allowed.');
             end
             % The two parameters sent to the superclass are mostly
             % handled there.
             p@modelParameter(cat, n, type);
             if ~strcmp(type, 'integer')
                 error('Integer parameters must be specified by name as integers.');
+            end
+            if nargin == 7
+                p.nullAllowed = nullOK;
             end
             % Note that typed constants are doubles even if a whole number
             % is typed.  Instead of isinteger, check for whole numbers
@@ -40,6 +43,10 @@ classdef modelIntParameter < modelParameter
         
         
         function obj = set(obj, v)
+            if obj.nullAllowed && isempty(v)
+                obj.value = [];
+                return;
+            end
             if isfloat(v)
                 if floor(v) == v
                     v = cast(v, 'int32');

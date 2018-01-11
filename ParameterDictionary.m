@@ -73,7 +73,7 @@ classdef ParameterDictionary
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
 
             % Output options
-            addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925));
+            addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925, true));  % Note nullAllowed final argument.
             addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
             addOne(p, modelLogicalParameter('output', 'allPDFs', 'logical', false));

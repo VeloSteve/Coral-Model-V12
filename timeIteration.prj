@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2016a">
-  <configuration build-checksum="664549747" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration build-checksum="2257089379" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
       <param.BuiltInstrumentedMex>false</param.BuiltInstrumentedMex>
       <param.RanInstrumentedMex>false</param.RanInstrumentedMex>
@@ -30,7 +30,7 @@
       <param.DefaultTestFile />
       <param.MergeInstrumentationResults>false</param.MergeInstrumentationResults>
       <param.VerificationMode>option.VerificationMode.None</param.VerificationMode>
-      <param.VerificationStatus>option.VerificationStatus.FailedTest</param.VerificationStatus>
+      <param.VerificationStatus>option.VerificationStatus.Passed</param.VerificationStatus>
       <param.CustomSourceCode />
       <param.CustomHeaderCode />
       <param.CustomInitializer />
@@ -743,6 +743,7 @@
     <param.objective>option.objective.c</param.objective>
     <param.WorkflowStep>generateCode</param.WorkflowStep>
     <param.TestSnippets>
+      <item>A_Coral_Model('D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt')</item>
       <item>A_Coral_Model(pd)</item>
     </param.TestSnippets>
     <param.DefaultImportExportVariable>config</param.DefaultImportExportVariable>
@@ -773,8 +774,8 @@
     <var.gc.lastOutputType />
     <var.gc.preBuildChecksum />
     <var.cfi.lastOutputRoot>codegen\mex\timeIteration</var.cfi.lastOutputRoot>
-    <var.cfi.preBuildChecksum>912836625</var.cfi.preBuildChecksum>
-    <var.lastCfiTestSnippet>A_Coral_Model(pd)</var.lastCfiTestSnippet>
+    <var.cfi.preBuildChecksum>2468051999</var.cfi.preBuildChecksum>
+    <var.lastCfiTestSnippet>A_Coral_Model('D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt')</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
     <var.lastUserSourceChecksum />
     <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>

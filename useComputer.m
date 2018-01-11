@@ -29,10 +29,10 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             %clc;
             defaultThreads = 5;
             top = 'D:/GitHub/';
-            basePath = strcat(top, 'Coral-Model-V11/');
+            basePath = strcat(top, 'Coral-Model-V12/');
             sharedData = strcat(top, 'Coral-Model-Data/');
             %outputPath = basePath;
-            outputPath = 'D:/CoralTest/V11Test/';  % C: for SSD D: for non-google directory
+            outputPath = 'D:/CoralTest/V12Test/';  % C: for SSD D: for non-google directory
             %outputPath =  'D:/GoogleDrive/Coral_Model_Steve/Outputs_May8_May17/';
         case 4
             defaultThreads = 5;
@@ -49,7 +49,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
         matPath = strcat(top, 'SymbiontGenetics_V10_DualSymbiontOA/mat_files/');
         basePath = strcat(top, 'SymbiontGenetics_V10_DualSymbiontOA/');
         outputPath = strcat(basePath, 'outputs/SelVx5');
-        m_mapPath = strcat(basePath, 'm_map/');
+        m_mapPath = strcat(top, 'm_map/');
         % JSR - are the next 2 lines needed?
         addpath(genpath(strcat(top, 'mexcdf'))); % add mexcdf toolbox and subfolders
         addpath(genpath(strcat(top, 'mexcdf/snctools'))); % add snctools toolbox and subfolders
@@ -58,7 +58,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
         % Steve's computers
         matPath = strcat(basePath, 'mat_files/');
         sstPath = strcat(sharedData, 'ProjectionsPaper/');
-        m_mapPath = strcat(basePath, 'm_map/');
+        m_mapPath = strcat(top, 'm_map/');
         SGPath = strcat(sharedData, 'SymbiontGenetics/mat_files/');
     end
     addpath(m_mapPath);

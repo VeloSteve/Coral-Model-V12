@@ -10,6 +10,7 @@ classdef modelParameter
         name char
         dataType char
         needsMinMax logical
+        nullAllowed logical
     end
     
     methods
@@ -19,6 +20,10 @@ classdef modelParameter
             if nargin ~= 3
                 error('Parameters must be defined with a name and type.');
             end
+            
+            % False for everything except keyReefs, at least at first:
+            obj.nullAllowed = false;
+            
             % Accept either a character array or a string for each input.
             if ischar(name)
                 obj.name = name;

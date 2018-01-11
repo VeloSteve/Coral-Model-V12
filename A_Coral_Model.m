@@ -26,8 +26,9 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 % Constants NOT controllable from the GUI or scripts are set first:
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
-doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
-dt = 0.125;         % The fraction of a month for 2nd order R-K time steps
+doDormandPrince = true; % Use Prince-Dormand solver AND ours (for now)
+doHughesComparison = false;
+dt = 1/2; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 
 % New code, December 2017.  Variables were previously hardcoded in this file.
@@ -178,6 +179,10 @@ time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time so there's a point for ev
 % used in Baskett et al 2009) Note: original code had a different end point for
 % SST dataset ESM2M vs. HadISST. TODO: figure out whether this index max sense
 % for runs with Dormand-Prince, which doesn't have fixed step sizes.
+% The clear makes sure a persistent variable inside the function isn't left from
+% a previous run, which may have a different step size.  Only needed on the
+% first call in a given run.
+clear findDateIndex;
 initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYear), time);
 
 % Convert years for symbiont activation to indexes in the time array for
@@ -224,6 +229,7 @@ for i = queueMax:-1:1
     Omega_chunk{i} = Omega_factor(iStart:iEnd, :);
     suppressSI_chunk{i} = superStartIndex(iStart:iEnd);
     suppressSIM10_chunk{i} = superStartIndexM10(iStart:iEnd);
+    superStart_chunk{i} = superStartYear(iStart:iEnd);
 
     % Outputs
     bleachEvents_chunk{i} = false(1,1);
@@ -245,8 +251,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -271,6 +277,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     par_LatLon = LatLon_chunk{parSet};
     par_SupressSI = suppressSI_chunk{parSet};
     par_SupressSIM10 = suppressSIM10_chunk{parSet};
+    par_superStart = superStart_chunk{parSet};
     par_kOffset = kOffset(parSet);
     par_C_cum = C_cum_chunk{parSet};
     par_C_year = C_year_chunk{parSet};
@@ -288,6 +295,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         reefLatlon = par_LatLon(kChunk, :);
         suppressSI = par_SupressSI(kChunk);
         suppressSIM10 = par_SupressSIM10(kChunk);
+        superStart = par_superStart(kChunk);
         lat = num2str(round(reefLatlon(2)));
         lon = num2str(round(reefLatlon(1)));
 
@@ -326,12 +334,81 @@ parfor (parSet = 1:queueMax, parSwitch)
         if doDormandPrince
                 % Compute outside the loop once this is working, but for
                 % now make a time array in month units each time.
-                tMonths = linspace(0, months, timeSteps+1)'; %#ok<UNRCH>
+                %  Based on RK timesteps: tMonths = linspace(0, months, timeSteps+1)'; 
+                tMonths = 0:months-1;
+                % Convert supersymbiont start year to months, since that's the 
+                % unit used inside.
+                if superStart < fullYearRange(2)
+                    superMonth = (superStart - fullYearRange(1))*12;
+                else
+                    superMonth = -1;
+                end
                 tic
+                % TODO - the fineness of the interpolated variables temp, gVec
+                % and ri (and omega) may be affecting the results of Dormand Prince.  This
+                % was observed when changing dt values for the OTHER algorithm!
+                % The interpolation done above is
+                % temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
+                % While inside the function we get values from
+                % T = interp1q(tMonths, temp, t);
+                % XXX Remove after looking at graphs! - arbitrarily use 100 to
+                % 110 months.
+                %{
+                figure(451); hold off;
+                % plot uninterpolated temp
+                mOne = linspace(0, months, length(SSThist));
+                plot(mOne, SSThist, 'o', 'DisplayName', 'Monthly'); hold on;
+                                xlim([100 200]);
+
+                % now add the values passed in below
+                plot(tMonths, temp, '+', 'DisplayName', 'Four per month');
+                                xlim([100 200]);
+
+                % interpolate as currently coded to hundredths of months and plot
+                testMonths = 100:0.01:200;
+                testMonths = testMonths';
+                iT1q = interp1q(tMonths, temp, testMonths); % "quick 1D linear interpolation (not recommended)
+                plot(testMonths, iT1q, '*', 'DisplayName', 'interp 1q');
+                                xlim([100 200]);
+
+                % use interp1, which supports a spline function (and
+                % others)
+                iT1 = interp1(tMonths, temp, testMonths, 'spline');
+                plot(testMonths, iT1, '.', 'DisplayName', 'interp1 from Four/month');
+                                xlim([100 200]);
+                                
+                % use interp1 direct from single months
+                iT2 = interp1(mOne, SSThist, testMonths, 'spline');
+                plot(testMonths, iT2, '.', 'DisplayName', 'interp1 from monthly');
+                                xlim([100 200]);
+                                
+                legend('show')
+                hold off;
+                %}
+
                 [SPD, CPD, tPD] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
-                    temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                    SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
                     superSeedFraction, oneShot, coralSymConstants, dt); 
+                fprintf('Reef %d ', k);
                 toc
+                figure(3);
+                plot(tPD, SPD(:, 1)./CPD(:, 1));
+                hold on;
+                plot(tPD, SPD(:, 3)./CPD(:, 3));  
+                hold off;
+                figure(4);
+                plot(tPD, CPD(:, 1));
+                hold on;
+                plot(tPD, CPD(:, 2));
+                hold off;
+                % FOR DEBUG ONLY, MAKE datenum array.  This will be a little
+                % rough!
+                sdn = datenum('01-Jan-1861');
+                plotTimes = tPD*365.25/12 + sdn;
+                Plot_ArbitraryYvsYears(CPD(:,2), plotTimes, strcat('DP Branching coral, k = ', num2str(k)), 'Population', 5)
+                tSteps = tPD(2:end) - tPD(1:end-1);
+                tSteps = tSteps(tSteps ~= 0);
+                fprintf('DP steps range from %d to %d\n', min(tSteps), max(tSteps));
         end
         % timeIteration is called here, with the version determined by
         % iteratorHandle.
@@ -340,7 +417,21 @@ parfor (parSet = 1:queueMax, parSwitch)
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
 
-        %Plot_ArbitraryYvsYears(ri(:,1), time, strcat('Temperature Effect on Growth, k = ', num2str(k)), 'Growth rate factor')
+        %Plot_ArbitraryYvsYears(ri(:,2), time, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
+        if doDormandPrince
+            % Plot R-K results for Dormand-Prince comparisons:
+            figure(6);
+            plot(time, S(:, 1)./C(:, 1));
+            hold on;
+            plot(time, S(:, 3)./C(:, 3));  
+            hold off;
+            figure(7);
+            plot(time, C(:, 1));
+            hold on;
+            plot(time, C(:, 2));
+            hold off;
+            Plot_ArbitraryYvsYears(C(:,2), time, strcat('Branching coral, k = ', num2str(k)), 'Population', 8)
+        end
 
                     
         % These, with origEvolved, compare the average native and
@@ -502,14 +593,36 @@ if ~skipPostProcessing
     i1985 = 1985 - startYear + 1;
     i2010 = 2010 - startYear + 1;
     % Count by reef
-    events85_2010(maxReefs) = 0;
-    eventsAllYears(maxReefs) = 0;
-    for k = 1:maxReefs
+    for k = maxReefs:-1:1
         events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
         eventsAllYears(k) = nnz(bleachEvents(k, :, :));
     end
     % Count for all reefs over this time period.
     count852010 = sum(events85_2010);
+    % Now go back and get a running cumulative count of bleaching events for all
+    % reefs by year.
+    for y = size(bleachEvents, 2):-1:1
+        % Note: this combines branching and massive bleaching events.  When we
+        % have these in consecutive years it may look like two events where
+        % another study would call it one.
+        cumBleachEvents(y) = nnz(bleachEvents(:, y, :));
+    end
+    cumBleachEvents = cumsum(cumBleachEvents);
+    
+    if doHughesComparison
+        %{
+        Number of reefs in each region:
+         Hughes  Logan
+         AuA   32      906
+         IO-ME 24      310
+         Pac   22      480
+         WAtl  22      199
+         Far           30
+        %}
+        % XXX - the line below is only valid when matched to the keyReefs!!!
+        %cumBleachEvents = cumBleachEvents*32.0/906.0;
+        hughesPlot(cumBleachEvents, startYear);
+    end
     
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
     fprintf('Bleaching by event = %6.4f\n', ...
