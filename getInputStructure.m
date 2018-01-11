@@ -3,7 +3,7 @@ function [ps, pd] = getInputStructure(parameters)
 %
 % getInputStructure(parameters)
 %
-% parameters can be a JSON string or a ParameterDictionary object. If
+% parameters can be a JSON string, a ParameterDictionary object, or a file name. If
 % neither is found, this function reads a file called
 % LastChanceParameters.txt.  The file option is only meant to allow the
 % program to be tested when a proper calling script is not yet in place.
@@ -23,9 +23,9 @@ function [ps, pd] = getInputStructure(parameters)
         catch ME
             if (strcmp(ME.identifier,'MATLAB:json:ExpectedValue'))
                 % Not a valid JSON string.  Try initializing from a file.
-                fh = fopen('LastChanceParameters.txt');
+                fh = fopen(parameters, 'r');
                 if fh == -1
-                    error('Failed to open LastChanceParameters.txt');
+                    error('Failed to open file %s', parameters);
                 end
                 json = '';
                 while ~feof(fh)
@@ -37,9 +37,9 @@ function [ps, pd] = getInputStructure(parameters)
                 fprintf('Decoding %s\n', json);
 
                 try ps = jsondecode(json);
-                    disp('Got input values from LastChanceParameters.txt');
+                    disp('Got input values from specified file.');
                 catch ME
-                    disp('Invalid input in LastChanceParameters.txt !');
+                    disp('Invalid input in specified file!');
                     rethrow(ME);
                 end
             else
