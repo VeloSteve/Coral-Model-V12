@@ -49,7 +49,12 @@ function Stats_Tables(bleachState, mortState, lastYearAlive, ...
         if strcmp(RCP, 'control400')
             years = [1860 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
         else
+            % Extra detail for Figure 1(?) in the paper: 
             years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
+            % Super detail for comparison to Hughes Fig S2B.  1980 to 2020 is
+            % covered.
+            %years = [1980:2020 1950 2000 2016 2050 2075 2100];
+            %years = unique(years);
         end
     else
         % default, for a readable table that fits a screen or page easily.
@@ -65,6 +70,7 @@ function Stats_Tables(bleachState, mortState, lastYearAlive, ...
     unrecovered = permBleached;
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
     allStress = permBleached;
+    cumBleachEvents = permBleached;
      
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);

@@ -13,8 +13,8 @@
 
 %% SET WORKING DIRECTORY AND PATH
 Computer = 0; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
-addpath('d:\GitHub\Coral-Model-V11');
-addpath('d:\GitHub\Coral-Model-V11\FigureGeneration');
+addpath('d:\GitHub\Coral-Model-V12');
+addpath('d:\GitHub\Coral-Model-V12\FigureGeneration');
 [basePath, outputPath, sstPath, SGPath, matPath, Computer, defaultThreads] ...
     = useComputer(Computer);
 
@@ -22,11 +22,11 @@ addpath('d:\GitHub\Coral-Model-V11\FigureGeneration');
 RCP = 'rcp85';
 
 % SST DATASET?
-Data = 1; % 1=ESM2M_norm;  2=HADISST (through 3/16/16)
+dataset = 'ESM2M';
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 % Extract SSTs for a ALL reef grid cells
-[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
+[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
 
 % Make "typical" historical temperature from first 48 months.
 SST = SST(:, 1:48);

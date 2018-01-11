@@ -59,7 +59,7 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     latSort(1, 2) = latSort(2, 1)-latSort(1, 1);
     latSort(2:end-1, 2) = min(latSort(2:end-1, 1)-latSort(1:end-2, 1), latSort(3:end, 1)-latSort(2:end-1, 1));
     
-    % If a longitude location has no adjacent neighbor the cell will be to
+    % If a longitude location has no adjacent neighbor the cell will be too
     % wide.  Don't let a width value be more than 50% bigger than its neighbors.
     idx = find(longSort(2:end, 2) > 1.5*longSort(1:end-1, 2));
     idx = idx + 1;
@@ -97,6 +97,21 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
         reefColor = cMap(max(1, floor(cVals*(values(i)-minT)/tRange)), :);
         rectangle('Position', [x - w/2, y - h/2, w, h], 'FaceColor', reefColor, 'EdgeColor', reefColor    );
     end
+    
+    % Temporarily, add rectangles for the Hughes, et al. regions
+    %            Au/Asia,     Indian,    Pacific,   Atlantic
+    cornerLon = [ 98.6 160.6  32.5 123.0 134.5 -77.4 -93.8 -59.5];
+    cornerLat = [-31.5  32.5 -28.4  27.3 -21.5 25.5   9.3  32.2];
+    idx = find(cornerLon < 0);
+    cornerLon(idx) = cornerLon(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
+    [cLon, cLat] = m_ll2xy(cornerLon, cornerLat);
+    for i = 1:4
+        disp(i)
+        rectangle('Position', [cLon(i*2-1),  cLat(i*2-1), cLon(i*2)-cLon(i*2-1), cLat(i*2)-cLat(i*2-1)], ...
+            'EdgeColor', [0 0 0]    );
+    end
+
+
     
     if isempty(cMap)
         colormap default;
