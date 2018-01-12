@@ -320,7 +320,7 @@ for parSet = 1:queueMax
         %ssss = findDateIndex(strcat('14-Jan-', num2str(par_SuppressYears(kChunk)-10)), strcat('16-Jan-',num2str(par_SuppressYears(kChunk)-10)), time);
         %eeee = findDateIndex(strcat('14-Dec-', num2str(par_SuppressYears(kChunk))), strcat('16-Dec-',num2str(par_SuppressYears(kChunk))), time);
 
-        [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(time, initIndex, temp, coralSymConstants, ...
+        [vgi, gi, S, C, hist] = Init_genotype_popsize(time, initIndex, temp, coralSymConstants, ...
             E, vM, SelV, superMode, superAdvantage, startSymFractions, ...
             [suppressSI suppressSIM10]);
 
@@ -332,107 +332,104 @@ for parSet = 1:queueMax
         % First run the built-in Prince-Dormand solver.  For now, compare
         % and discard the results so the existing results are not affected.
         if doDormandPrince
-                % Compute outside the loop once this is working, but for
-                % now make a time array in month units each time.
-                %  Based on RK timesteps: tMonths = linspace(0, months, timeSteps+1)'; 
-                tMonths = 0:months-1;
-                % Convert supersymbiont start year to months, since that's the 
-                % unit used inside.
-                if superStart < fullYearRange(2)
-                    superMonth = (superStart - fullYearRange(1))*12;
-                else
-                    superMonth = -1;
-                end
-                tic
-                % TODO - the fineness of the interpolated variables temp, gVec
-                % and ri (and omega) may be affecting the results of Dormand Prince.  This
-                % was observed when changing dt values for the OTHER algorithm!
-                % The interpolation done above is
-                % temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
-                % While inside the function we get values from
-                % T = interp1q(tMonths, temp, t);
-                % XXX Remove after looking at graphs! - arbitrarily use 100 to
-                % 110 months.
-                %{
-                figure(451); hold off;
-                % plot uninterpolated temp
-                mOne = linspace(0, months, length(SSThist));
-                plot(mOne, SSThist, 'o', 'DisplayName', 'Monthly'); hold on;
-                                xlim([100 200]);
+            % Compute outside the loop once this is working, but for
+            % now make a time array in month units each time.
+            % The preserve the uneven spacing of SST values, compute tMonths
+            % from TIME, recognizing that the first time of the simulation is
+            % the beginning of January 1861, but the first SST value corresponds
+            % to 1/15/1861.
+            tMonths = TIME - TIME(1);  % shift to zero
+            % span of TIME is the number of simulated months minus one, since
+            % min-month values are stored.  Add 0.5 so the interpolation matches
+            % the inputs.
+            
+            tMonths = 0.5 + (tMonths * (length(TIME)-1) / (TIME(end) - TIME(1)));
+            % Convert supersymbiont start year to months, since that's the 
+            % unit used inside.
+            if superStart < fullYearRange(2)
+                superMonth = (superStart - fullYearRange(1))*12;
+            else
+                superMonth = -1;
+            end
+            tic
+            % TODO - the fineness of the interpolated variables temp, gVec
+            % and ri (and omega) may be affecting the results of Dormand Prince.  This
+            % was observed when changing dt values for the OTHER algorithm!
+            % The interpolation done above is
+            % temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
+            % While inside the function we get values from
+            % T = interp1q(tMonths, temp, t);
+            % XXX Remove after looking at graphs! - arbitrarily use 100 to
+            % 110 months.
+            %{
+            figure(451); hold off;
+            % plot uninterpolated temp
+            mOne = linspace(0, months, length(SSThist));
+            plot(mOne, SSThist, 'o', 'DisplayName', 'Monthly'); hold on;
+                            xlim([100 200]);
 
-                % now add the values passed in below
-                plot(tMonths, temp, '+', 'DisplayName', 'Four per month');
-                                xlim([100 200]);
+            % now add the values passed in below
+            plot(tMonths, temp, '+', 'DisplayName', 'Four per month');
+                            xlim([100 200]);
 
-                % interpolate as currently coded to hundredths of months and plot
-                testMonths = 100:0.01:200;
-                testMonths = testMonths';
-                iT1q = interp1q(tMonths, temp, testMonths); % "quick 1D linear interpolation (not recommended)
-                plot(testMonths, iT1q, '*', 'DisplayName', 'interp 1q');
-                                xlim([100 200]);
+            % interpolate as currently coded to hundredths of months and plot
+            testMonths = 100:0.01:200;
+            testMonths = testMonths';
+            iT1q = interp1q(tMonths, temp, testMonths); % "quick 1D linear interpolation (not recommended)
+            plot(testMonths, iT1q, '*', 'DisplayName', 'interp 1q');
+                            xlim([100 200]);
 
-                % use interp1, which supports a spline function (and
-                % others)
-                iT1 = interp1(tMonths, temp, testMonths, 'spline');
-                plot(testMonths, iT1, '.', 'DisplayName', 'interp1 from Four/month');
-                                xlim([100 200]);
-                                
-                % use interp1 direct from single months
-                iT2 = interp1(mOne, SSThist, testMonths, 'spline');
-                plot(testMonths, iT2, '.', 'DisplayName', 'interp1 from monthly');
-                                xlim([100 200]);
-                                
-                legend('show')
-                hold off;
-                %}
+            % use interp1, which supports a spline function (and
+            % others)
+            iT1 = interp1(tMonths, temp, testMonths, 'spline');
+            plot(testMonths, iT1, '.', 'DisplayName', 'interp1 from Four/month');
+                            xlim([100 200]);
 
-                [SPD, CPD, tPD] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
-                    SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
-                    superSeedFraction, oneShot, coralSymConstants, dt); 
-                fprintf('Reef %d ', k);
-                toc
-                figure(3);
-                plot(tPD, SPD(:, 1)./CPD(:, 1));
-                hold on;
-                plot(tPD, SPD(:, 3)./CPD(:, 3));  
-                hold off;
-                figure(4);
-                plot(tPD, CPD(:, 1));
-                hold on;
-                plot(tPD, CPD(:, 2));
-                hold off;
-                % FOR DEBUG ONLY, MAKE datenum array.  This will be a little
-                % rough!
-                sdn = datenum('01-Jan-1861');
-                plotTimes = tPD*365.25/12 + sdn;
-                Plot_ArbitraryYvsYears(CPD(:,2), plotTimes, strcat('DP Branching coral, k = ', num2str(k)), 'Population', 5)
-                tSteps = tPD(2:end) - tPD(1:end-1);
-                tSteps = tSteps(tSteps ~= 0);
-                fprintf('DP steps range from %d to %d\n', min(tSteps), max(tSteps));
-        end
+            % use interp1 direct from single months
+            iT2 = interp1(mOne, SSThist, testMonths, 'spline');
+            plot(testMonths, iT2, '.', 'DisplayName', 'interp1 from monthly');
+                            xlim([100 200]);
+
+            legend('show')
+            hold off;
+            %}
+
+            [S, C, tResults, gi, vgi, origEvolved] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
+                SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
+                superSeedFraction, oneShot, coralSymConstants, dt); 
+            fprintf('Reef %d ', k);
+            toc
+ 
+            tSteps = tResults(2:end) - tResults(1:end-1);
+            tSteps = tSteps(tSteps ~= 0);
+            fprintf('DP steps range from %d to %d (%d steps)\n', min(tSteps), max(tSteps), length(tSteps));
+            % Now convert tResults to MATLAB's "serial date number" for consistency with the code
+            % below.  tResults is in months from the start of the simulation,
+            % and temperatures are provided based on the 15th of each month
+            % (uneven number of days).
+            % TIME is the original unevenly-spaced "15th of month" times at which we have temperatures.
+            % tMonths are the evenly spaced months used to interpolate those temperatures in D-P.
+
+            tResults = interp1(tMonths, TIME, tResults, 'linear', 'extrap');     
+            
+            % Interpolate to fixed time steps for easy post-processing.
+            % Would it be worth joining these arrays so that only one
+            % interpolation is needed?
+            C = interp1(tResults, C, time, 'pchip');
+            S = interp1(tResults, S, time, 'pchip');
+            gi = interp1(tMonths, gi, time, 'pchip');
+            vgi = interp1(tMonths, vgi, time, 'pchip');
+
+        else
         % timeIteration is called here, with the version determined by
         % iteratorHandle.
 
-        [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
-                    ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-                    superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
-
-        %Plot_ArbitraryYvsYears(ri(:,2), time, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
-        if doDormandPrince
-            % Plot R-K results for Dormand-Prince comparisons:
-            figure(6);
-            plot(time, S(:, 1)./C(:, 1));
-            hold on;
-            plot(time, S(:, 3)./C(:, 3));  
-            hold off;
-            figure(7);
-            plot(time, C(:, 1));
-            hold on;
-            plot(time, C(:, 2));
-            hold off;
-            Plot_ArbitraryYvsYears(C(:,2), time, strcat('Branching coral, k = ', num2str(k)), 'Population', 8)
+            [S, C, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
+                        temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                        superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
+            tResults = time;  % Dormand-Prince creates its own time steps, R-K uses time.
         end
-
+        %Plot_ArbitraryYvsYears(ri(:,2), tResults, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
                     
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
@@ -469,7 +466,8 @@ for parSet = 1:queueMax
             end
         end
 
-        par_C_cum = par_C_cum + C;
+
+        par_C_cum = par_C_cum + C; % interp1(tResults, C, TIME, 'pchip');
         par_Massive_dom = par_Massive_dom + C(:, 1) > C(:, 2);
         % Time and memory will be consumed, but we need stats on coral
         % cover.

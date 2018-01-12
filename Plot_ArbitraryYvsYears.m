@@ -3,6 +3,8 @@
 %  responsibility to ensure that the y values cover the same span of time
 %  as the time vector.  If the number of values is different (e.g. Y is
 %  monthly or yearly) the required time points will be selected.
+% XXX This makes assumtions which may not be true when "time" is unevenly
+% spaced!
 function Plot_ArbitraryYvsYears(Y, time, tText, yText, fn)
 
     disp('In PAYY');

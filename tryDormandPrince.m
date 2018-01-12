@@ -1,5 +1,5 @@
 %#codegen
-function [S, C, tOut, ri, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, tMonths, ...
+function [S, C, tOut, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, tMonths, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, superMonth, ...
         superSeedFraction, oneShot, con, dt)
     
@@ -65,13 +65,21 @@ function [S, C, tOut, ri, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C
             newIn = yOut(end, :);
             newIn(3:e) = newIn(3:e) + superSeedFraction*S_seed(3:e);
             newIn = newIn';
+            
+            % This is a diagnostic, recording gi at the moment of
+            % supersymbiont introduction.    
+            giNow = interp1(tMonths, gi, superMonth, 'spline');
+            origEvolved = giNow(1);
+
         
             [tOut2, yOut2] = ode45(@(t, y) ...
             odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
             [superMonth months], newIn, opts);
         
-            tOut = vertcat(tOut, tOut2);
-            yOut = vertcat(yOut, yOut2);
+            % concatenate the pre- and post-symbiont segments, dropping the
+            % duplicate point which would cause iterpolation issues later.
+            tOut = vertcat(tOut(1:end-1, :), tOut2);
+            yOut = vertcat(yOut(1:end-1, :), yOut2);
     end
 
     cols = con.Sn*con.Cn;

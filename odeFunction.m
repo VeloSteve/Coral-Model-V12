@@ -52,13 +52,13 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     
     % Start getting interpolated values not needed in the original RK
     % approach.
-    T = interp1(tMonths, temp, t, 'spline');
+    T = interp1(tMonths, temp, t, 'pchip');
     rm  = a*exp(b*T);  % Faster than interpolating already-made values!
     %rm = interp1q(tMonths, rmVec, t);
     % G is a pair of values for massive and branching.
-    G = interp1(tMonths, gVec, t, 'spline');
+    G = interp1(tMonths, gVec, t, 'pchip');
     % ri is four values
-    riNow = interp1(tMonths, ri, t, 'spline');
+    riNow = interp1(tMonths, ri, t, 'pchip');
 
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
     dSdT = Sold ./ (KSx .* Cold) .* (riNow .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK

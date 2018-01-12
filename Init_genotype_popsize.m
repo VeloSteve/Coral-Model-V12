@@ -6,7 +6,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % 12-1-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(time, ...
+function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
                                         initializationIndex, temp, con, ...
                                         E, vM, SelV, superMode, superAdvantage, ...
                                         startSymFractions, superInitRange)
@@ -106,7 +106,5 @@ function [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(time, ...
         S(1,y  ) = 0.9*startSymFractions(symIdx)*con.KSm*C(1,1);         % historically-adapted symbiont pop on massives
         S(1,y+1) = 0.9*startSymFractions(symIdx)*con.KSb*C(1,2);         % historically-adapted symbiont pop on branching
     end
-    % Now assume 
-    
-    ri = zeros(length(time), col); % actual growth rate at optimal temp
 end
+    

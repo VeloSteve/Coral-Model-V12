@@ -1,9 +1,11 @@
 %#codegen
-function [S, C, ri, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, ri, ...
+function [S, C, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
         superSeedFraction, oneShot, con)
     
     origEvolved = 0.0;
+    ri = zeros(length(time), con.Sn * con.Cn); % actual growth rate at optimal temp
+
     for i = 1:timeSteps
         rm  = con.a*exp(con.b*temp(i,1)) ; % maximum possible growth rate at optimal temp
         
