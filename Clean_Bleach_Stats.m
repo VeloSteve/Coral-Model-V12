@@ -101,7 +101,6 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
     for coral = 1:numCorals
         bleachFlag = false;
         deadFlag = false;
-        massiveSeedMort = false;
         lastBleaching(coral) = NaN;
         for y = 2:yearCount
             if bleachFlag
@@ -109,12 +108,9 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
                 % Is each component strong enough to be considered?
                 seedRecS = Smin(y, coral) > sRecoverySeedMult(coral)*S_seed(coral);
                 seedRecC = Cmin(y, coral) > cRecoverySeedMult(coral)*C_seed(coral);
-                % XXX massRec - what does it really mean? Use in the old
-                % code doesn't make sense now, but may need to be
-                % considered for consistency.
-                massRec = massiveSeedMort && coral == MASS;
-
-                if seedRecS && (seedRecC || massRec)
+                % Note 2/1/2018: variables massiveSeedMort and massRec were always
+                % false, so both are now removed.
+                if seedRecS && seedRecC
                     bleachFlag = false;
                     bleached(y:end, coral) = false;
                     lastBleaching(coral) = NaN;
@@ -162,8 +158,6 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
                     lastBleaching(coral) = y;
                     dead(y:end, coral) = true;
                     deadFlag = true;
-                           % massiveSeedMort = false;
-
                 end
             end
         end % end years
