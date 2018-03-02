@@ -142,7 +142,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
                 end
             end
             
-            % Most of this "for" is about bleaching at potentially heathy
+            % Most of this "for" is about bleaching at potentially healthy
             % coral levels, but also check for mortality based on an extreme
             % low value of coral cover.
             % Note that we also consider coral with this type of mortality

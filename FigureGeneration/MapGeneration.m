@@ -9,9 +9,6 @@ function [] = MapGeneration(Reefs_latlon, values  )
 
 format shortg;
 
-
-
-
 % A scale for "red=bad, blue=good" plots.
 customColors = customScale();
 

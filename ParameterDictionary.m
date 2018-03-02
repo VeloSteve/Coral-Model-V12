@@ -50,12 +50,12 @@ classdef ParameterDictionary
             addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
             
             % Science
-            addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp 85'}));
+            addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85'}));
             addOne(p, modelCharParameter('science', 'dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
             addOne(p, modelLogicalParameter('science', 'OA', 'logical', false));
             addOne(p, modelLogicalParameter('science', 'E', 'logical', false));
             addOne(p, modelIntParameter('science', 'superStart', 'integer', 2035, 1861, 2100));
-            addOne(p, modelIntParameter('science', 'superMode', 'integer', 0, 0, 6));
+            addOne(p, modelIntParameter('science', 'superMode', 'integer', 0, 0, 7));
             addOne(p, modelDoubleParameter('science', 'superAdvantage', 'double', 0.0, 0.0, 10.0));
 
             
@@ -185,11 +185,15 @@ classdef ParameterDictionary
             for i=1:numel(fields)
               name = fields{i};
               val = str.(name);
+
               % Set the value of the existing object.
               p = obj.params(name);
-              p.value = val;
-              % fprintf('Set parameter object %s to %d\n', name, val);
+              % Setting p.value directly is a bug, because it bypasses error
+              % and range checking!
+              % p.value = val;
+              p = p.set(val);
               addOne(obj, p);
+              % fprintf('After set and add, value is '); disp(obj.get(name));
             end
         end
         

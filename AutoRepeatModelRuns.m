@@ -1,37 +1,58 @@
 %% Repeatedly run the model for all cases at once.
-%  Variables from the supported set have defaults in the main code, but
-%  it's best to set them all here to avoid surprises.
-timeAutoRuns = tic;
-% First those we aren't changing in this run:
-scriptVars.superMode = 0;
-scriptVars.superAdvantage = 0.0;
 
+% Read the default inputs as a starting point.
+parameters = 'D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+[~, pd] = getInputStructure(parameters);
+
+% Each use of this script will require some editing, since the selection of
+% cases can change any of a large set of variables.
+% On 2/26/2018 we need two different symbiont introduction strategies
+% with 3 different temperature deltas and 4 different rcp cases.
+
+% 80 runs:
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-%rcpList = {'rcp45', 'rcp85'};
+deltaTList = [0.0 0.5 1.0 1.5 2.0];
+modeList = [0 7];  % 0 7
+
+
+
+% the two strategies are
+% 1) Basic mode zero introduction in 2035.
+% 2) Dynamic advantage mode 7.
 
 % Now all the cases
+timeAutoRuns = tic;
 autoRunCount = 0;
-for ooo = 0:1  % 0:1
+for ooo = 1:1  % 0:1
     for eee = 0:1  %0:1
         for rrr = rcpList
-            scriptVars.E = eee;
-            scriptVars.OA = ooo;
-            scriptVars.RCP = rrr{1};
-            autoRunCount = autoRunCount + 1;
-            fprintf('Starting model with E = %d, OA = %d, RCP %s\n', eee, ooo, rrr{1});
-            try
-                A_Coral_Model_170118
-            catch err
-                if strcmp(err.message, 'Undefined function or variable ''Bleaching_85_10''.')
-                    disp('Continuing after coral model crash after mapping.');
-                else
-                    rethrow(err); %some other unexpected error. Better stop
+            for ttt = deltaTList
+                for mmm = modeList
+                    % We dont' need modes 0 AND 7 when the advantage is zero.
+                    if ~(ttt == 0.0 && mmm == 7)
+                        pd.set('E', eee == 1);
+                        pd.set('OA', ooo == 1);
+                        pd.set('RCP', rrr{1});
+                        pd.set('superMode', double(mmm));
+                        pd.set('superAdvantage', ttt);
+                        if mmm == 7
+                            pd.set('superStart', 1861);
+                        else
+                            pd.set('superStart', 2035);
+                        end        
+                        autoRunCount = autoRunCount + 1;
+                        fprintf('Starting model with E = %d, OA = %d, RCP %s, superMode %d, superAdvantage %d\n', ...
+                            eee, ooo, rrr{1}, mmm, ttt);
+                        fprintf('   and keyReefs = %d', pd.get('keyReefs'))
+
+                        A_Coral_Model(pd)
+                    end
                 end
             end
         end
     end
 end
-disp('All cases are complete.');
+fprintf('All %d cases are complete.', autoRunCount);
 % If this isn't done, the next one-off model run will mysteriously pick
 % up values from the last iteration here!
 clearvars scriptVars

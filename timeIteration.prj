@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2016a">
-  <configuration build-checksum="2257089379" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration build-checksum="2911020178" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
       <param.BuiltInstrumentedMex>false</param.BuiltInstrumentedMex>
       <param.RanInstrumentedMex>false</param.RanInstrumentedMex>
@@ -743,8 +743,7 @@
     <param.objective>option.objective.c</param.objective>
     <param.WorkflowStep>generateCode</param.WorkflowStep>
     <param.TestSnippets>
-      <item>A_Coral_Model('D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt')</item>
-      <item>A_Coral_Model(pd)</item>
+      <item>A_Coral_Model</item>
     </param.TestSnippets>
     <param.DefaultImportExportVariable>config</param.DefaultImportExportVariable>
     <param.ExternalFcnMajority>column</param.ExternalFcnMajority>
@@ -763,7 +762,7 @@
     <param.AutoInferUnboundedSizeThreshold>2048</param.AutoInferUnboundedSizeThreshold>
     <param.EnableFixedPointStep>false</param.EnableFixedPointStep>
     <param.EnableScreener>true</param.EnableScreener>
-    <param.AnnotationChecksum>3981236499</param.AnnotationChecksum>
+    <param.AnnotationChecksum>74726939</param.AnnotationChecksum>
     <var.LegacyTarget />
     <var.MirrorOnOpen>false</var.MirrorOnOpen>
     <param.FixedPointEnabled>false</param.FixedPointEnabled>
@@ -774,8 +773,8 @@
     <var.gc.lastOutputType />
     <var.gc.preBuildChecksum />
     <var.cfi.lastOutputRoot>codegen\mex\timeIteration</var.cfi.lastOutputRoot>
-    <var.cfi.preBuildChecksum>2468051999</var.cfi.preBuildChecksum>
-    <var.lastCfiTestSnippet>A_Coral_Model('D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt')</var.lastCfiTestSnippet>
+    <var.cfi.preBuildChecksum>3161871856</var.cfi.preBuildChecksum>
+    <var.lastCfiTestSnippet>A_Coral_Model</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
     <var.lastUserSourceChecksum />
     <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
@@ -948,7 +947,7 @@
     </unset>
     <fileset.entrypoints>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Marker>1513533287189</Marker>
+        <Marker>1519335777494</Marker>
       </file>
     </fileset.entrypoints>
     <fileset.testbench>
@@ -956,12 +955,11 @@
     </fileset.testbench>
     <fileset.inputtypes>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Inputs fileName="timeIteration.m" functionName="timeIteration" nargout="6">
+        <Inputs fileName="timeIteration.m" functionName="timeIteration" nargout="5">
           <Input Name="timeSteps" typeId="0" />
           <Input Name="S" typeId="1" />
           <Input Name="C" typeId="1" />
           <Input Name="dt" typeId="0" />
-          <Input Name="ri" typeId="1" />
           <Input Name="temp" typeId="2" />
           <Input Name="OA" typeId="3" />
           <Input Name="omegaFactor" typeId="4" />
@@ -973,6 +971,8 @@
           <Input Name="S_seed" typeId="5" />
           <Input Name="suppressSuperIndex" typeId="0" />
           <Input Name="superSeedFraction" typeId="0" />
+          <Input Name="superMode" typeId="0" />
+          <Input Name="superAdvantage" typeId="0" />
           <Input Name="oneShot" typeId="3" />
           <Input Name="con" typeId="7">
             <Field Name="Cn" typeId="0" />

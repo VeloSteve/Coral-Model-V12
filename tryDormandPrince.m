@@ -1,7 +1,7 @@
 %#codegen
 function [S, C, tOut, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, tMonths, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, superMonth, ...
-        superSeedFraction, oneShot, con, dt)
+        superSeedFraction, oneShot, con, dt, k)
     
     origEvolved = 0.0;
     
@@ -47,17 +47,21 @@ function [S, C, tOut, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, t
     % 1e-4  43.9 sec
     % 1e-1  fails
     % 1e-5  69.0 sec
-    opts = odeset('RelTol',1e-2);  % 1e-3 is the default.
+    opts = odeset('RelTol',1e-3);  % 1e-3 is the default.
 
     if superMonth < 0
         [tOut, yOut] = ode45(@(t, y) ...
             odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
             [0 months], inVar, opts);
     else
-            [tOut, yOut] = ode45(@(t, y) ...
-            odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
-            [0 superMonth], inVar, opts);
-        
+            try
+                [tOut, yOut] = ode45(@(t, y) ...
+                odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
+                [0 superMonth], inVar, opts);
+            catch ME
+                fprintf('Caught an error in first integration for reef %d\n', k);
+                rethrow(ME);
+            end
             % Add super symbionts.
             % TODO - this is a "one shot" introduction only. The flag is
             % ignored.
@@ -71,11 +75,15 @@ function [S, C, tOut, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, t
             giNow = interp1(tMonths, gi, superMonth, 'spline');
             origEvolved = giNow(1);
 
-        
-            [tOut2, yOut2] = ode45(@(t, y) ...
-            odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
-            [superMonth months], newIn, opts);
-        
+            try
+                [tOut2, yOut2] = ode45(@(t, y) ...
+                odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
+                [superMonth months], newIn, opts);
+            catch ME
+                fprintf('Caught an error in second integration for reef %d\n', k);
+                rethrow ME;
+            end
+            
             % concatenate the pre- and post-symbiont segments, dropping the
             % duplicate point which would cause iterpolation issues later.
             tOut = vertcat(tOut(1:end-1, :), tOut2);

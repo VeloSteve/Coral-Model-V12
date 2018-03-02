@@ -6,13 +6,16 @@
 % last updated: 5-3-16                                              %
 % Performance and structural changes 9/2016 by Steve Ryan (jaryan)  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%function [SST, TIME] = A_Coral_Model(parameters)
 function A_Coral_Model(parameters)
 timerStart = tic;
 
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
+    parameters = 'D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    % Normal code - above is for debug only.
+    % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
 % Get a structure of run parameters in any of several ways.
 % Be sure we ALSO have a ParameterDictionary because it can be used to
@@ -26,9 +29,9 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 % Constants NOT controllable from the GUI or scripts are set first:
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
-doDormandPrince = true; % Use Prince-Dormand solver AND ours (for now)
+doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
 doHughesComparison = false;
-dt = 1/2; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
+dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 
 % New code, December 2017.  Variables were previously hardcoded in this file.
@@ -43,13 +46,17 @@ dt = 1/2; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
  saveVarianceStats, newMortYears] = explodeVariables(ps);
 
+% XXX timeIteration expects a double for superMode - that probably should be
+% changed, but for now just do a cast.
+superMode = double(superMode);
+
+
 %% Handle super symbiont options
 [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
     setupSuperSymbionts(superMode, RCP, E, superAdvantage, superStart, maxReefs);
 
 %% Put keyReefs in order without duplicates.  Shouldn't matter, but why not?
 keyReefs = unique(keyReefs);
-
 % A list of reefs for which to save data at maximum resolution for detailed
 %  analysis or plotting.  Not in the GUI - mainly for diagnistics.
 dataReefs = [];
@@ -187,9 +194,23 @@ initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYea
 
 % Convert years for symbiont activation to indexes in the time array for
 % quicker use later.   superStartYear units are years.
+neverIndex = length(time) + 1;
 for i = length(superStartYear):-1:1
     ssY = superStartYear(i);
-    superStartIndex(i) = findDateIndex(strcat('14-Jan-', num2str(ssY)), strcat('16-Jan-',num2str(ssY)), time);
+    % Introduce in summer, with a simple flip at the equator.  Remember that
+    % latlon contains lon, then lat.
+    if Reefs_latlon(i, 2) < 0
+        mon = '-Feb-';
+    else
+        mon = '-Aug-';
+    end
+    % equivalent to the original approach:
+    %mon = '-Jan-';
+    if ssY > fullYearRange(2)
+        superStartIndex(i) = neverIndex;
+    else
+        superStartIndex(i) = findDateIndex(strcat('14', mon, num2str(ssY)), strcat('16', mon, num2str(ssY)), time);
+    end
 end
 
 % max so it's always a valid index, BUT note that superStartIndex
@@ -251,8 +272,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -396,7 +417,7 @@ for parSet = 1:queueMax
 
             [S, C, tResults, gi, vgi, origEvolved] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
                 SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
-                superSeedFraction, oneShot, coralSymConstants, dt); 
+                superSeedFraction, oneShot, coralSymConstants, dt, k); 
             fprintf('Reef %d ', k);
             toc
  
@@ -411,6 +432,8 @@ for parSet = 1:queueMax
             % tMonths are the evenly spaced months used to interpolate those temperatures in D-P.
 
             tResults = interp1(tMonths, TIME, tResults, 'linear', 'extrap');     
+            % Reef 337 goes to a near-zero step size at 11-Aug-2038 07:12:00 !
+            % Is coral going negative at about 744500?
             
             % Interpolate to fixed time steps for easy post-processing.
             % Would it be worth joining these arrays so that only one
@@ -426,7 +449,7 @@ for parSet = 1:queueMax
 
             [S, C, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                         temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-                        superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
+                        superSeedFraction, superMode, superAdvantage, oneShot, coralSymConstants);
             tResults = time;  % Dormand-Prince creates its own time steps, R-K uses time.
         end
         %Plot_ArbitraryYvsYears(ri(:,2), tResults, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
@@ -597,15 +620,6 @@ if ~skipPostProcessing
     end
     % Count for all reefs over this time period.
     count852010 = sum(events85_2010);
-    % Now go back and get a running cumulative count of bleaching events for all
-    % reefs by year.
-    for y = size(bleachEvents, 2):-1:1
-        % Note: this combines branching and massive bleaching events.  When we
-        % have these in consecutive years it may look like two events where
-        % another study would call it one.
-        cumBleachEvents(y) = nnz(bleachEvents(:, y, :));
-    end
-    cumBleachEvents = cumsum(cumBleachEvents);
     
     if doHughesComparison
         %{
@@ -617,9 +631,20 @@ if ~skipPostProcessing
          WAtl  22      199
          Far           30
         %}
+        % Now go back and get a running cumulative count of bleaching events for all
+        % reefs by year.
+        for y = size(bleachEvents, 2):-1:1
+            % Note: this combines branching and massive bleaching events.  When we
+            % have these in consecutive years it may look like two events where
+            % another study would call it one.
+            cumBleachEvents(y) = nnz(bleachEvents(:, y, :));
+        end
+        cumBleachEvents = cumsum(cumBleachEvents);
+    
         % XXX - the line below is only valid when matched to the keyReefs!!!
-        %cumBleachEvents = cumBleachEvents*32.0/906.0;
-        hughesPlot(cumBleachEvents, startYear);
+        %cumBleachEvents = cumBleachEvents*32.0/906.0;  % 32/906 for Au
+        
+        hughesPlot(cumBleachEvents, startYear, 'Bleaching events, m+b, Au, matched reefs');
     end
     
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
@@ -634,6 +659,9 @@ if ~skipPostProcessing
     lastBleachEvent = nan(maxReefs, fullReef);
     for k = 1:maxReefs
         for i = 1:years
+            % XXX If one type is dead and the other is bleached, we don't mark
+            % either state for the reef.  It should probably be considered
+            % bleached.
             mortState(k, i, fullReef) = all(mortState(k, i, 1:fullReef-1));
             bleachState(k, i, fullReef) = all(bleachState(k, i, 1:fullReef-1));
             % Now find the last year alive - leave NaN if it ends alive.
@@ -741,7 +769,7 @@ if (~exist('optimizerMode', 'var') || optimizerMode == false) && ...
 end
 %% Cleanup
 fclose('all'); % Just in case some file was left open.
-clearvars SST Omega_factor
+% Not needed in function form: clearvars SST Omega_factor
 
 end % End the coral model main function
 

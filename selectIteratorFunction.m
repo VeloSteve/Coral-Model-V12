@@ -41,7 +41,7 @@ function handle =  selectIteratorFunction(select, arch)
             handle = @timeIteration;
             mexName = '';
     end
-    
+  
     %
     % NOTE: If the underlying files are edited for debugging, the timestamp
     % gets updated and the mex files won't be used.  This is good for

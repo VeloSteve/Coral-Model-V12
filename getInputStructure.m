@@ -16,10 +16,10 @@ function [ps, pd] = getInputStructure(parameters)
     else
         % If it's not a ParameterDictionary, see if it's a JSON string.
         try ps = jsondecode(parameters);
-            % TODO: store this in a ParameterDictionary so inputs are
-            % validated.
+            % That worked as a test, but use the PD constructor
+            % so inputs are validated.
+            pd = ParameterDictionary('json', parameters);
             disp('Got input values from a JSON string.');
-            json = parameters;
         catch ME
             if (strcmp(ME.identifier,'MATLAB:json:ExpectedValue'))
                 % Not a valid JSON string.  Try initializing from a file.
@@ -37,6 +37,8 @@ function [ps, pd] = getInputStructure(parameters)
                 fprintf('Decoding %s\n', json);
 
                 try ps = jsondecode(json);
+                    % As above, now repeat with the PD constructor.
+                    pd = ParameterDictionary('json', json);
                     disp('Got input values from specified file.');
                 catch ME
                     disp('Invalid input in specified file!');
@@ -47,11 +49,11 @@ function [ps, pd] = getInputStructure(parameters)
                 rethrow(ME)
             end
         end
-        pd = ParameterDictionary('json', json);
+        % keyReefs seems to come out of the JSON as a column vector even if it
+        % goes in as a row.  This may be wrong, but for now just force it to be
+        % what we need.
+        ps = pd.getStruct();
     end
-    % keyReefs seems to come out of the JSON as a column vector even if it
-    % goes in as a row.  This may be wrong, but for now just force it to be
-    % what we need.
-    ps.keyReefs = reshape(ps.keyReefs, 1, []);
+
 end
 

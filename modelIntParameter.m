@@ -57,6 +57,11 @@ classdef modelIntParameter < modelParameter
             if isinteger(v)
                 % Note that v may be an array rather than a single integer.
                 if min(v) >= obj.minimum && max(v) <= obj.maximum
+                    if length(v) > 1
+                        % vectors may arrive as a column or row - make it
+                        % consistently a row:
+                        v = reshape(v, 1, []);
+                    end
                     obj.value = v;
                 else
                     error('Value of %s must be between %d and %d.  %d is not.', obj.name, obj.minimum, obj.maximum, v);

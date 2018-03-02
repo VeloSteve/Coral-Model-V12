@@ -1,10 +1,10 @@
 %#codegen
 function [S, C, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
-        superSeedFraction, oneShot, con)
+        superSeedFraction, superMode, superAdvantage, oneShot, con)
     
     origEvolved = 0.0;
-    ri = zeros(length(time), con.Sn * con.Cn); % actual growth rate at optimal temp
+    ri = zeros(timeSteps+1, con.Sn * con.Cn); % actual growth rate at optimal temp
 
     for i = 1:timeSteps
         rm  = con.a*exp(con.b*temp(i,1)) ; % maximum possible growth rate at optimal temp
@@ -73,7 +73,13 @@ function [S, C, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, ...
         dvgi = MutVx - (vgi(i,:)) .^2 ./ SelVx * rm ; % Change in Symbiont Mean Variance
         gi(i+1,:)  =  gi(i,:) + dt .* dgi;  % Symbiont genotype at t=i (Euler)
         vgi(i+1,:) = vgi(i,:) + dt .* dvgi; % Symbiont variance at t=i (Euler)
-        if i > 1 && i == suppressSuperIndex
+        if superMode == 7
+            % For this mode only, symbiont advantage is relative to the native
+            % symbiont at every time step.
+            gi(i+1, 3:4) = gi(i+1, 1:2) + superAdvantage;
+            % For now, assume that the variance matches the natives.
+            vgi(i+1, 3:4) = vgi(i+1, 1:2);
+        elseif i > 1 && i == suppressSuperIndex
             % Important - enhanced genotype is set at the beginning of run,
             % but if E=1 it will have decayed.  Reset here!
             gi(i+1, 3:4) = gi(1, 3:4);

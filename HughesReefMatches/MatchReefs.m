@@ -5,6 +5,7 @@
 [hughesNum, hughesTxt, hughesTable] = xlsread('Hughes100Reefs.xlsx',  'Clean for Export');
 hughesLat = hughesNum(2:101, 4);
 hughesLon = hughesNum(2:101, 5);
+hughesArea = hughesNum(2:101, 6);
 
 % Now get our cell centroids
 addpath('d:\GitHub\Coral-Model-V12');
@@ -101,14 +102,116 @@ end
       'auCells', 'ioCells', 'pCells', 'aCells', 'closestHughesReef', ...
       'hughesRegion', 'hughesLocation', 'closestCellToHughes');
   
+  % Arbitrary values for plotting regions in color.
   pVals = zeros(1, rc);
   pVals(auCells) = 1;
   pVals(ioCells) = 2;
   pVals(pCells) = 3;
   pVals(aCells) = 4;
   pVals(farCells) = hughesDist(farCells);
-  oneMap(2000, Reefs_latlon(:, 1), Reefs_latlon(:, 2), pVals, parula, sprintf('Black cells are not within %d degrees of a Hughes reef', far));
+  oneMap(2000, Reefs_latlon(:, 1), Reefs_latlon(:, 2), pVals, parula, ...
+      sprintf('Black cells are not within %d degrees of a Hughes reef', far), ...
+      hughesLat, hughesLon, hughesArea);
   
+  %% Now, try to duplicate Hughes graph S2B from their data, just to be sure I
+  %  understand how they did it.  Column 7 in the xlsx file is 1980.  Column 43
+  %  is 2016.
+  % Yes, it's ugly!
+  %bleachFlags = strcmp('M', hughesTxt) | strcmp('S', hughesTxt);
+  bleachFlags = strcmp('S', hughesTxt);
+  iAU = find(strcmp(hughesTxt(:, 2), 'AuA'));
+  iIo = find(strcmp(hughesTxt(:, 2), 'IO-ME'));
+  iP = find(strcmp(hughesTxt(:, 2), 'Pac'));
+  iA = find(strcmp(hughesTxt(:, 2), 'WAtl'));
+  justAu = bleachFlags(iAU, 7:43);
+  justIo = bleachFlags(iIo, 7:43);
+  justP = bleachFlags(iP, 7:43);
+  justA = bleachFlags(iA, 7:43);
+  bleachAu = zeros(43-7+1);
+  bleachIo = zeros(43-7+1);
+  bleachP = zeros(43-7+1);
+  bleachA = zeros(43-7+1);
+  bleachAu(1) = sum(justAu(:, 1));
+  bleachIo(1) = sum(justIo(:, 1));
+  bleachP(1) = sum(justP(:, 1));
+  bleachA(1) = sum(justA(:, 1));
+  for y = 2:43-7+1
+      bleachAu(y) = bleachAu(y-1) + sum(justAu(:, y));
+      bleachIo(y) = bleachIo(y-1) + sum(justIo(:, y));
+      bleachP(y) = bleachP(y-1) + sum(justP(:, y));
+      bleachA(y) = bleachA(y-1) + sum(justA(:, y));
+  end
+  hughesPlot(bleachAu, 1980, 'Australasia', 0);
+  hughesPlot(bleachIo, 1980, 'Indian Ocean/Middle East', 0);
+  hughesPlot(bleachP, 1980, 'Pacific', 0);
+  hughesPlot(bleachA, 1980, 'West Atlantic', 0);
+% Conclusion: yes, these match the graphis in the paper supplement.
+
+%% Now, try combining Hughes cells which match one of ours
+% This will have a lot in common with some of the code above, but keep in
+% separate for clarity.
+% Goal: when several Hughes reefs match one of our cells, that could give a
+% higher bleaching count for the Hughes approach.  Identify and combine the counts from those
+% reefs.
+% For each of our cells, fold in any matching Hughes cells.
+% As above column 7 in bleachFlags is 2016.
+aggSum(rc, 2016-1980+1) = 0;
+hasMatch(rc) = false;
+iCounted = [];
+for k = 1:rc
+   % Watch out - "latlon" has lon before lat!
+    lat = Reefs_latlon(k, 2);   
+    lon = Reefs_latlon(k, 1);
+    iLat = find(abs(hughesLat-lat) <= 0.5);
+    iLon = find(abs(hughesLon-lon) <= 0.5);
+    iMatch = intersect(iLat, iLon);
+    % Don't recount!
+    iMatch = setdiff(iMatch, iCounted);
+    % An update what has been counted.
+    iCounted = union(iCounted, iMatch);
+    hasMatch(k) = ~isempty(iMatch);
+    for c = 7:7+2016-1980
+        aggSum(k, c-6) = sum(bleachFlags(1+iMatch, c));
+    end
+end
+fprintf('In 1925 reef cells, %d have matches with Hughes et al. reefs.\n', sum(hasMatch));
+fprintf('In 100 reefs, %d have matches with Logan cells.\n', length(iCounted));
+% Only 71 of the Hughes reefs have matches in Logan cells!
+% # 2 at -20,153 is 231 km^2 in the coral sea, and in Google Earth it's over 100 km to
+% the nearest feature that looks likely to contain a reef.
+% # 4 at -11.5, 145.3 is 9319 km^2, northern GBR, and has many reefs close enough
+%   to be included. A number of our cells overlap the specified area, but none
+%   have a centroid within 1/2 degree.
+% # 5 is 75 km from the coast of Australia, with an area of 6872 km^2.  If that
+% area were circular, it would have a radius of 47 km.
+
+% Working with Logan cells, use auCells, etc. for indexing.
+justAu = aggSum(auCells, :);
+justIo = aggSum(ioCells, :);
+justP = aggSum(pCells, :);
+justA = aggSum(aCells, :);
+  bleachAu = zeros(43-7+1);
+  bleachIo = zeros(43-7+1);
+  bleachP = zeros(43-7+1);
+  bleachA = zeros(43-7+1);
+  bleachAu(1) = nnz(justAu(:, 1));
+  bleachIo(1) = nnz(justIo(:, 1));
+  bleachP(1) = nnz(justP(:, 1));
+  bleachA(1) = nnz(justA(:, 1));
+  for y = 2:43-7+1
+      bleachAu(y) = bleachAu(y-1) + nnz(justAu(:, y));
+      bleachIo(y) = bleachIo(y-1) + nnz(justIo(:, y));
+      bleachP(y) = bleachP(y-1) + nnz(justP(:, y));
+      bleachA(y) = bleachA(y-1) + nnz(justA(:, y));
+  end
+hughesPlot(bleachAu, 1980, 'Clumped Australasia', 0);
+hughesPlot(bleachIo, 1980, 'Clumped Indian Ocean/Middle East', 0);
+hughesPlot(bleachP, 1980, 'Clumped Pacific', 0);
+
+hughesPlot(bleachA, 1980, 'Clumped West Atlantic', 0);
+
+  
+  %%
   %{
   Some results in text form, for easy cut and paste before a more automated way
   is built:
@@ -119,6 +222,12 @@ end
   pCells: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,225,230,231,232,233,234,238,239,240,241,244,245,246,247,248,254,255,263,264,270,272,275,282,294,295,313,321,322,323,335,1423,1424,1425,1439,1440,1446,1452,1453,1454,1455,1456,1457,1458,1459,1463,1464,1465,1466,1467,1475,1476,1481,1484,1487,1488,1490,1491,1498,1507,1508,1509,1521,1522,1523,1524,1525,1536,1537,1538,1539,1540,1541,1542,1556,1557,1558,1559,1575,1576,1577,1591,1592,1593,1594,1595,1613,1614,1615,1616,1617,1618,1619,1636,1637,1656,1657,1658,1676,1677,1678,1691,1692,1693,1702,1703,1704,1715,1726,1727,1728,1737,1740,1741,1742,1743,1754,1762,1763,1768,1769,1774,1775,1776,1777,1778,1779,1780,1781,1782,1783,1784,1785,1786,1787,1788,1791,1792,1793,1794,1795,1796,1797,1798,1799,1800,1801,1802,1803,1804,1805,1806,1807,1808,1809,1810,1811,1812,1813,1814,1815,1816,1817,1818,1819,1820,1821,1822,1823,1824,1825,1826,1827,1828,1829,1830,1831,1832,1833,1834,1835,1836,1837,1838,1839,1840,1841,1842,1843,1844,1845,1846,1847,1848,1849,1850,1851,1852,1853,1854,1855,1856,1857,1858,1859,1860,1861,1862,1863,1864,1865,1866,1867,1868,1869,1870,1871,1872,1873,1874,1875,1876,1877,1878,1879,1880,1881,1882,1883,1884,1885,1886,1887,1888,1889,1890,1891,1892,1893,1894,1895,1896,1897,1898,1899,1900,1901,1902,1903,1904,1905,1906,1907,1908,1909,1910,1911,1912,1913,1914,1915,1916,1917,1918,1919,1920,1921,1922,1923,1924,1925]
   aCells: [217,218,219,220,221,222,223,224,226,227,228,229,235,236,237,242,243,249,250,251,252,253,256,257,258,259,260,261,262,265,266,267,268,269,271,273,274,276,277,278,279,280,281,283,284,285,286,287,288,289,290,291,292,293,296,297,298,299,300,301,302,303,304,305,306,307,308,309,310,311,312,314,315,316,317,318,319,320,324,325,326,327,328,329,330,331,332,333,334,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445]
   
+  Cells which best match the Hughes cells in each region:
+auMatch [804,807,813,831,915,928,935,956,961,991,994,1053,1093,1108,1176,1197,1232,1267,1342,1402,1496,1512,1579,1601,1630,1640,1664,1679,1680,1738,1758]
+ioMatch [471,473,477,488,493,502,516,553,566,572,583,615,622,624,636,657,695,706,720,762,851,1086,1148,1181]
+pMatch  [57,70,71,103,126,144,240,275,282,313,321,335,1458,1525,1540,1702,1785,1811,1818,1845,1903,1913]
+aMatch  [224,258,261,265,283,284,301,311,329,339,343,348,398,399,402,409,411,419,420,422,440,445]
+  
       Number of reefs in each region:
            Hughes  Logan
      AuA   32      906
@@ -128,7 +237,8 @@ end
      Far           30
   %}
   
-  function [] = oneMap(n, lons, lats, values, cMap, t)
+  %% Plot a map
+  function [] = oneMap(n, lons, lats, values, cMap, t, hLat, hLon, hArea)
     f = figure(n);
 
         clf;
@@ -142,7 +252,17 @@ end
     hold on;
     idx = find(lons < 0);
     lons(idx) = lons(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
+    % Terrible kludge: add an extra lat/lon set to get scale and the delete them
+    % afterwards!
+    lons(end+1) = lons(end) + 1;
+    lats(end+1) = lats(end) + 1;
     [LONG,LAT] = m_ll2xy(lons,lats); % convert reef points to M-Map lat long
+    oneDegLat = LAT(end) - LAT(end-1);
+    oneDegLon = LONG(end) - LONG(end-1);
+    oneDeg = (oneDegLat + oneDegLon) / 2.0;
+    fprintf('Lat/Lon degrees scale to %d and %d\n', oneDegLat, oneDegLon);
+    LONG = LONG(1:end-1);
+    LAT = LAT(1:end-1);
     
    
     % Draw reefs with homes in solid colors, far reefs on a color scale.
@@ -172,10 +292,28 @@ end
     cornerLon(idx) = cornerLon(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
     [cLon, cLat] = m_ll2xy(cornerLon, cornerLat);
     for i = 1:4
+        % Position is x, y, width, height.
         rectangle('Position', [cLon(i*2-1),  cLat(i*2-1), cLon(i*2)-cLon(i*2-1), cLat(i*2)-cLat(i*2-1)], ...
             'EdgeColor', [0 0 0]    );
     end
+    
+    % Also add circles of the size of each Hughes reef, but not that their reefs
+    % are probably neither circular nor rectangular.
+    % Near the equator, assume that 1 degree squared is 100 km.
+    % Some areas are not given, and come through as NaN.  Set to 1 arbitrarily.
+    hArea(isnan(hArea)) = 1.0;
+    radius = sqrt(hArea/3.14159)/100; % in degrees
+    radius = radius * oneDeg; % in map units
+    % Note +360 to match shifted map.
+    idx = find(hLon < 0);
+    hLon(idx) = hLon(idx) + 360;
+    [hLONG,hLAT] = m_ll2xy(hLon, hLat); % convert reef points to M-Map lat long
 
+    
+    for i = 1:length(hArea)
+        rectangle('Position', [hLONG(i)-radius(i), hLAT(i)-radius(i), 2*radius(i), 2*radius(i)], ...
+            'EdgeColor', [0 0 1], 'Curvature', [0.8 0.8]);
+    end
 
     
     aaa = gca;

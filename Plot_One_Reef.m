@@ -214,16 +214,20 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         
         % For the scatter data, we're just drawing a circle on the x axis.
         % approximating to min-year will be close enough.
+        
+        % Note, 2/4/2018: we are only plotting bleaching events, and using open
+        % circles.  Solid circles for mortality should probably be added.
+        
         timeY(1:length(bleachEvent)) = time(6:12:length(time));
         [subscripts, ~] = find(bleachEvent(:,2));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
-        scatCC2 = scatter(tSub,subscripts,'b'); datetick % branching mort event
+        scatCC2 = scatter(tSub,subscripts,'b'); datetick % branching bleaching event
        
         [subscripts, ~] = find(bleachEvent(:,1));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;
-        scatCC1 = scatter(tSub, subscripts,'m');  % massive mort event
+        scatCC1 = scatter(tSub, subscripts,'m');  % massive bleaching event
        
         xlabel('Time (years)')   ; 
 

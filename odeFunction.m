@@ -15,6 +15,9 @@
 function [dydt] = odeFunction(t, startVals, tMonths, ...
                             temp, C_seed, S_seed, con, ri, gVec)
                        
+    persistent polyT;
+    persistent polyRI;  
+    persistent polyG;
     Sn    = con.Sn;
     Cn    = con.Cn;
     KSx   = con.KSx;
@@ -30,6 +33,10 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     cols = Sn*Cn;
     Sold = startVals(1:cols)';
     Cold = startVals(cols+1:cols*2)';
+    
+    % This an make the result function discontinuous, but if the last iterationsent C negative, it
+    % must be set back to the seed level.
+    Cold = max(Cold, repmat(C_seed, 1, 2));
 
     assert(length(Sold) == Sn*Cn, 'There should be one symbiont entry for each coral type * each symbiont type.');
     assert(length(Cold) == Sn*Cn, 'There should be one coral entry for each coral type * each symbiont type.');
@@ -52,13 +59,25 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     
     % Start getting interpolated values not needed in the original RK
     % approach.
-    T = interp1(tMonths, temp, t, 'pchip');
+    if isempty(polyT)
+        disp('a');
+        polyT = interp1(tMonths, temp, 'pchip', 'pp');
+    end
+    %T = interp1(tMonths, temp, t, 'pchip');
+    T = ppval(polyT, t);
     rm  = a*exp(b*T);  % Faster than interpolating already-made values!
     %rm = interp1q(tMonths, rmVec, t);
     % G is a pair of values for massive and branching.
-    G = interp1(tMonths, gVec, t, 'pchip');
+    if isempty(polyG)
+        polyG = interp1(tMonths, gVec, 'pchip', 'pp');
+    end
+    G = ppval(polyG, t)';
     % ri is four values
-    riNow = interp1(tMonths, ri, t, 'pchip');
+    if isempty(polyRI)
+        polyRI = interp1(tMonths, ri, 'pchip', 'pp');
+    end
+    %riNow = interp1(tMonths, ri, t, 'pchip');
+    riNow = ppval(polyRI, t)';
 
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
     dSdT = Sold ./ (KSx .* Cold) .* (riNow .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK
