@@ -90,6 +90,14 @@ mkdir(strcat(outputPath, 'bleaching'));
 echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
 logTwo(echoFile); % Required first call to set output path.
 
+% Also put a copy of the model parameters in JSON format into the maps
+% directory in a separate file.  This can be used as input to duplicate this
+% run.
+paramFile = fopen(strcat(mapDirectory, 'modelParameters.json'), 'w+');
+fprintf(paramFile, '%s', pd.getJSON());
+fclose(paramFile);
+
+
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 % Extract SSTs for a ALL reef grid cells
 [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
@@ -718,7 +726,6 @@ if ~skipPostProcessing
                 fullYearRange, ...
                 modelChoices);
         end
-
         if doCoralCoverFigure
             coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
                     superAdvantage, mapDirectory)
@@ -728,8 +735,12 @@ if ~skipPostProcessing
     % examined by the optimizer when it is used.
     oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
     Stats_Tables(bleachState, mortState, lastYearAlive, ...
-        lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
+       lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
         bleachParams, doDetailedStressStats, oMode);
+    
+    % New 3/7/2018: output cover in 2100.
+    coralCover2100(C_yearly, coralSymConstants, startYear);
+
 
     % Get the years when reefs first experienced lasting mortality and 
     % bleaching.  This isn't wanted in every run, and certainly not when 
