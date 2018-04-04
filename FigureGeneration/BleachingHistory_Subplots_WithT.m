@@ -30,6 +30,8 @@ legText = {};
 legCount = 1;
 for i = 1:4
     rrr = rcpList{i};
+    % Get temperature data to go with this plot
+    [tYears, T] = getTempHistory(rrr);
     subplot(2,2,i);
     cases = [];
     hFile = '';
@@ -49,7 +51,22 @@ for i = 1:4
     end
     % x values are the same for all. Use the latest file;
     load(hFile, 'xForPlot');
-    oneSubplot(xForPlot, cases, legText, rcpName{i}, i, i==1, i > 2);
+    % Temperature history has every year, but xForPlot may not.  Get the
+    % needed values.
+    % There's probably a nice way, but just iterate for now.
+    tempYears = zeros(length(xForPlot), 1);
+    tempPlot = zeros(length(xForPlot), 1);
+    jj = 1;
+    for j = 1:length(xForPlot)
+        while xForPlot(j) > tYears(jj)
+            jj = jj + 1;
+        end
+        tempYears(j) = tYears(jj);
+        tempPlot(j) = T(jj);
+    end
+    
+    
+    oneSubplot(xForPlot, cases, tempYears, tempPlot, legText, rcpName{i}, i, i==1, i > 2);
 
     %{
     if strcmp(rcpList{i}, 'rcp85')
@@ -70,6 +87,17 @@ for i = 1:4
     end
 
 end
+%colorbar();
+hp4 = get(subplot(2,2,4),'Position')
+% subplot positions are left, bottom, width, height
+c = colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.03  hp4(2)+hp4(3)*2.1-0.04], ...
+         'Ticks', 26:1:30);
+%c.Label.String = 'Annual Average SST, °C';
+% try adding a label above the colorbar
+annT = annotation(gcf, 'textbox', ...
+    [hp4(1)+hp4(3)+0.025, 0.92, 0.03, 0.03], ...
+    'String', 'SST (°C)', ...
+    'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
 
 % Add a text box at top center if text is provided.
 if ~isempty(topNote)
@@ -87,11 +115,12 @@ if ~isempty(topNote)
 end
 end
 
-function oneSubplot(X, Yset, legText, tText, baseColor, useLegend, labelX) 
+function oneSubplot(X, Yset, tYears, T, legText, tText, baseColor, useLegend, labelX) 
 
     % Create axes
     %axes1 = axes;
     %hold(axes1,'on');
+    %{
     switch baseColor
         case 1 
             base = [0 0 .9];
@@ -108,11 +137,25 @@ function oneSubplot(X, Yset, legText, tText, baseColor, useLegend, labelX)
             base = [.9 0 0];
             light = [1.0 0.5 0.5];
     end
+    %}
+    base = [0 0 0];
+    light = [0.5 0.5 0.5];
     col{1} = light;    % XXX - NOTE that this line is hidden for now.
     col{2} = light;
 
     col{3} = base;
     col{4} = base;
+    
+    % Color background by temperature
+    fprintf("T from %d to %d for %s\n", min(T), max(T), tText);
+    TFrame = [T, T]';
+    [~, h] = contourf(X, [0 100], TFrame, 26:0.1:30);
+    h.LineStyle = 'none';
+    brighten(0.2);
+    caxis([26 30]);
+    % colorbar();
+
+    hold on;
     
     % Create multiple lines using matrix input to plot
     plot1 = plot(X,Yset(:, :));
@@ -125,7 +168,9 @@ function oneSubplot(X, Yset, legText, tText, baseColor, useLegend, labelX)
             set(plot1(i), 'LineStyle', '--');
         end     
     end
+    
 
+    
     % Create xlabel
     if labelX; xlabel('Year','FontSize',14); end
 
@@ -143,10 +188,25 @@ function oneSubplot(X, Yset, legText, tText, baseColor, useLegend, labelX)
     % Create legend
     hold off;
     if useLegend
-        legend1 = legend('show');
+        %legend1 = legend('show');
+        % Specify each line so the contours don't get a legend entry.
+        legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4)]);
         set(legend1,'Location','southwest','FontSize',20);
-    end
+    end 
+end
 
-
-    
+function [years, SST_out] = getTempHistory(RCP) 
+    % Get the global T history and crunch it down to global averages.
+    sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
+    dataset = "ESM2M";
+    [SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
+    % Make global averages across all reefs.
+    SST_global = mean(SST, 1);
+    % Now we have one list of dates, 12 per years.  Reshape so all values for a
+    % year are together.
+    SST_2D = reshape(SST_global, 12, []);
+    SST_out = mean(SST_2D, 1);
+    years = startYear:startYear+length(SST_out)-1;
+    % asdf
+    return
 end
