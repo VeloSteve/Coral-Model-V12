@@ -6,7 +6,7 @@ function BleachingHistory_Subplots_WithDT()
 % The files for a new set of runs to be plotted should be copied to safe place
 % and referenced in relPath below.  This is intentionally a manual step so that
 % test runs made later can't accidentally overwrite the data we want to publish.
-relPath = '../FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_March8/';
+relPath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_March8/';
 inverse = true;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.

@@ -22,8 +22,9 @@ for i = 1:length(names)
 end
 
 figure('color', 'w');
-set(gcf,...
-    'OuterPosition',[11 1 1920 1440]);
+%set(gcf,...
+%    'OuterPosition',[11 1 1920 1440]);
+set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);
 
 % Subplot arguments are rows, columns, counter by rows first
 for i = 1:length(names)
