@@ -31,7 +31,7 @@ for i = 1:4
     [tYears, DT, T] = getTempDeltas(rrr, smoothT);
     % original subplot subplot(2,2,i);
     % Below pick one of the axes set up by tight_subplot
-    axes(ha(i));
+    axes(ha(i)); %#ok<LAXES>
     cases = [];
     hFile = '';
     for eee = 0:1
@@ -77,11 +77,11 @@ for i = 1:4
     % csvstuff = horzcat(xForPlot', tempPlot, dtPlot, cases');
     % csvwrite(fname, csvstuff, 1, 0); 
     
-    oneSubplot(xForPlot, cases, tempYears, dtPlot, legText, rcpName{i}, i, i==1, i > 2, mod(i, 2));
+    oneSubplot(xForPlot, cases, dtPlot, legText, rcpName{i}, i==1, i > 2, mod(i, 2));
 
     if i == 1
         % position units are based on the data plotted
-        yHandle = ylabel({'Percent of  ''undamaged'' coral reefs globally'}, ...
+        ylabel({'Percent of  ''undamaged'' coral reefs globally'}, ...
             'FontSize',24,'FontWeight','bold', 'Position', [1930 -10]);
     end
 
@@ -93,10 +93,10 @@ pos2 = pos{2};
 
 % subplot positions are left, bottom, width, height
 % Align the color bar to the top and bottom of the plots.
-c = colorbar('Position', [pos4(1)+pos4(3)+0.025  pos4(2)  0.03  pos2(2)+pos2(4)-pos4(2)], ...
+colorbar('Position', [pos4(1)+pos4(3)+0.025  pos4(2)  0.03  pos2(2)+pos2(4)-pos4(2)], ...
          'Ticks', 0:1:3);
 % Add a label above the colorbar
-annT = annotation(gcf, 'textbox', ...
+annotation(gcf, 'textbox', ...
     [pos4(1)+pos4(3)+0.015, 0.96, 0.03, 0.03], ...
     'String', '\DeltaT(°C)', ...
     'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
@@ -117,29 +117,8 @@ if ~isempty(topNote)
 end
 end
 
-function oneSubplot(X, Yset, tYears, T, legText, tText, baseColor, useLegend, labelX, odd) 
+function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide) 
 
-    % Create axes
-    %axes1 = axes;
-    %hold(axes1,'on');
-    %{
-    switch baseColor
-        case 1 
-            base = [0 0 .9];
-            light = [0.5 0.5 1.0];
-        case 2 
-            base = [0 .7 0];
-            light = [0.4 1.0 0.4];
-        case 3 
-            %base = [.6 .6 0];
-            %light = [0.9 0.9 0];
-            base = [1.0 0.55 0];
-            light = [1.0 0.65 0.1];
-        case 4 
-            base = [.9 0 0];
-            light = [1.0 0.5 0.5];
-    end
-    %}
     base = [0 0 0];
     light = [0.5 0.5 0.5];
     col{1} = light;    % XXX - NOTE that this line is hidden for now.
@@ -207,7 +186,7 @@ function oneSubplot(X, Yset, tYears, T, legText, tText, baseColor, useLegend, la
         set(gca, 'XTickLabel', []);
     end
     % Remove vertical labels from inside spaces
-    if ~odd
+    if ~rightSide
         set(gca, 'YTickLabel', []);
     end
     
@@ -225,7 +204,7 @@ function [years, DT, T_smooth] = getTempDeltas(RCP, smoothT)
     % Get the global T history and crunch it down to global DT from 1861 to 2001.
     sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
     dataset = "ESM2M";
-    [SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
+    [SST, ~, ~, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
     % For each reef get the average peak for the first 140 years.
     % Make indexes be reef, month, year counter
     SST_3D = reshape(SST, 1925, 12, []);
@@ -239,14 +218,12 @@ function [years, DT, T_smooth] = getTempDeltas(RCP, smoothT)
     % Only now we average the DT across all reefs (could do some sort of 2D
     % representation instead???)
     SST_out = mean(SST_DT, 1);
-    min(SST_out(90:end))
+    min(SST_out(90:end));
     % Try smoothing just a little
     DT = centeredMovingAverage(SST_out, smoothT, 'hamming');
     T_smooth = centeredMovingAverage(SST_Maxes, smoothT, 'hamming');
-    %DT = SST_out;
     DT(DT<0) = 0.0;
     years = startYear:startYear+length(SST_out)-1;
-    % asdf
     return
 end
 

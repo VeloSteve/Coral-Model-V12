@@ -10,10 +10,6 @@ function out = centeredMovingAverage(x, n, method)
 % This could be done in a more "Matlab like" way, but as a first pass I'm
 % going to write this crudely (but maybe more clearly).
 
-    %pad the array so that all of the adding can
-    % be done with no concern for endpoints.  Then only the divisors need to be
-    % special.
-    %half = idivide(int32(n)/int32(2), 'floor');
     assert(mod(n, 2) == 1, 'Centered moving average requires an odd n value.');
     
     if nargin == 3
@@ -22,36 +18,17 @@ function out = centeredMovingAverage(x, n, method)
         alg = 'rectangle';
     end
     
-    half = floor(n/2);
-    %{
-    out = zeros(1, length(x));
-    padx = zeros(1, length(x)+ 2*half);
-    padx(half+1:end-half) = x;
-    for i = 1:n
-        out(1:end) = out(1:end) + padx(i:end-n+i);
-    end
-    
-    % Sums are complete, now divide
-    % Center
-    out(1+half:end-half) = out(1+half:end-half)/n;
-    % Ends
-    for i = 1:half
-        out(1+half-i) = out(1+half-i)/(n-i);
-        out(end-half+i) = out(end-half+i)/(n-i);
-    end
-    %}
-    % REWRITE below to accommodate more than one window type.
     out = zeros(1, length(x));
     weight = zeros(n, 1);
     if strcmp(alg, 'hamming')
-        disp('Hamming smoothing.')
+        %disp('Hamming smoothing.')
         cFactor = 2 * pi() / (n-1);
         for i = 0:n-1
             weight(i+1) = 0.54 - 0.46 * cos(i*cFactor);
         end
         divisor = sum(weight); % should be 1, but this is safe.
     elseif strcmp(alg, 'rectangle')
-        disp('Rectangular smoothing.')
+        %disp('Rectangular smoothing.')
         weight = ones(n, 1);
         divisor = n;
     else
