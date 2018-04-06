@@ -1,7 +1,12 @@
-function BHSCO()
-%relPath = '../bleaching_history/';
-%relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
-relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_FineTimeScale_March8\';
+function BleachingHistory_Subplots_WithDT()
+% This figure displays data from multiple runs.  The bleaching history output
+% for each run is written by Stats_Tables.m into the bleaching/BleachingHistory
+% directory within the base output directory for model runs.  For detailed
+% yearly output after 1950, set the model parameter doDetailedStressStats true.
+% The files for a new set of runs to be plotted should be copied to safe place
+% and referenced in relPath below.  This is intentionally a manual step so that
+% test runs made later can't accidentally overwrite the data we want to publish.
+relPath = '../FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_March8/';
 inverse = true;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
@@ -14,13 +19,19 @@ set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 rcpName = {'RCP 2.6', 'RCP 4.5', 'RCP 6.0', 'RCP 8.5'};
 
+% Use tight_subplot (license in license_tight_subplot.txt) to control spacing
+% rows, columns, gap, height, width
+[ha, pos] = tight_subplot(2, 2, 0.05, [0.1 0.06], [0.1 0.1]);
+
 legText = {};
 legCount = 1;
 for i = 1:4
     rrr = rcpList{i};
     % Get temperature data to go with this plot
     [tYears, DT, T] = getTempDeltas(rrr, smoothT);
-    subplot(2,2,i);
+    % original subplot subplot(2,2,i);
+    % Below pick one of the axes set up by tight_subplot
+    axes(ha(i));
     cases = [];
     hFile = '';
     for eee = 0:1
@@ -60,30 +71,33 @@ for i = 1:4
     
     % Save this RCP case as a CSV so Cheryl can look at it in R:
     % heading = {'Year', 'Tmax', 'DT', 'E0_OA1', 'E0_OA0', 'E1_OA1', 'E1_OA0'}
-    fname = strcat("healthy_", rcpList(i), ".csv");
-    %csvwrite(fname, heading);
+    % fname = strcat("healthy_", rcpList(i), ".csv");
     % NOTE: csvwrite can't write a cell array.  For now just add the header line
     % with vi!
-    csvstuff = horzcat(xForPlot', tempPlot, dtPlot, cases');
-    csvwrite(fname, csvstuff, 1, 0); 
+    % csvstuff = horzcat(xForPlot', tempPlot, dtPlot, cases');
+    % csvwrite(fname, csvstuff, 1, 0); 
     
     oneSubplot(xForPlot, cases, tempYears, dtPlot, legText, rcpName{i}, i, i==1, i > 2, mod(i, 2));
 
     if i == 1
-        yHandle = ylabel({'Percent of  ''undamaged'' coral reefs globally'},'FontSize',24,'FontWeight','bold');
-        set(yHandle, 'Position', [1925 -20 0])
+        % position units are based on the data plotted
+        yHandle = ylabel({'Percent of  ''undamaged'' coral reefs globally'}, ...
+            'FontSize',24,'FontWeight','bold', 'Position', [1930 -10]);
     end
 
 end
-%colorbar();
-hp4 = get(subplot(2,2,4),'Position');
+
+%  Get the right two axes positions for use in locating the colorbar and label
+pos4 = pos{4};
+pos2 = pos{2};
 
 % subplot positions are left, bottom, width, height
-c = colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.03  hp4(2)+hp4(3)*2.1-0.06], ...
+% Align the color bar to the top and bottom of the plots.
+c = colorbar('Position', [pos4(1)+pos4(3)+0.025  pos4(2)  0.03  pos2(2)+pos2(4)-pos4(2)], ...
          'Ticks', 0:1:3);
 % Add a label above the colorbar
 annT = annotation(gcf, 'textbox', ...
-    [hp4(1)+hp4(3)+0.025, 0.92, 0.03, 0.03], ...
+    [pos4(1)+pos4(3)+0.015, 0.96, 0.03, 0.03], ...
     'String', '\DeltaT(°C)', ...
     'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
 
@@ -136,7 +150,7 @@ function oneSubplot(X, Yset, tYears, T, legText, tText, baseColor, useLegend, la
     
     % Color background by temperature
     %colormap('redblue');
-    cmap = coolwarm();
+    cmap = coolwarm(200);
     % Make the map less intense and reload it.
     %cmap = min(1, cmap+0.2);
     %cmap = max(0.2, cmap);
@@ -150,7 +164,7 @@ function oneSubplot(X, Yset, tYears, T, legText, tText, baseColor, useLegend, la
     
     fprintf("T from %d to %d for %s\n", min(T), max(T), tText);
     TFrame = [T, T]';
-    [~, h] = contourf(X, [0 100], TFrame, 0:0.25:3.0); %-0.22:0.2:3.2);
+    [~, h] = contourf(X, [0 100], TFrame, 0:0.005:3.0); %-0.22:0.2:3.2);
     h.LineStyle = 'none';
     caxis([0 3.0]);
     % colorbar();
