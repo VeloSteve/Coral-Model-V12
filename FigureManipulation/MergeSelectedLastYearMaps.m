@@ -9,6 +9,7 @@ for eee = 0:1
         n = strcat(inputPath, 'ESM2Mrcp', num2str(rcp*10), '.E', num2str(eee), '.OA0_NF1_20170923_LastHealthyBothTypesV2');
         p1 = open(strcat(n,'.fig'));
         pax(num) = gca;
+        figureHandles(num) = p1;
     end
 end
 panels = num;
@@ -34,6 +35,7 @@ for eee = 0:1
         caxis(yearRange);  % Limit and make consistent
         colormap(cmap); %(flipud(jet)
         title(strcat('(', letters(num), ') RCP ', num2str(rcp), ' E=',num2str(eee)));
+        close(figureHandles(num));
     end
 end
 

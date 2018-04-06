@@ -18,6 +18,7 @@ for i = 1:length(names)
     n = names{i};
     p1 = open(strcat(n,'.fig'));
     pax(i) = gca;
+    figHandles(i) = p1;
 end
 
 figure('color', 'w');
@@ -38,6 +39,7 @@ for i = 1:length(names)
     xlim([1950 2100]);
     set(gca, 'XTick', [2000 2050 2100]);
     set(P,'FontSize',28);
+    close(figHandles(i));
 end
 
 %{
