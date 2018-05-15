@@ -121,11 +121,11 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
 
     base = [0 0 0];
     light = [0.5 0.5 0.5];
-    col{1} = light;    % XXX - NOTE that this line is hidden for now.
-    col{2} = light;
+    col{1} = base;    
+    col{2} = base;
 
-    col{3} = base;
-    col{4} = base;
+    col{3} = light;
+    col{4} = light;
     
     % Color background by temperature
     %colormap('redblue');
@@ -157,7 +157,7 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
             'DisplayName',legText{i}, ...
             'Color', col{i}, ...
             'LineWidth', 2);
-        if i == 2 || i == 4
+        if i == 1 || i == 3
             set(plot1(i), 'LineStyle', '--');
         end     
     end
@@ -205,7 +205,7 @@ function [years, DT, T_smooth] = getTempDeltas(RCP, smoothT)
     sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
     dataset = "ESM2M";
     [SST, ~, ~, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
-    % For each reef get the average peak for the first 140 years.
+    % For each reef get the average peak for the first 140 years. (1861 to 2000)
     % Make indexes be reef, month, year counter
     SST_3D = reshape(SST, 1925, 12, []);
     % Get the max T for each reef and year.  It seems odd that max requires an

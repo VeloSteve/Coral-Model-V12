@@ -8,8 +8,8 @@ for eee = 0:1
         % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
         n = strcat(inputPath, 'ESM2Mrcp', num2str(rcp*10), '.E', num2str(eee), '.OA0_NF1_20170923_LastHealthyBothTypesV2');
         p1 = open(strcat(n,'.fig'));
-        pax(num) = gca;
-        figureHandles(num) = p1;
+        pax(num) = gca; %#ok<SAGROW>
+        figureHandles(num) = p1; %#ok<SAGROW>
     end
 end
 panels = num;

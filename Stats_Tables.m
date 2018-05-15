@@ -167,7 +167,6 @@ function Stats_Tables(bleachState, mortState, lastYearAlive, ...
             allStress(1, n) = yr;
             sc = nnz(stressCombo(:, yIndex));
             allStress(lat+1, n) = 100 * sc / latCounts(lat);
-           
         end
     end
        

@@ -30,7 +30,7 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
-doHughesComparison = false;
+doHughesComparison = true;
 dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 
@@ -452,8 +452,8 @@ parfor (parSet = 1:queueMax, parSwitch)
             vgi = interp1(tMonths, vgi, time, 'pchip');
 
         else
-        % timeIteration is called here, with the version determined by
-        % iteratorHandle.
+            % timeIteration is called here, with the version determined by
+            % iteratorHandle.
 
             [S, C, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                         temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
@@ -621,6 +621,7 @@ if ~skipPostProcessing
     % Count bleaching events between 1985 and 2010 inclusive.
     i1985 = 1985 - startYear + 1;
     i2010 = 2010 - startYear + 1;
+
     % Count by reef
     for k = maxReefs:-1:1
         events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
@@ -653,6 +654,20 @@ if ~skipPostProcessing
         %cumBleachEvents = cumBleachEvents*32.0/906.0;  % 32/906 for Au
         
         hughesPlot(cumBleachEvents, startYear, 'Bleaching events, m+b, Au, matched reefs');
+        
+        % Save data for external use (MS 263 project)
+        i1980 = 1980 - startYear + 1;
+        i2016 = 2016 - startYear + 1;
+        for k = maxReefs:-1:1
+            events80_2016(k) = nnz(bleachEvents(k, i1980:i2016, :));
+        end
+        events80_2016 = events80_2016';
+        % Also, save the un-summarized bleaching events for the years of
+        % interest.
+        events80_2016_detail = bleachEvents(:, i1980:i2016, :);
+        save(strcat(mapDirectory, 'HughesCompEvents', '_selV_', RCP, 'E=', num2str(E), ...
+            'OA=', num2str(OA), '.mat'), ...
+            'events80_2016', 'events80_2016_detail');
     end
     
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);

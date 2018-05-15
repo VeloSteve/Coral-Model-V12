@@ -85,6 +85,8 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     
     
     %scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
+    % Added later: report on reef cell sizes it's easy to do here since
+    % the basic values are already being calculated.
     for i = 1:length(LONG)
         % Position is [left x, lower y, width, height]
         x = LONG(i);

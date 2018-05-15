@@ -34,4 +34,5 @@ typSST = mean(SST, 2);
 
 
  MapGeneration(Reefs_latlon, typSST);
-   
+ 
+ CellSizes(Reefs_latlon)
