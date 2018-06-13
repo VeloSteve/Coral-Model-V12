@@ -11,8 +11,8 @@ parameters = 'D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.
 
 % 80 runs:
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-deltaTList = [0.0];
-modeList = [0];  % 0 7
+deltaTList = [0.0, 1.0];
+modeList = [0, 7];  % 0 7
 
 
 
@@ -23,12 +23,12 @@ modeList = [0];  % 0 7
 % Now all the cases
 timeAutoRuns = tic;
 autoRunCount = 0;
-for ooo = 0:1  % 0:1
+for ooo = 1:1  % 0:1
     for eee = 0:1  %0:1
         for rrr = rcpList
             for ttt = deltaTList
                 for mmm = modeList
-                    % We dont' need modes 0 AND 7 when the advantage is zero.
+                    % We modes 0 AND 7 are the same when the advantage is zero, so skip one.
                     if ~(ttt == 0.0 && mmm == 7)
                         pd.set('E', eee == 1);
                         pd.set('OA', ooo == 1);

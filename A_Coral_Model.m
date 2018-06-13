@@ -30,7 +30,7 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
-doHughesComparison = true;
+doHughesComparison = false;
 dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 

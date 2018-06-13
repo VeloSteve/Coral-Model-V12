@@ -15,10 +15,10 @@ function coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E,
     % 5% and 95%
     span = (startYear:startYear+years-1)';
 
-    if superMode && superMode ~= 5
-        suffix = sprintf('_%s_E%dOA%d_SymStrategy%d', RCP, E, OA, superMode);
-    elseif superMode == 0 || superMode == 5
+    if superMode == 0 || superMode == 5 || superMode == 7
         suffix = sprintf('_%s_E%dOA%d_SymStrategy%dAdv%0.2fC', RCP, E, OA, superMode, superAdvantage);
+    else
+        suffix = sprintf('_%s_E%dOA%d_SymStrategy%d', RCP, E, OA, superMode);
     end
     coralCoverPlot(fullMapDir, suffix, [span;flipud(span)], ...           % x values for areas
         [C_quant(:,1,1);flipud(C_quant(:,5,1))], ...    % wide quantiles, massive
@@ -26,8 +26,66 @@ function coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E,
         [C_quant(:,2,1);flipud(C_quant(:,4,1))], ...    % narrow quantiles, massive
         [C_quant(:,2,2);flipud(C_quant(:,4,2))], ...    % narrow quantiles, branching
         span, squeeze(C_quant(:, 3, 1:2)));             % values for lines
+    
+    % Create a second plot showing just the global mean cover.  Put the 2100
+    % value on as text as an easy reference for table-building.
+    % average across all reefs
+    C_mean = mean(C_yearly, 2); 
+    % Scale each coral type
+    C_mean(:, 1) =  100 * C_mean(:, 1) / coralSymConstants.KCm;
+    C_mean(:, 2) =  100 * C_mean(:, 2) / coralSymConstants.KCb;
+    meanCoverPlot(fullMapDir, suffix, span, squeeze(C_mean));
 end
 
+function meanCoverPlot(fullDir, suffix, year, cover)
+    % Create figure
+    figure1 = figure('Name','Mean Global Coral Cover');
+
+    % Create axes
+    axes1 = axes('Parent',figure1);
+    hold(axes1,'on');
+       
+    plot1 = plot(year, cover);
+    set(plot1(1),'DisplayName','Massive coral','Color',[1 0 0]);
+    set(plot1(2),'DisplayName','Branching coral','Color',[0 0 1]);
+    plot2 = plot(year, sum(cover, 2));
+    set(plot2,'DisplayName','Total','Color',[0 0 0]);
+
+
+    % Create xlabel
+    xlabel({'Year'});
+
+    % Create title
+    title('Global Mean Coral Cover','FontWeight','bold');
+
+    % Create ylabel
+    ylabel('Percent of Carrying Capacity, K');
+    
+    % Final note.
+    % txt = strcat(sprintf('Global mean\n = %5.1f', sum(cover(end, :))), '\rightarrow');
+    % text(year(end), sum(cover(end, :)), txt, 'HorizontalAlignment', 'right')
+    txt = sprintf('%5.1f', sum(cover(end, :)));
+    text(1+year(end), sum(cover(end, :)), txt, 'HorizontalAlignment', 'left', 'FontSize', 13)
+
+    % Uncomment the following line to preserve the X-limits of the axes
+    % xlim(axes1,[1860 2100]);
+    box(axes1,'on');
+    % Set the remaining axes properties
+    set(axes1,'FontSize',14);
+    % Create legend
+    legend1 = legend(axes1,'show', 'Location', 'west');
+    %set(legend1,...
+    %    'Position',[0.392272766767302 0.35970390099993 0.134089389747584 0.207646171013633],...
+    %    'FontSize',13);
+    set(legend1,'FontSize',13);
+    ylim([0 100]);
+    if verLessThan('matlab', '8.2')
+        saveas(gcf, strcat(fullDir, 'MeanCoralCover', suffix), 'fig');
+    else
+        fprintf('Saving coral cover as fig file.');
+        savefig(strcat(fullDir, 'MeanCoralCover', suffix, '.fig'));
+    end
+end
 
 function coralCoverPlot(fullDir, suffix, XData1, YData1, YData2, YData3, YData4, X1, YMatrix1)
 %CREATEFIGURE(YDATA1, XDATA1, YDATA2, YDATA3, YDATA4, X1, YMATRIX1)
