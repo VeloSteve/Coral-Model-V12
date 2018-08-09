@@ -1,6 +1,6 @@
 rcps = [ 4.5 8.5];
 letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
-inputPath = 'D:/GoogleDrive/Coral_Model_Steve/_Paper Versions/Figures/LastYearHealthy/';
+inputPath = 'C:/Users/Steve/Google Drive/Coral_Model_Steve/_Paper Versions/Figures/LastYearHealthy/';
 num = 0;
 for eee = 0:1
     for rcp = rcps

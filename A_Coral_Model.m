@@ -13,7 +13,7 @@ timerStart = tic;
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    parameters = 'D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
     % Normal code - above is for debug only.
     % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
@@ -490,7 +490,7 @@ parfor (parSet = 1:queueMax, parSwitch)
                 % Growth rate vs. T as well
                 % TODO: dies when suppressSI = 0
                 if strcmp(RCP(1:3), 'rcp')
-                    growthRateFigure(mapDirectory, suff, datestr(time(suppressSI), 'yyyy'), ...
+                    growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),suppressSI)), 'yyyy'), ...
                         k, temp, fullYearRange, gi, vgi, suppressSI, ...
                         coralSymConstants, SelVx, RCP);         
                 end

@@ -1,7 +1,7 @@
 function BHSCO()
 %relPath = '../bleaching_history/';
 relPath = 'D:/CoralTest/V12Test/bleaching/';
-%relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewK_NewSeed_Target5\';
+%relPath = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewK_NewSeed_Target5\';
 
 % We need the temperature history for comparison.
 sstPath = 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/';

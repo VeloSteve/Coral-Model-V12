@@ -1,7 +1,7 @@
 %% Repeatedly run the model for all cases at once.
 
 % Read the default inputs as a starting point.
-parameters = 'D:\GoogleDrive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
 [~, pd] = getInputStructure(parameters);
 
 % Each use of this script will require some editing, since the selection of

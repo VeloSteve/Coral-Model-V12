@@ -5,7 +5,7 @@ names = {
     strcat('SDC_', today, '_144_normSSTrcp85_-18_-150_prop0.94_NF1_E0.fig'), ...
     strcat('SDC_', today, '_144_normSSTrcp85_-18_-150_prop0.86_NF1_E1.fig')   
 };
-names = strcat('D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Fig2_SSTDensityCoverDHM\', names);
+names = strcat('C:\Users\Steve\Google Drive\Coral_Model_Steve\_Paper Versions\Figures\Fig2_SSTDensityCoverDHM\', names);
 
 % Open E=1 as the one to add to.
 fig = openfig(names{2}, 'new');

@@ -1,11 +1,11 @@
-ncid = netcdf.open("D:\GoogleDrive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc")
+ncid = netcdf.open("C:\Users\Steve\Google Drive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc")
 netcdf.inqVar(ncid, 0)
-ncdisp('D:\GoogleDrive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc')
+ncdisp('C:\Users\Steve\Google Drive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc')
 
 %tos = netcdf.getVar(ncid,5)
-tosByName = ncread('D:\GoogleDrive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc', 'tos');
+tosByName = ncread('C:\Users\Steve\Google Drive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc', 'tos');
 tos_mid = tosByName(180, 100, :);
-time = ncread('D:\GoogleDrive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc', 'time');
+time = ncread('C:\Users\Steve\Google Drive\_Library Methods\tos_Omon_GFDL-ESM2M_rcp45_r1i1p1_200601-201012.nc', 'time');
 tos = squeeze(tos_mid);
 tosC = tos - 273.15
 yr = time/365+2006;
