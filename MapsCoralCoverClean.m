@@ -273,7 +273,7 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     else
         clf;
         % first pass only:
-        m_proj('miller'); % , 'lon', 155.0); - offsets map, but drops some data!
+        m_proj('miller', 'lat', [-40 40]); % , 'lon', 155.0); - offsets map, but drops some data!
         m_coast('patch',[0.7 0.7 0.7],'edgecolor','none');
         m_grid('box','fancy','linestyle','none','backcolor',[.9 .99 1], 'xticklabels', [], 'yticklabels', []);
     end
