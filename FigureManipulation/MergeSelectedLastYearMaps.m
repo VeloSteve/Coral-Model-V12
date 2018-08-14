@@ -1,3 +1,4 @@
+vertical = false;
 rcps = [ 4.5 8.5];
 letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
 inputPath = 'C:/Users/Steve/Google Drive/Coral_Model_Steve/_Paper Versions/Figures/LastYearHealthy/';
@@ -6,7 +7,7 @@ for eee = 0:1
     for rcp = rcps
         num = num + 1;
         % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-        n = strcat(inputPath, 'ESM2Mrcp', num2str(rcp*10), '.E', num2str(eee), '.OA0_NF1_20170923_LastHealthyBothTypesV2');
+        n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM0.sA0_LastHealthyBothTypesV2');
         p1 = open(strcat(n,'.fig'));
         pax(num) = gca; %#ok<SAGROW>
         figureHandles(num) = p1; %#ok<SAGROW>
@@ -23,29 +24,49 @@ yearRange = [2000 2100];
 ticks = [2000 2050 2100];
 
 figure('color', 'w');
+%set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 5.5]);
+
+% Use tight_subplot (license in license_tight_subplot.txt) to control spacing
+% rows, columns, gap h/gap w, lower/upper margin height, left/right margin width
+%[ha, pos] = tight_subplot(2, 2, [0.05, -0.09], [0.04, 0.1], [0.0 0.05]);
+if vertical
+    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 13, 14]);
+    [ha, pos] = tight_subplot(4, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
+else
+    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 5.5]);
+    [ha, pos] = tight_subplot(2, 2, [0.05, -0.09], [0.04, 0.1], [0.0 0.05]);
+end
+
+
 num = 0;
 for eee = 0:1
     for rcp = rcps
         num = num + 1;
-        P = subplot(panels/2,2,num);
-        copyobj(get(pax(num),'children'),P);
+        axes(ha(num)); %#ok<LAXES>
+        % P = subplot(panels/2,2,num);
+        copyobj(get(pax(num),'children'), gca);
         %n = strrep(names{i}, '_', ' ');
         axis off;
-        set(P,'FontSize',14);
+        set(gca,'FontSize',14);
         caxis(yearRange);  % Limit and make consistent
         colormap(cmap); %(flipud(jet)
-        title(strcat('(', letters(num), ') RCP ', num2str(rcp), ' E=',num2str(eee)));
+        ti = title(strcat('(', letters(num), ') RCP ', num2str(rcp), ' E=',num2str(eee)));
+        % Shift title down a bit
+        pos = get(ti, 'position');
+        pos(2) = pos(2) - 0.2;
+        set(ti, 'position', pos);
         close(figureHandles(num));
     end
 end
 
-colorbar('Ticks',ticks,...
-    'Limits',yearRange,...
-    'Color',[0.15 0.15 0.15],...
-    'FontSize',14);
-colorbar('Position',...
-    [0.505268996018406 0.329506314580941 0.0221852468108709 0.340987370838117],...
+%colorbar('Ticks',ticks,...
+%    'Limits',yearRange,...
+%    'Color',[0.15 0.15 0.15],...
+%    'FontSize',14);
+cb = colorbar('Position',...
+    [0.91 0.2 0.022 0.5],...
     'Ticks',ticks,...
     'Limits',yearRange,...
     'Color',[0.15 0.15 0.15],...
     'FontSize',14);
+set(cb, 'YAxisLocation','right')
