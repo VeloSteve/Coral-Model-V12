@@ -11,8 +11,8 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 
 % 80 runs:
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-deltaTList = [0.0, 1.0];
-modeList = [0, 7];  % 0 7
+deltaTList = [0.0]; % [0.0, 1.0];
+modeList = [0]; % [0, 7];  % 0 7
 
 
 
@@ -23,7 +23,7 @@ modeList = [0, 7];  % 0 7
 % Now all the cases
 timeAutoRuns = tic;
 autoRunCount = 0;
-for ooo = 1:1  % 0:1
+for ooo = 0:0  % 0:1
     for eee = 0:1  %0:1
         for rrr = rcpList
             for ttt = deltaTList
