@@ -6,8 +6,10 @@ function BleachingHistory_Subplots_WithDT()
 % The files for a new set of runs to be plotted should be copied to safe place
 % and referenced in relPath below.  This is intentionally a manual step so that
 % test runs made later can't accidentally overwrite the data we want to publish.
-relPath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_March8/';
-inverse = true;  % 100% means 100% undamaged if true.
+relPath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9/';
+shufflePath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9_1degShuffling/';
+
+inverse = false;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
 smoothT = 7; % same, but applied to the background temps
@@ -51,6 +53,27 @@ for i = 1:4
             %end
         end
     end
+    
+    % //////// ADD Symbiont shuffling curves.
+    % Omit E=0 for now.
+    for eee = 1:1
+    for ooo = 1:-1:0           
+        %if ~(eee == 0 && ooo == 1)  % Skip one curve
+            hFile = strcat(shufflePath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+            load(hFile, 'yForPlot');
+            if inverse
+                yForPlot = 100 - yForPlot;
+            end
+            if (smooth > 1)
+                yForPlot = centeredMovingAverage(yForPlot, smooth, 'hamming');
+            end
+            cases = [cases; yForPlot]; %#ok<AGROW>
+            legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo), ' Shuffling');
+            legCount = legCount + 1;
+        %end
+    end
+    end
+    
     % x values are the same for all. Use the latest file;
     load(hFile, 'xForPlot');
     % Temperature history has every year, but xForPlot may not.  Get the
@@ -81,7 +104,7 @@ for i = 1:4
 
     if i == 1
         % position units are based on the data plotted
-        ylabel({'Percent of  ''undamaged'' coral reefs globally'}, ...
+        ylabel({'Percent of damaged coral reefs globally'}, ...
             'FontSize',24,'FontWeight','bold', 'Position', [1930 -10]);
     end
 
@@ -121,11 +144,15 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
 
     base = [0 0 0];
     light = [0.5 0.5 0.5];
+    white = [0.5 1.0 0.5];
     col{1} = base;    
     col{2} = base;
 
     col{3} = light;
     col{4} = light;
+    
+    col{5} = white;
+    col{6} = white;
     
     % Color background by temperature
     %colormap('redblue');
@@ -157,7 +184,7 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
             'DisplayName',legText{i}, ...
             'Color', col{i}, ...
             'LineWidth', 2);
-        if i == 1 || i == 3
+        if mod(i, 2) == 1
             set(plot1(i), 'LineStyle', '--');
         end     
     end
@@ -195,8 +222,8 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
     if useLegend
         %legend1 = legend('show');
         % Specify each line so the contours don't get a legend entry.
-        legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4)]);
-        set(legend1,'Location','southwest','FontSize',20);
+        legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4) plot1(5) plot1(6)]);
+        set(legend1,'Location','northwest','FontSize',20);
     end 
 end
 
