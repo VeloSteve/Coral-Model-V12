@@ -145,6 +145,12 @@ else
 end
 pswInputs = pswInputs(:, propTest); %#ok<NODEF>
 
+% For figures to illustrate various input patterns, plot on a map and exit
+% the program.
+if false
+    MapInputs_Bins(mapDirectory, Reefs_latlon, SST, psw2_new, propTest, modelChoices);
+    return;
+end
 %% Load growth, carrying capacity and other constants:
 % Load .mat file for Coral and Symbiont genetics constants
 % As of 1/3/2017 the file contains a structure rather than individual
@@ -314,6 +320,8 @@ parfor (parSet = 1:queueMax, parSwitch)
     par_HistSuperSum = 0.0;
     par_HistOrigSum = 0.0;
     par_HistOrigEvolvedSum = 0.0;
+    % New bleaching flag file to be used within the time iteration.
+    bleachStateTemp = false(years, coralSymConstants.Cn);
     for k = toDoPart{parSet}
         reefCount = reefCount + 1;
         kChunk = 1 + k - par_kOffset;
@@ -455,9 +463,10 @@ parfor (parSet = 1:queueMax, parSwitch)
             % timeIteration is called here, with the version determined by
             % iteratorHandle.
 
-            [S, C, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
+            [S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
                         temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-                        superSeedFraction, superMode, superAdvantage, oneShot, coralSymConstants);
+                        superSeedFraction, superMode, superAdvantage, oneShot, ...
+                        bleachStateTemp, bleachParams, coralSymConstants);
             tResults = time;  % Dormand-Prince creates its own time steps, R-K uses time.
         end
         %Plot_ArbitraryYvsYears(ri(:,2), tResults, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
@@ -510,6 +519,12 @@ parfor (parSet = 1:queueMax, parSwitch)
         [ C_monthly, S_monthly, ~, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
             Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
      
+        % XXXXXXXXXX XXX
+        % copy new bleaching calculation (ignoring some mortality) over the
+        % normal one TESTING ONLY:
+        %bleachStateOne = bleachStateTemp;
+        
+        
         if doPlots && (any(keyReefs == k) || allPDFs)
             % Now that we have new stats, reproduce the per-reef plots.
             Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
@@ -743,7 +758,9 @@ if ~skipPostProcessing
         end
         if doCoralCoverFigure
             coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
-                    superAdvantage, mapDirectory)
+                superAdvantage, mapDirectory);
+            coralCoverLatitudeFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
+                superAdvantage, mapDirectory, toDo, Reefs_latlon);
         end
     end
     % Note that percentMortality is not used in normal runs, but it is

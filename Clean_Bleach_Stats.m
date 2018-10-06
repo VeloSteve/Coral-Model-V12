@@ -1,7 +1,7 @@
 function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
     = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, bleachParams, coralConstants )
 %Clean_Bleach_Stats computes columns of coral health flags for plotting and tables.
-    %   This is a complete-rewrite of Get_Bleach_Freq to remove any unneeded
+    %   This is a complete rewrite of Get_Bleach_Freq to remove any unneeded
     %   code and variables. The list-of-events approach is scrapped.
     %   Required outputs, straight from the the feature request, except that
     %   some may be better computed in the per-reef plot routine.

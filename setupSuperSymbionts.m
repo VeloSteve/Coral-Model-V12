@@ -8,12 +8,17 @@ function [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
 % 0, 5, and 6: Fixed advantage relative to historical temperature.
 % 1, 3: Advantage relative to mean of the last 10 years before introduction.
 % 2, 4: Advantage relative to max of the last 10 years before introduction.
-% 7: Advantage is dynamic, added relative to the native symbiont.
+% 7, 8, 9: Advantage is dynamic, added relative to the native symbiont.
 % 
 % Introduction date:
-% 0, 1, 2, 7: Fixed year as specified.
+% 0, 1, 2, 7, 9: Fixed year as specified.
 % 3, 4, 5: After 5 years of mortality.
 % 6: At the first year of bleaching.
+% 8: As determined by bleaching events in timeIteration.
+
+% Note that 7 and 9 are the same in terms of this logic.  The difference is that
+% in mode 9 there is a growth penalty against the coral when there are more
+% tolerant than sensitive symbionts.
 
     % Some MATLAB doesn't like mixing int32 and double, so
     superStart = double(superStart);

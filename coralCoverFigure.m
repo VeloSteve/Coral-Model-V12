@@ -15,7 +15,7 @@ function coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E,
     % 5% and 95%
     span = (startYear:startYear+years-1)';
 
-    if superMode == 0 || superMode == 5 || superMode == 7
+    if superMode == 0 || superMode == 5 || superMode >= 7
         suffix = sprintf('_%s_E%dOA%d_SymStrategy%dAdv%0.2fC', RCP, E, OA, superMode, superAdvantage);
     else
         suffix = sprintf('_%s_E%dOA%d_SymStrategy%d', RCP, E, OA, superMode);

@@ -55,7 +55,7 @@ function Stats_Tables(bleachState, mortState, lastYearAlive, ...
             % covered.
             %years = [1980:2020 1950 2000 2016 2050 2075 2100];
             %years = unique(years);
-            % Another super datail option for stress/temp comparision
+            % Another super detail option for stress/temp comparision
             tenY = [1870:10:1950];
             oneY = [1950:1:2100];
             years = unique([tenY oneY]);

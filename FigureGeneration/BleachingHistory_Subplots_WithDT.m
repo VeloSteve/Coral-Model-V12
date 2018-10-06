@@ -6,8 +6,8 @@ function BleachingHistory_Subplots_WithDT()
 % The files for a new set of runs to be plotted should be copied to safe place
 % and referenced in relPath below.  This is intentionally a manual step so that
 % test runs made later can't accidentally overwrite the data we want to publish.
-relPath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9/';
-shufflePath = './FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9_1degShuffling/';
+relPath = '../FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9/';
+shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_Mode9_August31/';
 
 inverse = false;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
@@ -37,8 +37,8 @@ for i = 1:4
     cases = [];
     hFile = '';
     for eee = 0:1
-        for ooo = 1:-1:0           
-            %if ~(eee == 0 && ooo == 1)  % Skip one curve
+        for ooo = 0:1           
+            if ~(eee == 1 && ooo == 1)  % Skip one curve  !!!!
                 hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
                 load(hFile, 'yForPlot');
                 if inverse
@@ -50,15 +50,13 @@ for i = 1:4
                 cases = [cases; yForPlot]; %#ok<AGROW>
                 legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo));
                 legCount = legCount + 1;
-            %end
+            end
         end
     end
     
     % //////// ADD Symbiont shuffling curves.
-    % Omit E=0 for now.
-    for eee = 1:1
-    for ooo = 1:-1:0           
-        %if ~(eee == 0 && ooo == 1)  % Skip one curve
+    for eee = 0:1
+    for ooo = 0:0  % 1:-1:0           
             hFile = strcat(shufflePath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
             load(hFile, 'yForPlot');
             if inverse
@@ -70,7 +68,6 @@ for i = 1:4
             cases = [cases; yForPlot]; %#ok<AGROW>
             legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo), ' Shuffling');
             legCount = legCount + 1;
-        %end
     end
     end
     
@@ -104,7 +101,7 @@ for i = 1:4
 
     if i == 1
         % position units are based on the data plotted
-        ylabel({'Percent of damaged coral reefs globally'}, ...
+        ylabel({'Percent of degraded coral reefs globally'}, ...
             'FontSize',24,'FontWeight','bold', 'Position', [1930 -10]);
     end
 
@@ -144,24 +141,35 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
 
     base = [0 0 0];
     light = [0.5 0.5 0.5];
-    white = [0.5 1.0 0.5];
+    other = [0.6 0.0 0.8]; % orange:[1.0 0.5 0.0];
+    %{
     col{1} = base;    
     col{2} = base;
 
     col{3} = light;
     col{4} = light;
     
-    col{5} = white;
-    col{6} = white;
+    col{5} = other;
+    col{6} = other;    
+    %} 
+    col{1} = base;    
+    col{2} = light;
+
+    col{3} = base;
+    col{4} = other;
+    col{5} = other;
+
+
     
-    % Color background by temperature
+    % Color round by temperature
     %colormap('redblue');
     cmap = coolwarm(200);
     % Make the map less intense and reload it.
     %cmap = min(1, cmap+0.2);
     %cmap = max(0.2, cmap);
     % "reduce darkness" function.  Smaller fraction is less intense.
-    cmap = 1-((1-cmap)*0.75);
+    % We used 0.75 during summer 2018.  Trying for a paler effect now:
+    cmap = 1-((1-cmap)*0.5);
     colormap(cmap)
     %cmap = jet;
     %cmap = min(cmap+0.3, 1);
@@ -184,9 +192,21 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
             'DisplayName',legText{i}, ...
             'Color', col{i}, ...
             'LineWidth', 2);
-        if mod(i, 2) == 1
-            set(plot1(i), 'LineStyle', '--');
-        end     
+        %if mod(i, 2) == 1
+        %    set(plot1(i), 'LineStyle', '--');
+        %end 
+        switch i
+            case 1 
+                set(plot1(i), 'LineStyle', '-');
+            case 2 
+                set(plot1(i), 'LineStyle', '-');
+            case 3 
+                set(plot1(i), 'LineStyle', ':');
+            case 4 
+                set(plot1(i), 'LineStyle', ':');            
+            case 6 
+                set(plot1(i), 'LineStyle', '-');
+        end
     end
     
 
@@ -222,7 +242,12 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
     if useLegend
         %legend1 = legend('show');
         % Specify each line so the contours don't get a legend entry.
-        legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4) plot1(5) plot1(6)]);
+        %legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4) plot1(5) plot1(6)]);
+        %legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4) plot1(5)], ...
+        %    'no adaptation', 'no adaptation + OA', 'symbiont evolution', 'symbiont shuffling', 'shuffling with evolution');
+        % Same content, but shuffle the order!
+        legend1 = legend([plot1(1) plot1(2) plot1(4) plot1(3) plot1(5)], ...                    
+            'no adaptation', 'no adaptation & OA',  'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
         set(legend1,'Location','northwest','FontSize',20);
     end 
 end

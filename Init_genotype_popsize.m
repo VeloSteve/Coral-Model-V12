@@ -36,7 +36,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     hist = mean(temp(1:initializationIndex)) ;    
     %fprintf('SI range %s to %s\n', datestr(time(superInitRange(1))), datestr(time(superInitRange(2))));
     switch superMode
-        case {0, 5, 6, 7}
+        case {0, 5, 6, 7, 8, 9}
             % For case 7 the values won't really be used, but this does no harm.
             histSuper = hist + superAdvantage;
         case {1, 3}
@@ -46,7 +46,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
             histSuper = max(temp(superInitRange(1):superInitRange(2)));
             %fprintf('Igp max changed %d initial genotype to %d starting with time %s\n', hist, histSuper, datestr(time(superInitRange(1))));
         otherwise
-            error('Only symbiont modes 0 to 7 are supported.');
+            error('Only symbiont modes 0 to 9 are supported.');
     end
 
     col = con.Sn * con.Cn;

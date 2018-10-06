@@ -34,8 +34,9 @@ function [ps, pd] = getInputStructure(parameters)
                         json = strcat(json, line);
                     end
                 end
+                fclose(fh);
                 fprintf('Decoding %s\n', json);
-
+                
                 try ps = jsondecode(json);
                     % As above, now repeat with the PD constructor.
                     pd = ParameterDictionary('json', json);
