@@ -348,8 +348,8 @@ for parSet = 1:queueMax
 
         % Use a limited range of SSTHist for selectional variance, so
         % that we don't include modern climate change.
-        SelV = [1.25 1]*psw2*var(SSThist(1:initSSTIndex));
-        SelVx = repmat(SelV,1,coralSymConstants.Sn);     % Selectional variance matrix for coral calcs
+        SelV_noPSW = [1.25 1]*psw2*var(SSThist(1:initSSTIndex));
+        SelVx_noPSW = repmat(SelV_noPSW,1,coralSymConstants.Sn);     % Selectional variance matrix for coral calcs
         %SelV = [1.25 1]*psw2*var(SSThist_anom(:))
 
         % Initialize symbiont genotype, sym/coral population sizes, carrying capacity
@@ -358,7 +358,7 @@ for parSet = 1:queueMax
         %eeee = findDateIndex(strcat('14-Dec-', num2str(par_SuppressYears(kChunk))), strcat('16-Dec-',num2str(par_SuppressYears(kChunk))), time);
 
         [vgi, gi, S, C, hist] = Init_genotype_popsize(time, initIndex, temp, coralSymConstants, ...
-            E, vM, SelV, superMode, superAdvantage, startSymFractions, ...
+            E, vM, SelV_noPSW, superMode, superAdvantage, startSymFractions, ...
             [suppressSI suppressSIM10]);
 
        
@@ -432,7 +432,7 @@ for parSet = 1:queueMax
             %}
 
             [S, C, tResults, gi, vgi, origEvolved] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
-                SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
+                SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx_noPSW, C_seed, S_seed, superMonth, ...
                 superSeedFraction, oneShot, coralSymConstants, dt, k); 
             fprintf('Reef %d ', k);
             toc
@@ -463,15 +463,11 @@ for parSet = 1:queueMax
             % timeIteration is called here, with the version determined by
             % iteratorHandle.
             [S, C, gi, vgi, origEvolved, bleachStateTemp, optProp] = iterateOneReef(iteratorHandle, timeSteps, S, C, dt, ...
-                        temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                        temp, OA, omega, vgi, gi, MutVx, SelVx_noPSW, C_seed, S_seed, suppressSI, ...
                         superSeedFraction, superMode, superAdvantage, oneShot, ...
-                        bleachStateTemp, bleachParams, coralSymConstants);
-            fprintf('Reef %d has optimum prop constant of %6.2f .\n', k, optProp);
+                        bleachStateTemp, bleachParams, coralSymConstants, startYear, TIME);
+            fprintf('Reef %d has optimum prop constant of %6.3f .\n\n', k, optProp);
 
-            %[S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
-            %            temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-            %            superSeedFraction, superMode, superAdvantage, oneShot, ...
-            %           bleachStateTemp, bleachParams, coralSymConstants);
             tResults = time;  % Dormand-Prince creates its own time steps, R-K uses time.
         end
         %Plot_ArbitraryYvsYears(ri(:,2), tResults, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
@@ -506,7 +502,7 @@ for parSet = 1:queueMax
                 if strcmp(RCP(1:3), 'rcp')
                     growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),suppressSI)), 'yyyy'), ...
                         k, temp, fullYearRange, gi, vgi, suppressSI, ...
-                        coralSymConstants, SelVx, RCP);         
+                        coralSymConstants, SelVx_noPSW, RCP);         
                 end
             end
         end
