@@ -56,7 +56,7 @@ function [queueMax] = parallelSetup(n)
         % loaded onto them.
         spmd
             Plot_One_Reef();
-            graphCompare();
+            % not currently used graphCompare();
         end
     end
     

@@ -1,4 +1,9 @@
 %% All inputs should be in pairs.  The first two are the x axis and a label.
+%
+% XXX Note - this function is out of production as of version 0.12.1.  If it is
+% used, it must be called in parallelSetup in the same way as Plot_One_Reef()
+% is, in order to initialize it properly for parallel used.
+%
 %  All subsequent argument pairs are a y value and a y label, all to be
 %  plotted against the same x axis.
 %  The function will attempt to plot all values in one figure for
