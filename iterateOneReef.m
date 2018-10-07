@@ -1,4 +1,7 @@
-function [outputArg1,outputArg2] = iterateOneReef(inputArg1,inputArg2)
+function [S, C, gi, vgi, origEvolved, bleachStateTemp, optProp] = iterateOneReef(iteratorHandle, timeSteps, S, C, dt, ...
+                        temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                        superSeedFraction, superMode, superAdvantage, oneShot, ...
+                        bleachStateTemp, bleachParams, coralSymConstants)
 % iterateOneReef Try proportionality constants until a bleaching target
 % is met.
 %
@@ -6,7 +9,10 @@ function [outputArg1,outputArg2] = iterateOneReef(inputArg1,inputArg2)
 % or statistically estimated bleaching data.  The proportionality constant which
 % best matches the data will be stored and used in later global runs.
 %
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+[S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
+           temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+           superSeedFraction, superMode, superAdvantage, oneShot, ...
+           bleachStateTemp, bleachParams, coralSymConstants);
+optProp = 1.1;
 end
 
