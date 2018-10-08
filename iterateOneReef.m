@@ -20,13 +20,18 @@ prints = 0;
 
 minP = 0.36;
 maxP = 1.35;
-target = 3; % XXX get this from the Donner database!
+target = 0; % XXX get this from the Donner database!
 steps = 7;
 
 % Values used repeatedly, normally only outside the parallel loop in normal
 % runs:
 i1985 = 1985 - startYear + 1;
 i2010 = 2010 - startYear + 1;
+
+% Truncate run time since everything after 2010 is ignored.  Add a couple of 
+% years for easy calculation.
+timeSteps = (2012 - 1860)* 12 / dt;
+
 
 % pass 1, steps calculations across the min/max range.
 % Assume that large psw leads to less bleaching, and small to more, but CHECK
@@ -55,6 +60,7 @@ for i = 1:length(tryThese)
 end
 
 
+HERE: this returns too often when target = 0.  Check the logic!
 
 % Are only the end values not ideal? If so there's a huge "okay" zone and no
 % point in fine-tuning.
@@ -67,7 +73,7 @@ end
 % interval
 % Are all values giving too much bleaching?
 if tooSmall == steps
-    minP = tryThese(4);
+    minP = tryThese(steps-1);
 elseif tooBig == 1
     maxP = tryThese(2);
 else
@@ -105,7 +111,7 @@ end
 % interval
 % Are all values giving too much bleaching?
 if tooSmall == steps
-    minP = tryThese(4);
+    minP = tryThese(steps-1);
 elseif tooBig == 1
     maxP = tryThese(2);
 else
@@ -141,9 +147,11 @@ end
 
 % Are all values giving too much bleaching?
 if tooSmall == steps
-    minP = tryThese(4);
+    optProp = tryThese(steps);
+    return;
 elseif tooBig == 1
-    maxP = tryThese(2);
+    optProp = tryThese(1);
+    return;
 else
     % There are two different "not right" values
     minP = tryThese(tooSmall);
