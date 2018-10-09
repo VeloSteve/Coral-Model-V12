@@ -1,5 +1,5 @@
 function [cMap] = customScale()
-    load('RedGreenYearsMap.mat', 'OrangeBlueLANLMod');
+    load('./mat_files/RedGreenYearsMap.mat', 'OrangeBlueLANLMod');
     % customRGMap shifts through orange and yellow near the center.
     % customRGShift moves this shift to later years for more resolution
     % there.
