@@ -283,7 +283,8 @@ end
 
 %% RUN EVOLUTIONARY MODEL
 % Get the correct compiled solver for this case.
-iteratorHandle = selectIteratorFunction(length(time), architecture);
+% XXX falsify the time steps to get an uncompiled function for debugging.
+iteratorHandle = selectIteratorFunction(0+length(time), architecture);
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
 parfor (parSet = 1:queueMax, parSwitch)
