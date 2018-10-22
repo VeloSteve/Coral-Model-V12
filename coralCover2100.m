@@ -31,7 +31,7 @@ function coralCover2100(C_yearly, coralSymConstants, startYear, RCP, E, OA, mode
     logTwo("Fraction of reefs dominated by branching coral: %6.3f \n", branchingDominant);
     
     %% temporary for plotting global 50% vs many cases
-    %fh = fopen('Cover50PctStats.txt', 'a');
-    %fprintf(fh, "GP, %7.4f, RCP, %s, E, %d, OA, %d, Mode, %d, Adv, %7.4f\n", Cmean, RCP, E, OA, mode, adv);
-    %fclose(fh);
+    fh = fopen('Cover50PctStats.txt', 'a');
+    fprintf(fh, "GP, %7.4f, RCP, %s, E, %d, OA, %d, Mode, %d, Adv, %7.4f\n", Cmean, RCP, E, OA, mode, adv);
+    fclose(fh);
 end
