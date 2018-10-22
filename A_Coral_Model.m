@@ -4,10 +4,11 @@
 % Evolutionary model for coral cover (from Baskett et al. 2009)     %
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 5-3-16                                              %
-% Performance and structural changes 9/2016 by Steve Ryan (jaryan)  %
+% Performance and structural changes starting 9/2016 by Steve Ryan (jaryan)  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %function [SST, TIME] = A_Coral_Model(parameters)
-function A_Coral_Model(parameters)
+% The output variables are used only during model tuning.
+function [Bleaching_85_10_By_Event, E] =  A_Coral_Model(parameters)
 timerStart = tic;
 
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
@@ -40,7 +41,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % allow A_Coral_Model to never be edited during normal use.
 [dataset, RCP, E, OA, superMode, superAdvantage, superStart,...
  outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
- architecture, useThreads, everyx, specialSubset, ...
+ architecture, useThreads, optimizerMode, everyx, specialSubset, ...
  keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
@@ -156,7 +157,7 @@ end
 % As of 1/3/2017 the file contains a structure rather than individual
 % variables.  As of 12/17/2017 it also includes the bleachParams structure
 % which defines bleaching and recovery thresholds.
-load(strcat(matPath, 'Coral_Sym_constants_4.mat'), 'bleachParams', 'coralSymConstants');
+load(strcat(matPath, 'Coral_Sym_constants.mat'), 'bleachParams', 'coralSymConstants');
 bleachParams = bleachParams;  %#ok<ASGSL,NODEF> % Trick so parallel workers see the loaded variable.
 assert(length(startSymFractions) == coralSymConstants.Sn, ...
     'Symbiont start fractions should match number of symbionts.'); %#ok<NODEF>
@@ -686,7 +687,7 @@ if ~skipPostProcessing
     end
     
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
-    fprintf('Bleaching by event = %6.4f\n', ...
+    fprintf('Bleaching by event = %6.4f %%\n', ...
         Bleaching_85_10_By_Event);
 
     % Build an array with the last year each reef is alive. First add a
@@ -785,7 +786,7 @@ if ~skipPostProcessing
             modelChoices, Reefs_latlon, bleachState, maxReefs);
     end
 
-    logTwo('Bleaching by event = %6.4f\n', Bleaching_85_10_By_Event);
+    logTwo('Bleaching by event = %6.4f %%\n', Bleaching_85_10_By_Event);
 end % End postprocessing block.
 
 elapsed = toc(timerStart);

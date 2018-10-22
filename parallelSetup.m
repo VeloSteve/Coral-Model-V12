@@ -42,7 +42,7 @@ function [queueMax] = parallelSetup(n)
     % Start a pool if needed, and notify in most cases.
     if multiThread && ~poolReady
         pool = parpool(threads);
-        fprintf('Running with up to %d print threads.\n', pool.NumWorkers);
+        fprintf('Running with up to %d worker threads.\n', pool.NumWorkers);
     elseif nargin == 0 && ~multiThread
         fprintf('Multithreaded computation is off.');
     end

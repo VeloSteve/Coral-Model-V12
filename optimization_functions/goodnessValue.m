@@ -1,4 +1,4 @@
-function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, percentGone, C_seed, rtr, b8510)
+function [goodness, bleach] = goodnessValue(targetBleaching, psw2_new, b8510)
     % Look at variables for "goodness". We optimize for a low value.
     % Baskett 2009 gives values of
     % "0.9 for Moorea and Curac¸ao; 0.8 for St. John, U.S. Virgin Islands;
@@ -19,7 +19,7 @@ function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, perce
     % no more than one column is nonzero.
     % pg = percentGone{2,2} + percentGone{3,2} + percentGone{4,2};
     % Now that there's a summary row, use it:
-    pg = percentGone(5, 1);
+    % no longer available: pg = percentGone(5, 1);
    
     bleach = b8510;
     bleachDiff = abs(targetBleaching - bleach);
@@ -31,7 +31,8 @@ function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, perce
     % Trying higher bleachDiff factor since 10% target runs are only going
     % to about 5 with those values.
     %goodness = 4.0 * empirical + 1.0 * pg + 16.0 * bleachDiff;
-    goodness = 1.0 * empirical + 4.0 * pg + 8.0 * bleachDiff; 
+    %goodness = 1.0 * empirical + 4.0 * pg + 8.0 * bleachDiff; 
+    goodness = 1.0 * empirical + 8.0 * bleachDiff; 
     %goodness = pg + 2.0 * bleachDiff; 
-    fprintf('Diffs: ko = %f, vi = %f, mo = %f, empirical = %f, pg = %d, bleaching = %d, goodness = %f\n', ko, vi, mo, empirical, pg, bleach, goodness);
+    fprintf('Diffs: ko = %f, vi = %f, mo = %f, empirical = %f, bleaching = %d, goodness = %f\n', ko, vi, mo, empirical, bleach, goodness);
 end

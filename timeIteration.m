@@ -63,6 +63,7 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         
         % Try decreasing growth rate in cooler water based on Eppley
         % equation per John/Simon/Cheryl 2/8/2017.
+        % (eq 3)
         ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(0, temp(i) - gi(i,:))) * rm;
         
         %{
@@ -192,8 +193,8 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         end
         % Next four lines were in the Runge Kutta file, but are not part of
         % that algorithm.
-        dgi  = ((vgi(i,:) .* (temp(i,1) - gi(i,:)) ) ./ SelVx) * rm; % Change in Symbiont Mean Genotype
-        dvgi = MutVx - (vgi(i,:)) .^2 ./ SelVx * rm ; % Change in Symbiont Mean Variance
+        dgi  = ((vgi(i,:) .* (temp(i,1) - gi(i,:)) ) ./ SelVx) * rm; % Change in Symbiont Mean Genotype (eq 1)
+        dvgi = MutVx - (vgi(i,:)) .^2 ./ SelVx * rm ; % Change in Symbiont Mean Variance (eq 2)
         gi(i+1,:)  =  gi(i,:) + dt .* dgi;  % Symbiont genotype at t=i (Euler)
         vgi(i+1,:) = vgi(i,:) + dt .* dvgi; % Symbiont variance at t=i (Euler)
         if superMode >= 7

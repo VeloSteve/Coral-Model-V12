@@ -25,7 +25,7 @@ format shortg; c = clock; date = strcat(num2str(c(1)),num2str(c(2)),num2str(c(3)
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 %GetSST_norm_GFDL_ESM2M % sub m-file for extracting SSTs for a ALL reef grid cells
-[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
+[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
 
 SST_1861_2000 = SST(:,1:1680);
 SSThist = SST_1861_2000;

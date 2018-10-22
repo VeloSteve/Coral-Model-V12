@@ -49,6 +49,7 @@ classdef ParameterDictionary
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
             addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
             
+            
             % Science
             addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85'}));
             addOne(p, modelCharParameter('science', 'dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
@@ -71,6 +72,9 @@ classdef ParameterDictionary
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
             % Model source
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
+            % Calibration/Tuning
+            addOne(p, modelLogicalParameter('comp', 'optimizerMode', 'logical', false));
+
 
             % Output options
             addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925, true));  % Note nullAllowed final argument.
