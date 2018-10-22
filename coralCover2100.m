@@ -1,4 +1,4 @@
-function coralCover2100(C_yearly, coralSymConstants, startYear)
+function coralCover2100(C_yearly, coralSymConstants, startYear, RCP, E, OA, mode, adv)
     % C_yearly has year/reef/coral type
     % For now just look at 2100.
     y = (2100-startYear);
@@ -29,4 +29,9 @@ function coralCover2100(C_yearly, coralSymConstants, startYear)
     logTwo("Global average percent coral cover: %4.1f \n", Cmean);
     logTwo("Percent of reefs with less than 10 pct cover: %4.1f \n", lowCover);
     logTwo("Fraction of reefs dominated by branching coral: %6.3f \n", branchingDominant);
+    
+    %% temporary for plotting global 50% vs many cases
+    %fh = fopen('Cover50PctStats.txt', 'a');
+    %fprintf(fh, "GP, %7.4f, RCP, %s, E, %d, OA, %d, Mode, %d, Adv, %7.4f\n", Cmean, RCP, E, OA, mode, adv);
+    %fclose(fh);
 end
