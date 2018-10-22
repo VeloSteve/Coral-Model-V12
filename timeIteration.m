@@ -4,6 +4,9 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         superSeedFraction, superMode, superAdvantage, oneShot, bleach, bleachParams, ...
         con)
     
+    % Note that eq 1, 2, and 3 refer to the software paper being drafted for
+    % Journal of Open Research Software
+    
     % currentAdvantage may be modified in some modes.  Don't change
     % superAdvantage
     if superMode == 8
