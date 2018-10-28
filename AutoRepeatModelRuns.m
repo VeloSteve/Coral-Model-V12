@@ -11,8 +11,8 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 
 % 80 runs:
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-deltaTList = [0, 0.125, 0.625, 1.0, 1.5, 2.0]; % [0.0, 1.0];
-modeList = [7]; % [0, 7];  % 0 7
+deltaTList = [0, 0.5, 0.625, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5, 4.0]; % [0.0, 1.0];
+modeList = [0, 7, 9]; % [0, 7];  % 0 7
 eList = [0];
 oaList = [0];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
@@ -34,7 +34,7 @@ for ooo = oaList  % 0:1
         for rrr = rcpList
             for ttt = deltaTList
                 for mmm = modeList
-                    % We modes 0 AND 7 are the same when the advantage is zero, so skip one.
+                    % Modes 0 AND 7 are the same when the advantage is zero, so skip one.
                     if ~(ttt == 0.0 && mmm == 7)
                         pd.set('E', eee == 1);
                         pd.set('OA', ooo == 1);
