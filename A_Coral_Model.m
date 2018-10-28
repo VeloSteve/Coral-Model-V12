@@ -31,7 +31,6 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
-doHughesComparison = false;
 dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 
@@ -41,8 +40,8 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % allow A_Coral_Model to never be edited during normal use.
 [dataset, RCP, E, OA, superMode, superAdvantage, superStart,...
  outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
- architecture, useThreads, optimizerMode, everyx, specialSubset, ...
- keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
+ useThreads, optimizerMode, everyx, specialSubset, ...
+ keyReefs, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
  saveVarianceStats, newMortYears] = explodeVariables(ps);
@@ -139,7 +138,7 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
 % Selection of variance column from psw2_new.
-if exist('optimizerMode', 'var')
+if exist('optimizerMode', 'var') && optimizerMode
     propTest = 1;
 else
     propTest = getPropTest(E, RCP, bleachingTarget);
@@ -284,9 +283,11 @@ end
 
 %% RUN EVOLUTIONARY MODEL
 % Get the correct compiled solver for this case.
-iteratorHandle = selectIteratorFunction(length(time), architecture);
+iteratorHandle = selectIteratorFunction(length(time));
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
+% Enable the parfor for production, but the "for" line must be used if the
+% MATLAB debugger is needed.
 parfor (parSet = 1:queueMax, parSwitch)
 %for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
@@ -631,163 +632,120 @@ logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.
     superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
 
 
+% Count bleaching events between 1985 and 2010 inclusive.
+i1985 = 1985 - startYear + 1;
+i2010 = 2010 - startYear + 1;
 
-if ~skipPostProcessing
+% Count by reef
+for k = maxReefs:-1:1
+    events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
+    eventsAllYears(k) = nnz(bleachEvents(k, :, :));
+end
+% Count for all reefs over this time period.
+count852010 = sum(events85_2010);
 
-    % Count bleaching events between 1985 and 2010 inclusive.
-    i1985 = 1985 - startYear + 1;
-    i2010 = 2010 - startYear + 1;
+Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
+fprintf('Bleaching by event = %6.4f %%\n', ...
+    Bleaching_85_10_By_Event);
 
-    % Count by reef
-    for k = maxReefs:-1:1
-        events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
-        eventsAllYears(k) = nnz(bleachEvents(k, :, :));
+% Build an array with the last year each reef is alive. First add a
+% column to mortState which is true when all coral types are dead.
+% Also find the last bleaching event here.
+fullReef = coralSymConstants.Cn + 1;
+lastYearAlive = nan(maxReefs, 1);
+lastBleachEvent = nan(maxReefs, fullReef);
+for k = 1:maxReefs
+    for i = 1:years
+        % XXX If one type is dead and the other is bleached, we don't mark
+        % either state for the reef.  It should probably be considered
+        % bleached.
+        mortState(k, i, fullReef) = all(mortState(k, i, 1:fullReef-1));
+        bleachState(k, i, fullReef) = all(bleachState(k, i, 1:fullReef-1));
+        % Now find the last year alive - leave NaN if it ends alive.
     end
-    % Count for all reefs over this time period.
-    count852010 = sum(events85_2010);
-    
-    if doHughesComparison
-        %{
-        Number of reefs in each region:
-         Hughes  Logan
-         AuA   32      906
-         IO-ME 24      310
-         Pac   22      480
-         WAtl  22      199
-         Far           30
-        %}
-        % Now go back and get a running cumulative count of bleaching events for all
-        % reefs by year.
-        for y = size(bleachEvents, 2):-1:1
-            % Note: this combines branching and massive bleaching events.  When we
-            % have these in consecutive years it may look like two events where
-            % another study would call it one.
-            cumBleachEvents(y) = nnz(bleachEvents(:, y, :));
-        end
-        cumBleachEvents = cumsum(cumBleachEvents);
-    
-        % XXX - the line below is only valid when matched to the keyReefs!!!
-        %cumBleachEvents = cumBleachEvents*32.0/906.0;  % 32/906 for Au
-        
-        hughesPlot(cumBleachEvents, startYear, 'Bleaching events, m+b, Au, matched reefs');
-        
-        % Save data for external use (MS 263 project)
-        i1980 = 1980 - startYear + 1;
-        i2016 = 2016 - startYear + 1;
-        for k = maxReefs:-1:1
-            events80_2016(k) = nnz(bleachEvents(k, i1980:i2016, :));
-        end
-        events80_2016 = events80_2016';
-        % Also, save the un-summarized bleaching events for the years of
-        % interest.
-        events80_2016_detail = bleachEvents(:, i1980:i2016, :);
-        save(strcat(mapDirectory, 'HughesCompEvents', '_selV_', RCP, 'E=', num2str(E), ...
-            'OA=', num2str(OA), '.mat'), ...
-            'events80_2016', 'events80_2016_detail');
+    if mortState(k, years, fullReef)
+        ind = find(~mortState(k, :, fullReef), 1, 'last');
+        assert(~isempty(ind), 'Reef %d should never start out dead.', k);
+        lastYearAlive(k) = ind(1) + startYear - 1;
     end
-    
-    Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
-    fprintf('Bleaching by event = %6.4f %%\n', ...
-        Bleaching_85_10_By_Event);
+    for rr = 1:fullReef
+        if bleachState(k, years, rr)
+            ind = find(~bleachState(k, :, rr), 1, 'last');
+            assert(~isempty(ind), 'Reef %d coral type %d should never start out bleached.', k, rr);
+            lastBleachEvent(k, rr) = ind(1) + startYear - 1;
+        end
+    end
+end
+frequentBleaching = defineFrequentBleaching(bleachEvents);
 
-    % Build an array with the last year each reef is alive. First add a
-    % column to mortState which is true when all coral types are dead.
-    % Also find the last bleaching event here.
-    fullReef = coralSymConstants.Cn + 1;
-    lastYearAlive = nan(maxReefs, 1);
-    lastBleachEvent = nan(maxReefs, fullReef);
+if saveVarianceStats
+    assert(length(toDo) == maxReefs, 'Only save variance data when running all reefs!');
+    % Save selectional variance and last year of cover for binned plotting
+    % by case.  Note that these numbers are computed inside the parallel
+    % loop, but it's easier to recompute them here than to build and
+    % extract arrays from the parallel code.
+    selVariance(maxReefs) = 0;
+    tVariance(maxReefs) = 0;
     for k = 1:maxReefs
-        for i = 1:years
-            % XXX If one type is dead and the other is bleached, we don't mark
-            % either state for the reef.  It should probably be considered
-            % bleached.
-            mortState(k, i, fullReef) = all(mortState(k, i, 1:fullReef-1));
-            bleachState(k, i, fullReef) = all(bleachState(k, i, 1:fullReef-1));
-            % Now find the last year alive - leave NaN if it ends alive.
-        end
-        if mortState(k, years, fullReef)
-            ind = find(~mortState(k, :, fullReef), 1, 'last');
-            assert(~isempty(ind), 'Reef %d should never start out dead.', k);
-            lastYearAlive(k) = ind(1) + startYear - 1;
-        end
-        for rr = 1:fullReef
-            if bleachState(k, years, rr)
-                ind = find(~bleachState(k, :, rr), 1, 'last');
-                assert(~isempty(ind), 'Reef %d coral type %d should never start out bleached.', k, rr);
-                lastBleachEvent(k, rr) = ind(1) + startYear - 1;
-            end
-        end
+        SSThist = SST(k, :);
+        tVariance(k) = var(SSThist(1:initSSTIndex));
+        selVariance(k) = psw2_new(k)*tVariance(k);
     end
-    frequentBleaching = defineFrequentBleaching(bleachEvents);
-    
-    if saveVarianceStats
-        assert(length(toDo) == maxReefs, 'Only save variance data when running all reefs!');
-        % Save selectional variance and last year of cover for binned plotting
-        % by case.  Note that these numbers are computed inside the parallel
-        % loop, but it's easier to recompute them here than to build and
-        % extract arrays from the parallel code.
-        selVariance(maxReefs) = 0;
-        tVariance(maxReefs) = 0;
-        for k = 1:maxReefs
-            SSThist = SST(k, :);
-            tVariance(k) = var(SSThist(1:initSSTIndex));
-            selVariance(k) = psw2_new(k)*tVariance(k);
-        end
-        save(strcat(basePath, 'LastYear', '_selV_', RCP, 'E=', num2str(E), ...
-            'OA=', num2str(OA), '.mat'), ...
-            'psw2_new', 'selVariance', 'tVariance', 'lastYearAlive', 'RCP', 'OA', 'E');
+    save(strcat(basePath, 'LastYear', '_selV_', RCP, 'E=', num2str(E), ...
+        'OA=', num2str(OA), '.mat'), ...
+        'psw2_new', 'selVariance', 'tVariance', 'lastYearAlive', 'RCP', 'OA', 'E');
+end
+
+format shortg;
+% Don't save all this data if we're just optimizing.
+if doPlots
+    % Save parameters which created this run.  Note that ps (the
+    % parameter structure) makes most of the others redundant, but
+    % those are small so leave them for easy reference.
+    fname = strcat(pdfDirectory, modelChoices, '.mat');
+    save(fname, 'toDo', ...
+        'E','OA','pdfDirectory','dataset', ...
+        'Reefs_latlon','everyx','RCP','reefsThisRun', 'ps');
+
+    if doCoralCoverMaps
+        addpath(m_mapPath);
+        MapsCoralCoverClean(mapDirectory, Reefs_latlon, toDo, lastYearAlive, ...
+            events85_2010, eventsAllYears, frequentBleaching, ...
+            mortState, bleachState, ...
+            fullYearRange, ...
+            modelChoices);
     end
-
-    format shortg;
-    % Don't save all this data if we're just optimizing.
-    if doPlots
-        % Save parameters which created this run.  Note that ps (the
-        % parameter structure) makes most of the others redundant, but
-        % those are small so leave them for easy reference.
-        fname = strcat(pdfDirectory, modelChoices, '.mat');
-        save(fname, 'toDo', ...
-            'E','OA','pdfDirectory','dataset', ...
-            'Reefs_latlon','everyx','RCP','reefsThisRun', 'ps');
-
-        if doCoralCoverMaps
-            addpath(m_mapPath);
-            MapsCoralCoverClean(mapDirectory, Reefs_latlon, toDo, lastYearAlive, ...
-                events85_2010, eventsAllYears, frequentBleaching, ...
-                mortState, bleachState, ...
-                fullYearRange, ...
-                modelChoices);
-        end
-        if doCoralCoverFigure
-            coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
-                superAdvantage, mapDirectory);
-            coralCoverLatitudeFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
-                superAdvantage, mapDirectory, toDo, Reefs_latlon);
-        end
+    if doCoralCoverFigure
+        coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
+            superAdvantage, mapDirectory);
+        coralCoverLatitudeFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
+            superAdvantage, mapDirectory, toDo, Reefs_latlon);
     end
-    % Note that percentMortality is not used in normal runs, but it is
-    % examined by the optimizer when it is used.
-    oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
-    Stats_Tables(bleachState, mortState, lastYearAlive, ...
-       lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
-        bleachParams, doDetailedStressStats, oMode);
-    
-    % New 3/7/2018: output cover in 2100.
-    coralCover2100(C_yearly, coralSymConstants, startYear);
+end
+% Note that percentMortality is not used in normal runs, but it is
+% examined by the optimizer when it is used.
+oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
+Stats_Tables(bleachState, mortState, lastYearAlive, ...
+   lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
+    bleachParams, doDetailedStressStats, oMode);
+
+% New 3/7/2018: output cover in 2100.
+coralCover2100(C_yearly, coralSymConstants, startYear, RCP, E, OA, superMode, superAdvantage);
 
 
-    % Get the years when reefs first experienced lasting mortality and 
-    % bleaching.  This isn't wanted in every run, and certainly not when 
-    % super symbionts are introduced in a variable way.
-    if superMode == 0 && newMortYears
-        if everyx ~= 1
-            disp('WARNING: saving mortality and bleaching should only be done when all reefs are computed.');
-        end
-        saveMortYears(mortState, startYear, RCP, E, OA, mapDirectory, ...
-            modelChoices, Reefs_latlon, bleachState, maxReefs);
+% Get the years when reefs first experienced lasting mortality and 
+% bleaching.  This isn't wanted in every run, and certainly not when 
+% super symbionts are introduced in a variable way.
+if superMode == 0 && newMortYears
+    if everyx ~= 1
+        disp('WARNING: saving mortality and bleaching should only be done when all reefs are computed.');
     end
+    saveMortYears(mortState, startYear, RCP, E, OA, mapDirectory, ...
+        modelChoices, Reefs_latlon, bleachState, maxReefs);
+end
 
-    logTwo('Bleaching by event = %6.4f %%\n', Bleaching_85_10_By_Event);
-end % End postprocessing block.
+logTwo('Bleaching by event = %6.4f %%\n', Bleaching_85_10_By_Event);
+
 
 elapsed = toc(timerStart);
 logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
@@ -797,17 +755,8 @@ logTwo('Finished at %s\n', datestr(now));
 fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
-% 1) There seems to be no easy way to know the number of rows in the file, so
-% it must be read each time.  This takes almost 1.5 seconds, even on a
-% small file, so it would be best to rename the file occasionally and start
-% over with a small current file.
-% 2) Much of the code below is there to handle what happens when the file
-% is open in Excel.  Writing is block, so user is prompted to skip the
-% write or close Excel and retry.  This probably applies to any application
-% using the file, not just Excel.
-if (~exist('optimizerMode', 'var') || optimizerMode == false) && ...
-    (~skipPostProcessing)
 
+if (~exist('optimizerMode', 'var') || optimizerMode == false)
     saveExcelHistory(outputPath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end

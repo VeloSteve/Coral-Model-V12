@@ -3,7 +3,7 @@
 %  compiled MEX versions exist for common array sizes, and an uncompiled version
 %  is used for anything else.  For now, the Mac computers get the uncompiled
 %  code, but if we create compiled versions they can be inserted here.
-function handle =  selectIteratorFunction(select, arch)
+function handle =  selectIteratorFunction(select)
     % "select" is the length of the time array, which is a proxy for
     % several other array sizes passed into the function.
     % Comments show the original case the code was compiled for, but any
@@ -13,7 +13,6 @@ function handle =  selectIteratorFunction(select, arch)
     sourceDate1 = sourceFile1.datenum;
     sourceFile2 = dir('Runge_Kutta_2.m');
     sourceDate2 = sourceFile2.datenum;
-    if strcmp(arch, 'Mac'); select = 0; end  % Kludge so Macs work without compiled code.
     switch select
         case 23040
             % 1861 to 2100, dt = 0.125

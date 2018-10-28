@@ -62,13 +62,11 @@ classdef ParameterDictionary
             
             % Computing
             % TODO everyx can be  a string or integer in V11!  Redefine it?
-            addOne(p, modelCharParameter('comp', 'architecture', 'string','PC', {'PC', 'Mac', 'Linux'}));
-            addOne(p, modelIntParameter('comp', 'everyx', 'integer', 1, 1, 1925));
+             addOne(p, modelIntParameter('comp', 'everyx', 'integer', 1, 1, 1925));
             addOne(p, modelCharParameter('comp', 'specialSubset', 'string', 'no', {'no', 'eq', 'lo', 'hi', 'keyOnly', 'useEveryx'}));
             pc = parcluster('local');
             maxW = pc.NumWorkers;
             addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
-            addOne(p, modelLogicalParameter('comp', 'skipPostProcessing', 'logical', false));
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
             % Model source
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));

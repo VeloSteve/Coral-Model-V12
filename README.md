@@ -50,8 +50,6 @@ Approach
 •	Send parameters to the model in a single structure or JSON string, and use the same
     one for optimization.
 •	Ensure that output from a unique run goes to a unique directory, possibly using a limited hierarchy.
-•	Re-think the “useComputer” code from scratch so it’s less confusing.  Same for
-    file and directory name generation.
 •	In the GUI, add a feature to see all completed runs which have any data stored, with the
     ability to filter by at least some parameters including
     o	Date range

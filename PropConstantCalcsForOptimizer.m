@@ -5,7 +5,12 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 8/26/16                                              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] = useComputer(3);
+% The script needs these paths but is seems easier to just edit on the rare
+% occasions when this is used, rather than to load a whole parameterDictionary.
+basePath = "D:/GitHub/Coral-Model-V12";
+sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
+matPath = "D:/GitHub/Coral-Model-V12/mat_files/";
+
 
 
 % SST DATASET?

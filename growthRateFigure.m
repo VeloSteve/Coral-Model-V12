@@ -29,6 +29,9 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     % and for 1900 to 1950.
     historicRange = getTRange(1900, 1950, temp, fullYearRange);
     y = str2double(yearStr);
+    % If we would have times before the start, just use the first 
+    % 3 years.
+    y = max(y, fullYearRange(1) + 3);
     recentRange = getTRange(y-3, y, temp, fullYearRange);
 
     points = 200;
@@ -122,9 +125,9 @@ end
 % January 1 in yearRange(1) to December 31 in yearRange(2).
 function [range] = getTRange(y1, y2, temp, yearRange)
   % Get indexes
-  spy = length(temp) / (yearRange(2) - yearRange(1));
-  i1 = round(max(1, (y1 - yearRange(1)) * spy));
-  i2 = round(min(length(temp), (y2 - yearRange(1)) * spy));
+  stepsPerYear = length(temp) / (1 + yearRange(2) - yearRange(1));
+  i1 = round(max(1, (y1 - yearRange(1)) * stepsPerYear));
+  i2 = round(min(length(temp), (y2 - yearRange(1)) * stepsPerYear));
   low = min(temp(i1:i2));
   high = max(temp(i1:i2));
   range = [low high];
