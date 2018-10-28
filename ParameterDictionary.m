@@ -28,7 +28,7 @@ classdef ParameterDictionary
     methods
 
         function p = ParameterDictionary(inputType, inValue)
-            % Define each allowed model parameter as an object.
+            % PARAMETERDICTIONARY Defines each allowed model parameter as an object.
             % 
             % The model*Parameter calls use arguments (name, type, default,
             % min, max), (name, type default), or (name, type, default,
@@ -36,8 +36,6 @@ classdef ParameterDictionary
             p.params = containers.Map;
             
             % Paths
-            addOne(p, modelCharParameter('path', 'codeBase', 'string', 'D:/GitHub/Coral-Model-V12/'));
-            addOne(p, modelCharParameter('path', 'sharedData', 'string', 'D:/GitHub/Coral-Model-Data/'));
             addOne(p, modelCharParameter('path', 'outputBase', 'string', 'D:/CoralTest/V12Test/'));
             % Model constants and psw2 values for each case.
             addOne(p, modelCharParameter('path', 'matPath', 'string', 'D:/GitHub/Coral-Model-V12/mat_files/'));
@@ -68,8 +66,6 @@ classdef ParameterDictionary
             maxW = pc.NumWorkers;
             addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
-            % Model source
-            addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
             % Calibration/Tuning
             addOne(p, modelLogicalParameter('comp', 'optimizerMode', 'logical', false));
 
@@ -88,7 +84,7 @@ classdef ParameterDictionary
             addOne(p, modelLogicalParameter('output', 'saveVarianceStats', 'logical', false));
             
             % All allowed parameters are now defined.  If arguments are
-            % given set parameters from there.  This provides validation.
+            % given, set parameters from there.  This provides validation.
             if nargin == 0
                 % okay, use defaults
             elseif nargin ~= 2
@@ -114,17 +110,6 @@ classdef ParameterDictionary
                     error('Only inputs of type ''handle'', ''file'' or ''json'' are supported.');
                 end
             end
-            
-            % To be sure it's not overwritten by a saved value, set the
-            % model version here.
-            [mp, ~, ~] = fileparts(which('ParameterDictionary'));
-            dirParts = split(mp, {'/', '\'});
-            sd = dirParts{end};
-            format shortg; c = clock;
-            dateString = strcat(num2str(c(1)),num2str(c(2),'%02u'),num2str(c(3),'%02u'));
-            txt = strcat(sd, {' as of '}, dateString);
-            p.set('modelVersion', txt{1});
-
         end
         
         function obj = set(obj, name, value)

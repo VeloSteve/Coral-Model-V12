@@ -80,8 +80,8 @@ initYear = '2001';  % SelV and hist will be initialized from 1861 to this year.
 modelChoices = pd.getModelChoices();
 % pdfDirectory contains the per-reef pdfs and a mat file
 % mapDirectory contains maps, console output, and miscellaneous figures
-pdfDirectory = strcat(pd.getDirectoryName('_figs/'));
-mapDirectory = strcat(pd.getDirectoryName('_maps/'));
+pdfDirectory = pd.getDirectoryName('_figs/');
+mapDirectory = pd.getDirectoryName('_maps/');
 mkdir(pdfDirectory);
 mkdir(mapDirectory);
 mkdir(strcat(outputPath, 'bleaching'));
@@ -529,9 +529,8 @@ parfor (parSet = 1:queueMax, parSwitch)
         
         if doPlots && (any(keyReefs == k) || allPDFs)
             % Now that we have new stats, reproduce the per-reef plots.
-            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
-                  hist, dataset, sgPath, k, ...
-                  pdfDirectory, E, lenTIME);
+            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, ...
+                temp, lat, lon, RCP, hist, dataset, sgPath, k, pdfDirectory, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
