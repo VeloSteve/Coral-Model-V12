@@ -1,4 +1,7 @@
-GP,  1.1708, RCP, rcp60, E, 0, OA, 0, Mode, 0, Adv,  0.0000
-GP, 45.1422, RCP, rcp26, E, 0, OA, 0, Mode, 0, Adv,  0.0000
-GP,  1.1708, RCP, rcp60, E, 0, OA, 0, Mode, 9, Adv,  0.0000
-GP, 45.1422, RCP, rcp26, E, 0, OA, 0, Mode, 9, Adv,  0.0000
+GP, 91.2423, RCP, rcp26, E, 0, OA, 0, Mode, 9, Adv,  0.5000
+GP, 98.3587, RCP, rcp26, E, 0, OA, 0, Mode, 7, Adv,  0.5000
+GP, 98.3587, RCP, rcp26, E, 0, OA, 0, Mode, 0, Adv,  0.5000
+GP, 74.3074, RCP, rcp26, E, 0, OA, 0, Mode, 7, Adv,  0.5000
+GP, 74.3074, RCP, rcp26, E, 0, OA, 0, Mode, 7, Adv,  0.5000
+GP, 74.3074, RCP, rcp26, E, 0, OA, 0, Mode, 7, Adv,  0.5000
+GP, 74.3074, RCP, rcp26, E, 0, OA, 0, Mode, 7, Adv,  0.5000
