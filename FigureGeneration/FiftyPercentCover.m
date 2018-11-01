@@ -1,3 +1,10 @@
+% Plot coral cover in 2100 as a function of symbiont advantage for advantage
+% modes 7 and 9 (or others as selected).  The input file is written in the main
+% directory by coralCover2100.m, if the appropriate lines are uncommented.  The
+% file should start empty, and then every case which generates a point for this
+% plot should be run using AutoRepeatModelRuns.m.  This does not have to be done
+% is a single set, since the .txt file is simply appended to each time.
+
 T = readtable('..\FigureData\Cover50PctStats.txt', 'ReadVariableNames', 0);
 
 % Variable number and meaning

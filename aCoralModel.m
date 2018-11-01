@@ -6,9 +6,9 @@
 % last updated: 5-3-16                                              %
 % Performance and structural changes starting 9/2016 by Steve Ryan (jaryan)  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%function [SST, TIME] = A_Coral_Model(parameters)
+%function [SST, TIME] = aCoralModel(parameters)
 % The output variables are used only during model tuning.
-function [Bleaching_85_10_By_Event, E] =  A_Coral_Model(parameters)
+function [Bleaching_85_10_By_Event, E] =  aCoralModel(parameters)
 timerStart = tic;
 
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
@@ -37,7 +37,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % New code, December 2017.  Variables were previously hardcoded in this file.
 % Now they are received as inputs.  This call is admittedly ugly, but it
 % does serve as a list of all variable arguments.  This is intended to
-% allow A_Coral_Model to never be edited during normal use.
+% allow aCoralModel to never be edited during normal use.
 [dataset, RCP, E, OA, superMode, superAdvantage, superStart,...
  outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
  useThreads, optimizerMode, everyx, specialSubset, ...
@@ -207,7 +207,8 @@ clear findDateIndex;
 initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYear), time);
 
 % Convert years for symbiont activation to indexes in the time array for
-% quicker use later.   superStartYear units are years.
+% quicker use later.   superStartYear units are years.  Note that superStartYear
+% will be set to 2101 above if there is no advantage to be applied.
 neverIndex = length(time) + 1;
 for i = length(superStartYear):-1:1
     ssY = superStartYear(i);
@@ -288,8 +289,8 @@ iteratorHandle = selectIteratorFunction(length(time));
 timerStartParfor = tic;
 % Enable the parfor for production, but the "for" line must be used if the
 % MATLAB debugger is needed.
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;

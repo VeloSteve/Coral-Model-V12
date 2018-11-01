@@ -1,4 +1,4 @@
-%% Repeatedly run the model for all cases at once.
+%% Repeatedly run the model for many cases at once.
 
 % Read the default inputs as a starting point.
 parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
@@ -51,7 +51,7 @@ for ooo = oaList  % 0:1
                             eee, ooo, rrr{1}, mmm, ttt);
                         fprintf('   and keyReefs = %d', pd.get('keyReefs'))
 
-                        A_Coral_Model(pd)
+                        aCoralModel(pd)
                         fprintf('Completed %d of %d runs.\n', autoRunCount, nRuns);
                     end
                 end

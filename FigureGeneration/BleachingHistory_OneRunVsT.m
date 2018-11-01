@@ -206,8 +206,8 @@ smoothSlope48 = trailingAverageFilt(slope48, 48, true);
 plot(smoothSlope48)
 smoothSlope48_96 = trailingAverageFilt(slope48, 96, true);
 plot(smoothSlope48_96)
-SST, TIME = A_Coral_Model;
-[SST, TIME] = A_Coral_Model;
+SST, TIME = aCoralModel;
+[SST, TIME] = aCoralModel;
 plot(TIME, smoothSlope48_96)
 smoothSlope48_96(2880) = 0;
 plot(TIME, smoothSlope48_96)

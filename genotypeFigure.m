@@ -1,6 +1,6 @@
 function genotypeFigure(fullDir, suffix, k, time, gi, ssi)
     specs = {'-c', '-g', '-m', '-y', '--r', '--b'};
-
+    ssi = min(ssi, length(gi));
     f = figure(1000+k);
     plot(time, gi(:,1), specs{1}); %, gi(:,2)); %, gi(:,3), gi(:,4));
     hold on;

@@ -256,7 +256,7 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
 
         multiPlot.active = false;
         try
-            [Bleaching_85_10_By_Event, E] = A_Coral_Model
+            [Bleaching_85_10_By_Event, E] = aCoralModel
         catch ME
             if (strcmp(ME.message,'ExcessiveBleaching'))
                 Bleaching_85_10_By_Event = 1000.0; % arbitrary large value
@@ -360,7 +360,7 @@ end
 propInputValues = [option{2}{5}, option{3}{5}, option{4}{5}, option{5}{5}];
 PropConstantCalcsForOptimizer
 
-[Bleaching_85_10_By_Event, E] = A_Coral_Model
+[Bleaching_85_10_By_Event, E] = aCoralModel
 
 fprintf('%s\n', bestList{end});
 fprintf('Done in %d runs with skips = %d.\n', runs, skips);
