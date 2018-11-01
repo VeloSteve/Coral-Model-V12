@@ -520,7 +520,7 @@ for parSet = 1:queueMax
         %% New clean stats section
         
         [ C_monthly, S_monthly, ~, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
-            Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+            cleanBleachStats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
      
         % XXXXXXXXXX XXX
         % copy new bleaching calculation (ignoring some mortality) over the

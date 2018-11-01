@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Extract SSTs from normalized GFDL-ESM2M (JD) or HADISST
-function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP)
+function [SST, Reefs_latlon, TIME, startYear] = getSSTnormGFDL_ESM2M(sstPath, dataset, RCP)
     % Get ESM2M Normalized SSTs for a ALL reef grid cells
 
     if strcmp(dataset, 'ESM2M') % GFDL-ESM2M_norm (John's normalized dataset)
