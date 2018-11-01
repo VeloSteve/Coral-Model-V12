@@ -1,4 +1,4 @@
-function CellSizes(locations)
+function cellSizes(locations)
 % Calculate the approximate size of all cells in kilometers.
 % Cells as defined have only a location.  Longitudes are in regular 1 degree
 % steps, but latitudes vary, so we must rely on deducing the spacing from
