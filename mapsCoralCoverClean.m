@@ -52,7 +52,9 @@ oneMap(12, activeLatLon(:, 1), activeLatLon(:, 2), [0 0.8 0], yearRange, parula,
 % Color-scaled points where there is a last year
 outFile = strcat(fileBase, '.pdf');
 if any(lastYearAlive)
-    ind = find(lastYearAlive);
+    %ind = find(lastYearAlive);
+    % Skip the nans!
+    ind = find(lastYearAlive > 0);
     oneMap(12, Reefs_latlon(ind, 1), Reefs_latlon(ind, 2), lastYearAlive(ind), yearRange, customColors, tName, outFile, true);
 end
 
@@ -281,6 +283,10 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     % Points with last-year mortality values:
     [LONG,LAT] = m_ll2xy(lons,lats); hold on % convert reef points to M-Map lat long
 
+    if length(values) == 3
+        fprintf("I do not know how to plot exactly 3 reef values because scatter thinks the values are a single color specification!\n");
+        return;
+    end
     scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
     
     if isempty(cMap)
