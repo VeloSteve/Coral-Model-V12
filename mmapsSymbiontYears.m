@@ -5,7 +5,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapsSymbiontYears(fullDir, modelChoices, years, Reefs_latlon )
+function [] = mapsSymbiontYears(fullDir, modelChoices, years, Reefs_latlon )
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
