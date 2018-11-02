@@ -100,14 +100,14 @@ fclose(paramFile);
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 % Extract SSTs for a ALL reef grid cells
-[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
+[SST, Reefs_latlon, TIME, startYear] = getSSTnormGFDL_ESM2M(sstPath, dataset, RCP);
 lenTIME = length(TIME);
 assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-    [Omega_all] = GetOmega(sgPath, RCP);
+    [Omega_all] = getOmega(sgPath, RCP);
     if strcmp(RCP, 'control400')
         % Enlarge the array to match the extended control400 array
         copyLine = Omega_all(:, 2880);
@@ -360,7 +360,7 @@ for parSet = 1:queueMax
         %ssss = findDateIndex(strcat('14-Jan-', num2str(par_SuppressYears(kChunk)-10)), strcat('16-Jan-',num2str(par_SuppressYears(kChunk)-10)), time);
         %eeee = findDateIndex(strcat('14-Dec-', num2str(par_SuppressYears(kChunk))), strcat('16-Dec-',num2str(par_SuppressYears(kChunk))), time);
 
-        [vgi, gi, S, C, hist] = Init_genotype_popsize(time, initIndex, temp, coralSymConstants, ...
+        [vgi, gi, S, C, hist] = initGenotypePopsize(time, initIndex, temp, coralSymConstants, ...
             E, vM, SelV, superMode, superAdvantage, startSymFractions, ...
             [suppressSI suppressSIM10]);
 
@@ -530,7 +530,7 @@ for parSet = 1:queueMax
         
         if doPlots && (any(keyReefs == k) || allPDFs)
             % Now that we have new stats, reproduce the per-reef plots.
-            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, ...
+            plotOneReef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, ...
                 temp, lat, lon, RCP, hist, dataset, sgPath, k, pdfDirectory, E, lenTIME);
         end
 
@@ -709,7 +709,7 @@ if doPlots
 
     if doCoralCoverMaps
         addpath(m_mapPath);
-        MapsCoralCoverClean(mapDirectory, Reefs_latlon, toDo, lastYearAlive, ...
+        mapsCoralCoverClean(mapDirectory, Reefs_latlon, toDo, lastYearAlive, ...
             events85_2010, eventsAllYears, frequentBleaching, ...
             mortState, bleachState, ...
             fullYearRange, ...
@@ -725,7 +725,7 @@ end
 % Note that percentMortality is not used in normal runs, but it is
 % examined by the optimizer when it is used.
 oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
-Stats_Tables(bleachState, mortState, lastYearAlive, ...
+statsTables(bleachState, mortState, lastYearAlive, ...
    lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
     bleachParams, doDetailedStressStats, oMode);
 

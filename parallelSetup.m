@@ -55,7 +55,7 @@ function [queueMax] = parallelSetup(n)
         % before this clears their variables.  If not it gets the plot routine
         % loaded onto them.
         spmd
-            Plot_One_Reef();
+           plotOneReef();
             % not currently used graphCompare();
         end
     end

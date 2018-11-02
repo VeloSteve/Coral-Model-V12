@@ -3,14 +3,14 @@ function [ps, pd] = getInputStructure(parameters)
 %
 % getInputStructure(parameters)
 %
-% parameters can be a JSON string, a ParameterDictionary object, or a file name. If
+% parameters can be a JSON string, a parameterDictionary object, or a file name. If
 % neither is found, this function reads a file called
 % LastChanceParameters.txt.  The file option is only meant to allow the
 % program to be tested when a proper calling script is not yet in place.
 %
 % See also: PARAMETERDICTIONARY
 
-    if isa(parameters, 'ParameterDictionary')
+    if isa(parameters, 'parameterDictionary')
         ps = parameters.getStruct();
         pd = parameters;
     else
@@ -18,7 +18,7 @@ function [ps, pd] = getInputStructure(parameters)
         try ps = jsondecode(parameters);
             % That worked as a test, but use the PD constructor
             % so inputs are validated.
-            pd = ParameterDictionary('json', parameters);
+            pd = parameterDictionary('json', parameters);
             disp('Got input values from a JSON string.');
         catch ME
             if (strcmp(ME.identifier,'MATLAB:json:ExpectedValue'))
@@ -39,7 +39,7 @@ function [ps, pd] = getInputStructure(parameters)
                 
                 try ps = jsondecode(json);
                     % As above, now repeat with the PD constructor.
-                    pd = ParameterDictionary('json', json);
+                    pd = parameterDictionary('json', json);
                     disp('Got input values from specified file.');
                 catch ME
                     disp('Invalid input in specified file!');

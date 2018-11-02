@@ -11,7 +11,7 @@ function handle =  selectIteratorFunction(select)
     
     sourceFile1 = dir('timeIteration.m');
     sourceDate1 = sourceFile1.datenum;
-    sourceFile2 = dir('Runge_Kutta_2.m');
+    sourceFile2 = dir('rungeKutta2.m');
     sourceDate2 = sourceFile2.datenum;
     switch select
         case 23040
