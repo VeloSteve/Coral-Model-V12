@@ -10,7 +10,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % 12-1-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
+function [Snew, Cnew] = rungeKutta2(Sold, Cold, i, dt, ri, ...
                             rm, temp, vgi, gi, SelVx, C_seed, S_seed, con)
 	% Inputs:
     % Sold - symbiont populations - "S old" the i'th row of the S array

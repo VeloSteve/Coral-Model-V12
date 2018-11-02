@@ -27,7 +27,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
+function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             hist, dataset, SGPath, k, pdfDirectory, E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.

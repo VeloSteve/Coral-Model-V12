@@ -1,5 +1,5 @@
-classdef ParameterDictionary
-% ParameterDictionary All Coral Model parameters, with constraints.
+classdef parameterDictionary
+% parameterDictionary All Coral Model parameters, with constraints.
 %
 %   This object defines all variable input parameters including their
 %   datatypes with allowed and current values.  Default values are hardcoded
@@ -27,7 +27,7 @@ classdef ParameterDictionary
     %%
     methods
 
-        function p = ParameterDictionary(inputType, inValue)
+        function p = parameterDictionary(inputType, inValue)
             % PARAMETERDICTIONARY Defines each allowed model parameter as an object.
             % 
             % The model*Parameter calls use arguments (name, type, default,
