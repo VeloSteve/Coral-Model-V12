@@ -10,7 +10,6 @@ function coralCoverLatitudeFigure(C_yearly, coralSymConstants, startYear, years,
     indEq = find(abs(latitude) <= eqLim);
     indLo = find((abs(latitude) > eqLim) & (abs(latitude) <= loLim));
     indHi = find(abs(latitude) > loLim);
-    indexes = {indEq, indLo, indHi, 1:length(thisRun)};
     
     % C_yearly averaged within each band
     % C_yearly has year/reef/coral type

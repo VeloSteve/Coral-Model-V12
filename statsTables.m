@@ -52,8 +52,8 @@ function statsTables(bleachState, mortState, lastYearAlive, ...
             % Extra detail for Figure 1(?) in the paper: 
             %years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
             % Another super detail option for stress/temp comparision
-            tenY = [1870:10:1950];
-            oneY = [1950:1:2100];
+            tenY = 1870:10:1950;
+            oneY = 1950:1:2100;
             years = unique([tenY oneY]);
         end
     else
@@ -70,7 +70,6 @@ function statsTables(bleachState, mortState, lastYearAlive, ...
     unrecovered = permBleached;
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
     allStress = permBleached;
-    cumBleachEvents = permBleached;
      
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);

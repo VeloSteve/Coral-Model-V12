@@ -11,13 +11,11 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
         vg(2) = vgi(sEnd, 3);
         g(1) = gi(sEnd, 1);
         g(2) = gi(sEnd, 3);
-        t0 = temp(sEnd);
     else
         vg(1) = vgi(ssi+1, 1);
         vg(2) = vgi(ssi+1, 3);
         g(1) = gi(ssi+1, 1);
         g(2) = gi(ssi+1, 3);
-        t0 = temp(ssi+1);
     end
     
     tMin = 15; %20;
@@ -79,10 +77,7 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     hold on;
     plot(temps, rates2009(:,1), specs{5});
     plot([g(1) g(1)], [min(min(rates)) max(max(rates))], ':k');  % current optimum
-    %plot([g(2) g(2)], [min(min(rates)) max(max(rates))], '-.k');
-    % replaced by shaded areas
-    % plot([t0 t0], [min(min(rates)) max(max(rates))], '--k');  % current actual T
-    
+   
     patch('DisplayName', 'Historic T Range', 'YData', ty, 'XData', tx, 'FaceAlpha', 0.2, 'LineStyle', 'none', 'FaceColor', [.75 .75 .75])
     % Shade area for recent temperatures.
     ty = [growthScale fliplr(growthScale)];

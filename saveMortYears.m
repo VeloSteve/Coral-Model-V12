@@ -1,5 +1,5 @@
 function [ ] = saveMortYears( mortState, startYear, RCP, E, OA, fullMapDir, ...
-        modelChoices, Reefs_latlon, bleachState, maxReefs)
+        modelChoices, Reefs_latlon, bleachState, maxReefs) %#ok<INUSL>
 % Save the years in which reefs reached 5 years of mortality for use during
 % mortality-dependent super symbiont addition.
 
