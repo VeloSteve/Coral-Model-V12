@@ -1,11 +1,5 @@
-%% Make Maps
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Evolutionary model for coral cover (from Baskett et al. 2009)     %
-% modified by Cheryl Logan (clogan@csumb.edu)                       %
-% last updated: 1-6-15                                                          %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapInputs(fullDir, Reefs_latlon, SST, psw2_new, propTest, ...
+
+function [] = mapInputs(fullDir, Reefs_latlon, SST, psw2_new, propTest, ...
         modelChoices)
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')

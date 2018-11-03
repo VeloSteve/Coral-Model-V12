@@ -2,18 +2,7 @@ function coralCover2100(C_yearly, coralSymConstants, startYear, RCP, E, OA, mode
     % C_yearly has year/reef/coral type
     % For now just look at 2100.
     y = (2100-startYear);
-    %{
-    Version 1 - sum all reefs and corals, divide by sum of K values.
-    C_2100 = squeeze(C_yearly(y, :, :));
-    % Across all reefs
-    means = mean(C_2100, 1);
-    logTwo("Percent coral cover relative to carrying capacity at 2100 is ");
-    logTwo("%4.1f for massive, %4.1f for branching, and %4.1f combined.\n", ...
-        100*means(1)/coralSymConstants.KCm, ...
-        100*means(2)/coralSymConstants.KCb, ...
-        100*sum(means)/(coralSymConstants.KCm + coralSymConstants.KCb)); 
-    %}
-    % Version 2 - calculate cover for each reef separately, then average.
+    % Calculate cover for each reef separately, then average.
     % For one reef, cover is % cover for branching plus % for massive, summed
     % and capped at 1.
     C_2100 = squeeze(C_yearly(y, :, :));
