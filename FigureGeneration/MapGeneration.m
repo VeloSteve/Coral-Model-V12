@@ -10,7 +10,7 @@ function [] = MapGeneration(Reefs_latlon, values  )
 format shortg;
 
 % A scale for "red=bad, blue=good" plots.
-customColors = customScale();
+% customColors = customScale();
 
 tName = strcat('Reef Cell Historical Temperatures, °C');
 % Green points everywhere
@@ -28,7 +28,6 @@ end  % End the main MapGeneration function.
 % values what to plot at each position
 % cRange man and max data values for color scale
 % t title
-% outFile pdf output file
 function [] = oneMap(n, lons, lats, values, cMap, t)
     f = figure(n);
 

@@ -19,7 +19,7 @@
 % SGPath - where to find the DHM mat file
 % outputPath  - Directory for m-files and output subdirectories
 % k    - number of the current reef grid cell
-% pdfDirectory  - Output directory for the current run
+% figDirectory  - Output directory for the current run
 % E    - evolution on or off
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,7 +28,7 @@
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
-            hist, dataset, SGPath, k, pdfDirectory, E, months)
+            hist, dataset, SGPath, k, figDirectory, E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
     persistent figHandle DHM Time; %#ok<PSET>
@@ -198,7 +198,6 @@ function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         datetick('x','keeplimits');
         %set(gca,'XTick',tickVals);
 
-        %print -dpdf -r600 fig2.pdf
 
 
         %% Plot Coral Cover (upper right)
@@ -244,11 +243,6 @@ function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
 
         datetick('x','keeplimits');
 
-        %legend('massive','branching','Location','NorthWest');
-        %print -dpdf -r600 fig4.pdf
-
-       
-
 
         %% Plot DHMs from RCP85 noadapt MMMmax method (lower right)
         subplot(2,2,4);
@@ -286,7 +280,7 @@ function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
 
     name = strcat('SDC_',num2str(k),'_',dataset,RCP,LOC,'prop',num2str(shortprop),'_E',num2str(E));
 
-    fullName = strcat(pdfDirectory, name);
+    fullName = strcat(figDirectory, name);
     if verLessThan('matlab', '8.2')
         saveas(gcf, fullname, 'fig');
     else

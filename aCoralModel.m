@@ -42,7 +42,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  useThreads, optimizerMode, everyx, specialSubset, ...
  keyReefs, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
- doGenotypeFigure, doDetailedStressStats, allPDFs, ...
+ doGenotypeFigure, doDetailedStressStats, allFigs, ...
  saveVarianceStats, newMortYears] = explodeVariables(ps);
 
 % XXX timeIteration expects a double for superMode - that probably should be
@@ -77,11 +77,11 @@ initYear = '2001';  % SelV and hist will be initialized from 1861 to this year.
 % A string for building long ugly file names that reflect the run
 % parameters.
 modelChoices = pd.getModelChoices();
-% pdfDirectory contains the per-reef pdfs and a mat file
+% figDirectory contains the per-reef pdfs and a mat file
 % mapDirectory contains maps, console output, and miscellaneous figures
-pdfDirectory = pd.getDirectoryName('_figs/');
+figDirectory = pd.getDirectoryName('_figs/');
 mapDirectory = pd.getDirectoryName('_maps/');
-mkdir(pdfDirectory);
+mkdir(figDirectory);
 mkdir(mapDirectory);
 mkdir(strcat(outputPath, 'bleaching'));
 
@@ -287,8 +287,8 @@ iteratorHandle = selectIteratorFunction(length(time));
 timerStartParfor = tic;
 % Enable the parfor for production, but the "for" line must be used if the
 % MATLAB debugger is needed.
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+% for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -423,10 +423,10 @@ for parSet = 1:queueMax
         %bleachStateOne = bleachStateTemp;
         
         
-        if doPlots && (any(keyReefs == k) || allPDFs)
+        if doPlots && (any(keyReefs == k) || allFigs)
             % Now that we have new stats, reproduce the per-reef plots.
             plotOneReef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, ...
-                temp, lat, lon, RCP, hist, dataset, sgPath, k, pdfDirectory, E, lenTIME);
+                temp, lat, lon, RCP, hist, dataset, sgPath, k, figDirectory, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
@@ -597,9 +597,9 @@ if doPlots
     % Save parameters which created this run.  Note that ps (the
     % parameter structure) makes most of the others redundant, but
     % those are small so leave them for easy reference.
-    fname = strcat(pdfDirectory, modelChoices, '.mat');
+    fname = strcat(figDirectory, modelChoices, '.mat');
     save(fname, 'toDo', ...
-        'E','OA','pdfDirectory','dataset', ...
+        'E','OA','figDirectory','dataset', ...
         'Reefs_latlon','everyx','RCP','reefsThisRun', 'ps');
 
     if doCoralCoverMaps

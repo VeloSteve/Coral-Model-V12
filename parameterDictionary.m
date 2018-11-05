@@ -74,7 +74,7 @@ classdef parameterDictionary
             addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925, true));  % Note nullAllowed final argument.
             addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
-            addOne(p, modelLogicalParameter('output', 'allPDFs', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'allFigs', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doPlots', 'logical', true));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverMaps', 'logical', true));
