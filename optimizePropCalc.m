@@ -1,13 +1,11 @@
 %% Try to find an optimal equation for the proportionality constant by varying
-% 4 input variables and trying to maximize a "goodness" score based on reef
-% survival and other factors.
+% up to 4 input variables and trying to maximize a "goodness" score based on
+% reef survival and other factors.
 %
-% Possible optimization: after checking all equal bests the final random
-% search is around an arbitrary one of those (first or last).  It could be
-% better to select the median value of the indexes of equal bests to be
-% closest to the center of the apparent optimum.  It also means a quicker
-% exit if there are a lot of equal bests and all many the center have been
-% checked.
+% Note that this is just a crude stepwise search, with some attempt to search
+% near the best values.  I wrote it when new to MATLAB, and before realizing
+% how many runs this might take.  Something smarter like MATLAB's fminsearch
+% would be worth a try.
 %%
 optTimerStart = tic;
 
@@ -18,12 +16,12 @@ keepOldResults = false;  % Use results across multiple runs - only valid if mode
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
 maxSteps = 19; % 7, 13, 19 are useful multiples
-boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
+boxStart = true;  % Use specified starting points, typically at each corner of the parameter space.  If false, include just one point in the center.
 maxRuns = 100;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
 maxRandomEnd = 26; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.
-equalBestTol = 0.05; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
+equalBestTol = 0.05; % Default 0.05 If a new value is this close, treat it as an equal best for checking.
 
 RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 
@@ -51,15 +49,12 @@ targetBleaching = 5.0;
 %% WARNING: pMin is now used to initialize bleachFrac, which determines how sensitive the reefs are to bleaching.
 %  the variable names are NOT updated except where they will affect the
 %  execution of the main program.
-% never used?  varyBleachParams = true;
 
-
-% Try a new way of choosing 4 or fewer variables to optimizer from a larger
+% Try a new way of choosing 4 or fewer variables to optimize from a larger
 % set.
 % Warning: add variables, but don't renumber, as they are pulled out by
 % number before calling the solver.
-option{1} = {'bleachFrac', 0.22, 0.225};
-
+option{1} = {'bleachFrac', 0.22, 0.225};  % Not normally used.
 option{2} = {'pMin', 0.36, 0.36};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; % Variable "y" in the draft paper.
@@ -71,8 +66,7 @@ options = [2, 3, 4, 5]; % Which variables may vary. Okay to include some with st
     assert(isempty(A), 'With pswOnly true, only related parameters are allowed.');
 
 % Steps to actually use for each (1 to hold constant)
-steps = [1, 1, 1, maxSteps];
-
+steps = [1, 1, maxSteps, maxSteps];
 
 % After this, each option will contain name, min, max, range, and a default
 % current value which is equal to min.
@@ -85,7 +79,6 @@ end
 % are, but the correct variables must be set before calling the coral
 % model.
 possible = {option{options(1)}, option{options(2)}, option{options(3)}, option{options(4)}};
-
 
 %% Strategy:
 % 1) Start by testing some selected points - the center of the parameter
@@ -149,8 +142,7 @@ boxValue = {};
 % Manually assign boxes - this assumes the 2nd variable doesn't vary, but
 % these points should not be essential to the result anyway.
 
-
-%boxIndex{1} = ceil(steps/2);  % A point right in the center.
+boxIndex{1} = ceil(steps/2);  % A point right in the center.
 
 % Set ranges for building box indexes.
 if boxStart
@@ -251,7 +243,7 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
         % Always active
         propInputValues = [option{2}{5}, option{3}{5}, option{4}{5}, option{5}{5}];
         thisRCP = RCP;
-        PropConstantCalcsForOptimizer
+        propConstantCalcsForOptimizer
         assert(strcmp(thisRCP, RCP), 'RCP set for prop calculations %s must not be overwritten by PCCFO setting %s!', thisRCP, RCP);
 
         multiPlot.active = false;
@@ -358,7 +350,7 @@ for i = 1:4
     option{options(i)} = possible{i};
 end
 propInputValues = [option{2}{5}, option{3}{5}, option{4}{5}, option{5}{5}];
-PropConstantCalcsForOptimizer
+propConstantCalcsForOptimizer
 
 [Bleaching_85_10_By_Event, E] = aCoralModel
 
