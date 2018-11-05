@@ -16,7 +16,7 @@
 % I    - index of a reference date in the time array
 % gi   - symbiont genotype
 % ri   - symbiont growth rate
-% SGPath - where to find the DHM mat file
+% dhmPath - where to find the DHM mat file
 % outputPath  - Directory for m-files and output subdirectories
 % k    - number of the current reef grid cell
 % figDirectory  - Output directory for the current run
@@ -28,7 +28,7 @@
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
-            hist, dataset, SGPath, k, figDirectory, E, months)
+            hist, dataset, dhmPath, k, figDirectory, E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
     persistent figHandle DHM Time; %#ok<PSET>
@@ -253,10 +253,10 @@ function plotOneReef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             rcpNum = str2double(rcpDigits);
             if rcpNum > 0
                  % load DHMs from RCP(rcpNum) noadapt MMMmax method
-                load(strcat(SGPath, 'DHM_', rcpDigits, 'noadaptMMMmax.mat'),'DHM','Time'); 
+                load(strcat(dhmPath, 'DHM_', rcpDigits, 'noadaptMMMmax.mat'),'DHM','Time'); 
             else
                 % Default to RCP85 - better than nothing???
-                load(strcat(SGPath, 'DHM_85noadaptMMMmax.mat'),'DHM','Time');
+                load(strcat(dhmPath, 'DHM_85noadaptMMMmax.mat'),'DHM','Time');
             end
         end
         plotDHM1 = plot(Time(1501:end),DHM(k,:), 'k'); hold on;

@@ -42,7 +42,7 @@ classdef parameterDictionary
             % ESM2M_SSTR_JD data
             addOne(p, modelCharParameter('path', 'sstPath', 'string', 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/'));
             % DHM and Omega data
-            addOne(p, modelCharParameter('path', 'sgPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
+            addOne(p, modelCharParameter('path', 'omegaPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
             % Mapping code - not ours, so don't publish the repository.
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
             addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));

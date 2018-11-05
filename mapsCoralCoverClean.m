@@ -283,7 +283,7 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     % Points with last-year mortality values:
     [LONG,LAT] = m_ll2xy(lons,lats); hold on % convert reef points to M-Map lat long
 
-    if length(values) == 3
+    if (length(values) == 3) && (max(values) > 1)
         fprintf("I do not know how to plot exactly 3 reef values because scatter thinks the values are a single color specification!\n");
         return;
     end

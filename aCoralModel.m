@@ -38,7 +38,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % does serve as a list of all variable arguments.  This is intended to
 % allow aCoralModel to never be edited during normal use.
 [dataset, RCP, E, OA, superMode, superAdvantage, superStart,...
- outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
+ outputPath, omegaPath, sstPath, matPath, m_mapPath, GUIBase, ...
  useThreads, optimizerMode, everyx, specialSubset, ...
  keyReefs, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
@@ -106,7 +106,7 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-    [Omega_all] = getOmega(sgPath, RCP);
+    [Omega_all] = getOmega(omegaPath, RCP);
     if strcmp(RCP, 'control400')
         % Enlarge the array to match the extended control400 array
         copyLine = Omega_all(:, 2880);
@@ -426,7 +426,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         if doPlots && (any(keyReefs == k) || allFigs)
             % Now that we have new stats, reproduce the per-reef plots.
             plotOneReef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, ...
-                temp, lat, lon, RCP, hist, dataset, sgPath, k, figDirectory, E, lenTIME);
+                temp, lat, lon, RCP, hist, dataset, omegaPath, k, figDirectory, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
