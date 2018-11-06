@@ -651,7 +651,7 @@ fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
 
-if (~exist('optimizerMode', 'var') || optimizerMode == false)
+if ((~exist('optimizerMode', 'var') || optimizerMode == false) && doProgressBar == false)
     saveExcelHistory(outputPath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end

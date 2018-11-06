@@ -46,6 +46,8 @@ classdef parameterDictionary
             % Mapping code - not ours, so don't publish the repository.
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
             addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
+            % codeBase is only used with the GUI!
+            addOne(p, modelCharParameter('path', 'codeBase', 'string', 'C:/'));
             
             
             % Science
@@ -99,9 +101,20 @@ classdef parameterDictionary
                         pf = inValue;
                     end
                     if pf ~= -1
-                        txt = fgetl(pf);
+                        % JSON is normally one long line, but it may be
+                        % hand-edited for readability when the GUI isn't used.
+                        % Read all lines and concatenate, just in case.
+                        % txt = fgetl(pf);
+                        txt = "";
+                        while feof(pf) == 0
+                           tline = fgetl(pf);
+                           txt = strcat(txt, tline);
+                        end
                     else
                         error('Specified parameter file did not open.');
+                    end
+                    if isstring(txt)
+                        txt = char(txt);
                     end
                     p.setFromJSON(txt);
                 elseif strcmp(inputType, 'json')
