@@ -49,7 +49,6 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % changed, but for now just do a cast.
 superMode = double(superMode);
 
-
 %% Handle super symbiont options
 [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
     setupSuperSymbionts(superMode, RCP, E, superAdvantage, superStart, maxReefs);
@@ -137,7 +136,7 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
 % Selection of variance column from psw2_new.
-if exist('optimizerMode', 'var') && optimizerMode
+if optimizerMode
     propTest = 1;
 else
     propTest = getPropTest(E, RCP, bleachingTarget);
@@ -619,10 +618,9 @@ if doPlots
 end
 % Note that percentMortality is not used in normal runs, but it is
 % examined by the optimizer when it is used.
-oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
 statsTables(bleachState, mortState, lastYearAlive, ...
    lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
-    bleachParams, doDetailedStressStats, oMode);
+    bleachParams, doDetailedStressStats, optimizerMode);
 
 % New 3/7/2018: output cover in 2100.
 coralCover2100(C_yearly, coralSymConstants, startYear, RCP, E, OA, superMode, superAdvantage);
@@ -651,7 +649,7 @@ fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
 
-if ((~exist('optimizerMode', 'var') || optimizerMode == false) && doProgressBar == false)
+if (optimizerMode == false && doProgressBar == false)
     saveExcelHistory(outputPath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end
