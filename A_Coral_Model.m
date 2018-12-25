@@ -14,6 +14,7 @@ timerStart = tic;
 %  but also accept a JSON string directly
 if nargin < 1
     parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    parameters = 'D:\sync\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
     % Normal code - above is for debug only.
     % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
