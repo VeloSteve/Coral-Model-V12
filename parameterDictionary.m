@@ -185,6 +185,11 @@ classdef parameterDictionary
             for i=1:numel(fields)
               name = fields{i};
               val = str.(name);
+                         
+              % Check that the key is valid
+              if ~isKey(obj.params, name)
+                  fprintf('Error: key name %s not found in dictionary.\n', name);
+              end
 
               % Set the value of the existing object.
               p = obj.params(name);

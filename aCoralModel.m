@@ -284,8 +284,8 @@ end
 iteratorHandle = selectIteratorFunction(length(time));
 % the last argument in the parfor specifies the maximum number of workers.
 timerStartParfor = tic;
-% Enable the parfor for production, but the "for" line must be used if the
-% MATLAB debugger is needed.
+% Enable the parfor for production, but the "for parSet" line must be used to force
+% serial computation if the MATLAB debugger is needed.
 parfor (parSet = 1:queueMax, parSwitch)
 % for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
