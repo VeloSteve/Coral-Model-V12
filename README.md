@@ -1,7 +1,8 @@
 # Coral-Model-V12
 
 This is the model used for a paper expected to be released as Logan, Dunne,
-Ryan, Baskett, and Donner 2019.  Publication details are not yet available.
+Ryan, Baskett, and Donner 2019.  Publication details are not yet available and
+may change.
 
 ## To run the model:
 
@@ -42,7 +43,7 @@ Year         1950    2000    2016    2050    2075    2100  Total Reefs Max Latit
 Equatorial  24.14   24.14   27.59   56.90   93.10  100.00           58          7.0
 Low          6.15    6.15    6.15   24.62   81.54  100.00           65         15.0
 High         8.22    9.59   12.33   46.58   87.67  100.00           73         28.5
-All Reefs   12.24   12.76   14.80   42.35   87.24  100.00          196 |
+All Reefs   12.24   12.76   14.80   42.35   87.24  100.00          196 
 ```
 
 Followed by some timing statistics.
