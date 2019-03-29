@@ -13,7 +13,7 @@ function logTwo(varargin)
                 error('Single variable must be a file handle.  This one is invalid.');
             end
             % Good handle, probably
-            fprintf('logTwo setting handle to %d\n', tst);
+            % fprintf('logTwo setting handle to %d\n', tst);
             h = tst;
             return;
         end

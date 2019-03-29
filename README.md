@@ -1,70 +1,44 @@
 # Coral-Model-V12
-This version of the coral model will focus on data management changes.  Details
-may change as development goes on, but here are some initial goals and ideas.
- 
-Goals
-•	Know what cases have already been run.
-•	Find subsets of completed cases easily.
-•	Associate code versions with results so it is possible to tell whether
-    results computed days or months apart are comparable.  Have only the selected
-    parameters changed, or have there been bug fixes or other changes that affect results.
-•	Maintain a set of reference results to show when the model has changed in a way that affects results.
-•	Keep metadata in a form which is
-    o	Easily machine-readable
-    o	Human-readable
-    o	Complete enough to reproduce runs
-•	When a new significant code version is made, archive it so results can be reproduced
-    or new parameter variations can be added.
-•	Keep results in at least two independent places, at least when they have been used for publications.
-•	Apply compression when it makes sense.
-•	Give each dataset a unique but small tag which can be used in place of long directory or file names.
-•	Use a well-thought-out set of directory and file names.
-•	Anticipate what public data repositories we are likely to use and make our metadata
-    compatible or easily converted.
-•	Use a metadata approach which is easily extended when a new parameter is added.  
-    When this is done, the previous default should be made available so it can be applied
-    retroactively to old runs.  For example, if macroalgae competition becomes an option, and an on/off
-    flag is define, we should automatically know that the value was “off” for older runs.
-•	Generate as much metadata automatically as possible.
-•	Prompt the user for timely entry of additional metadata which can’t be automated
-    (e.g. Why was this run done?).
-•	Integrate metadata creation with the GUI and with optimization runs.
-•	Isolate input adjustments and all outputs from the code directories.  Parameter adjustments and
-    test runs should never trigger a GitHub putback of the code.  At the same time, isolate
-    GUI development – the only connection should be the set of available parameters, treated as an API.
-•	Pull out the m_map code which isn't ours so it's not in our repository!
 
-Approach
-•	As of code version 12, have 3 or more GitHub repositories
-    o	GUI
-    o	Optimization code
-    o	Model code
-    o	Post-processing code for figure generation (?)
-•	Consider directory organization for these uses:
-    o	GitHub local repositories
-    o	A run directory which is NOT the repository
-    o	Program outputs
-    o	Derived outputs such as figures generated from multiple runs and/or for papers.
-•	Establish a dictionary of parameters in the model code which can be output as a web page.
-•	Reflect all model parameters in the GUI, and require a full set when running the model.
-•	Send parameters to the model in a single structure or JSON string, and use the same
-    one for optimization.
-•	Ensure that output from a unique run goes to a unique directory, possibly using a limited hierarchy.
-•	In the GUI, add a feature to see all completed runs which have any data stored, with the
-    ability to filter by at least some parameters including
-    o	Date range
-    o	Code version
-    o	RCP scenario
-    o	Super symbionts in use?
-    o	Evolution
-•	Add a one-button option to generate, store base cases for any major code change.  Ideally automate a
-    comparison of old to new results and flag differences.
+This is the model used for a paper expected to be released as Logan, Dunne,
+Ryan, Baskett, and Donner 2019.  Publication details are not yet available.
 
+To run the model:
 
-File and directory names.
-For the run, possibly include: run date, code version, RCP, E, OA, SuperSymbiont info, climate model...
-For individual reefs, could have lat, lon, cell number, psw2, ...
-Should these be in the top directory only?  In subdirs or file names?  In V11, a figure path looks like:
-D:\CoralTest\V11Test\ESM2Mrcp45.E1.OA0_NF1_sM0_sA0_20171206_figs\SDC_20171206_1_normSSTrcp45_-19_-180_prop0.71_NF1_E1.fig
-Try
-D:\CoralTest\V11Test\ESM2Mrcp45.E1.OA0_NF1_sM0_sA0_20171206_figs\SDC_20171206_1_normSSTrcp45_-19_-180_prop0.71_NF1_E1.fig
+1) Install MATLAB, using a 2013 version or later.  R2018a is the last version
+   tested.
+2) Place the directory containing this file with all its contents where MATLAB
+   can access it.
+3) Edits mentioned below will be in the file modelVars.txt, which contains a
+   single JSON string.
+4) Obtain m_map from www.eoas.ubc.ca/~rich/map.html, and edit m_mapPath to 
+   point it the directory.
+5) Edit outputBase to point to a location for output files.
+6) In all locations, replace "D:/GitHub/Coral-Model-V12/" with the base
+   directory in which you have placed this model.
+7) Edit useThreads to a value no greater than the number of workers allowed in
+   your MATLAB configuration.
+8) For Windows, the file timeIteration_23040_mex.mexw64 is already in place. On
+   other architectures use MATLAB Coder to compile timeIteration.m for your
+   machine. As an entry point, use the main program, ideally after editing everyx
+   in modelVars.txt to 100 or 1000 for faster operation.  Rename the resulting
+   "mex" file exactly as shown.  The number must match the number of time points
+   in the computation, as reflected in the array "time".
+8) Select aCoralModel.m and run it.
+
+Expected initial outputs include an echo of the parameters from modelVars.txt, 
+and a line reading "Modeling 1925 reefs". The value will be smaller if you have
+selected a subset of all reefs.  Next there will be progress lines, for example
+"Set 2 is 26 percent complete." where the set number indicates which worker
+thread is in use.
+
+The run will end with several tables in this format:
+
+Permanently bleached reefs as of the date given:
+Year         1950    2000    2016    2050    2075    2100  Total Reefs Max Latitude
+Equatorial  24.14   24.14   27.59   56.90   93.10  100.00           58          7.0
+Low          6.15    6.15    6.15   24.62   81.54  100.00           65         15.0
+High         8.22    9.59   12.33   46.58   87.67  100.00           73         28.5
+All Reefs   12.24   12.76   14.80   42.35   87.24  100.00          196 
+
+Followed by some timing statistics.

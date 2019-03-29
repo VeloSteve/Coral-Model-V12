@@ -14,7 +14,7 @@ timerStart = tic;
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    parameters = '.\modelVars.txt';
     % Normal code - above is for debug only.
     % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
@@ -288,11 +288,8 @@ timerStartParfor = tic;
 % serial computation if the MATLAB debugger is needed.
 parfor (parSet = 1:queueMax, parSwitch)
 % for parSet = 1:queueMax
-    %  pause(1); % Without this pause, the fprintf doesn't display immediately.
-    %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
     % How often to print progress.
-    %printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
     % More often for progress bar
     if doProgressBar
         printFreq = max(2, ceil(length(toDoPart{parSet})/20)); % The last number is the number of pieces to report.

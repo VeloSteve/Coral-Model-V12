@@ -83,7 +83,7 @@ function latCoverPlot(fullDir, suffix, year, cover, shortID, titleTag)
     if verLessThan('matlab', '8.2')
         saveas(gcf, strcat(fullDir, 'CoverByLatitude', suffix), 'fig');
     else
-        fprintf('Saving coral cover as fig file.');
+        % fprintf('Saving coral cover as fig file.');
         savefig(strcat(fullDir, 'CoverByLatitude', suffix, '.fig'));
     end
 end

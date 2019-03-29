@@ -82,7 +82,7 @@ function meanCoverPlot(fullDir, suffix, year, cover)
     if verLessThan('matlab', '8.2')
         saveas(gcf, strcat(fullDir, 'MeanCoralCover', suffix), 'fig');
     else
-        fprintf('Saving coral cover as fig file.');
+        % fprintf('Saving coral cover as fig file.');
         savefig(strcat(fullDir, 'MeanCoralCover', suffix, '.fig'));
     end
 end
@@ -164,7 +164,7 @@ function coralCoverPlot(fullDir, suffix, XData1, YData1, YData2, YData3, YData4,
     if verLessThan('matlab', '8.2')
         saveas(gcf, strcat(fullDir, 'GlobalCoralCover', suffix), 'fig');
     else
-        fprintf('Saving coral cover as fig file.');
+        % fprintf('Saving coral cover as fig file.');
         savefig(strcat(fullDir, 'GlobalCoralCover', suffix, '.fig'));
     end
 
