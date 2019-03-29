@@ -1,9 +1,9 @@
-%% Coral-Model-V12
+# Coral-Model-V12
 
 This is the model used for a paper expected to be released as Logan, Dunne,
 Ryan, Baskett, and Donner 2019.  Publication details are not yet available.
 
-To run the model:
+## To run the model:
 
 1) Install MATLAB, using a 2013 version or later.  R2018a is the last version
    tested.
@@ -26,6 +26,8 @@ To run the model:
    in the computation, as reflected in the array "time".
 8) Select aCoralModel.m and run it.
 
+## Expected output
+
 Expected initial outputs include an echo of the parameters from modelVars.txt, 
 and a line reading "Modeling 1925 reefs". The value will be smaller if you have
 selected a subset of all reefs.  Next there will be progress lines, for example
@@ -34,11 +36,13 @@ thread is in use.
 
 The run will end with several tables in this format:
 
-|Permanently bleached reefs as of the date given:
+```
+Permanently bleached reefs as of the date given:
 Year         1950    2000    2016    2050    2075    2100  Total Reefs Max Latitude
 Equatorial  24.14   24.14   27.59   56.90   93.10  100.00           58          7.0
 Low          6.15    6.15    6.15   24.62   81.54  100.00           65         15.0
 High         8.22    9.59   12.33   46.58   87.67  100.00           73         28.5
 All Reefs   12.24   12.76   14.80   42.35   87.24  100.00          196 |
+```
 
 Followed by some timing statistics.
