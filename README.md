@@ -1,4 +1,4 @@
-# Coral-Model-V12
+%% Coral-Model-V12
 
 This is the model used for a paper expected to be released as Logan, Dunne,
 Ryan, Baskett, and Donner 2019.  Publication details are not yet available.
