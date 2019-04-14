@@ -2,7 +2,7 @@
 "OA":false,"RCP":"rcp60","allFigs":false,"codeBase":"D:/GitHub/Coral-Model-V12/",
 "dataset":"ESM2M","doCoralCoverFigure":true,"doCoralCoverMaps":false,
 "doDetailedStressStats":false,"doGenotypeFigure":false,"doGrowthRateFigure":false,
-"doPlots":true,"doProgressBar":false,"everyx":10,"keyReefs":[1487, 1272, 1357],
+"doPlots":true,"doProgressBar":false,"everyx":1,"keyReefs":[1487, 1272, 1357],
 "m_mapPath":"D:/GitHub/m_map/","matPath":"D:/GitHub/Coral-Model-V12/mat_files/",
 "newMortYears":false,"omegaPath":"D:/GitHub/Coral-Model-V12/ClimateData/",
 "optimizerMode":false,"outputBase":"D:/CoralTest/V12Test-gui/",
