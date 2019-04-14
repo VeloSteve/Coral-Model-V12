@@ -1,6 +1,6 @@
 # Coral-Model-V12
 ## Archived versions of this software are available:
-[![DOI](https://zenodo.org/badge/98066316.svg)](https://zenodo.org/badge/latestdoi/98066316)
+[![DOI](https://zenodo.org/badge/113405802.svg)](https://zenodo.org/badge/latestdoi/113405802)
 
 
 This is the model used for a paper expected to be released as Logan, Dunne,
