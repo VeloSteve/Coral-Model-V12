@@ -1,4 +1,7 @@
 # Coral-Model-V12
+# Archived versions of this software are available:
+[![DOI](https://zenodo.org/badge/98066316.svg)](https://zenodo.org/badge/latestdoi/98066316)
+
 
 This is the model used for a paper expected to be released as Logan, Dunne,
 Ryan, Baskett, and Donner 2019.  Publication details are not yet available and
