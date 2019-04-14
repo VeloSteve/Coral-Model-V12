@@ -1,5 +1,5 @@
 # Coral-Model-V12
-# Archived versions of this software are available:
+## Archived versions of this software are available:
 [![DOI](https://zenodo.org/badge/98066316.svg)](https://zenodo.org/badge/latestdoi/98066316)
 
 
