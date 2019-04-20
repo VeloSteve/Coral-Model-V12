@@ -14,10 +14,22 @@ dataset = 'ESM2M';
 [SST, Reefs_latlon, TIME, startYear] = getSSTnormGFDL_ESM2M(sstPath, dataset, RCP);
 
 % Make "typical" historical temperature from first 48 months.
-SST = SST(:, 1:48);
-typSST = mean(SST, 2);
-
-
- MapGeneration(Reefs_latlon, typSST);
+SST48 = SST(:, 1:48);
+typSST = mean(SST48, 2);
+MapGeneration(Reefs_latlon, typSST, 1);
  
- cellSizes(Reefs_latlon)
+% Now go through 2001.
+SST = SST(:, 1:12*(2001-1861+1));
+typSST = mean(SST, 2);
+MapGeneration(Reefs_latlon, typSST, 2);
+
+% And finally, average the hottest month of each year only.
+SST = SST(:, 1:1:12*(2001-1861+1));
+% Reshape to have groups of 12 (second index is 12 months of a year)
+SSTR = reshape(SST, 1925, 12, []);
+SSTR = squeeze(max(SSTR,[], 2));
+typSST = mean(SSTR, 2);
+MapGeneration(Reefs_latlon, typSST, 3);
+
+
+cellSizes(Reefs_latlon)

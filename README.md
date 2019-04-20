@@ -1,7 +1,8 @@
 # Coral-Model-V12
 ## Archived versions of this software are available:
 [![DOI](https://zenodo.org/badge/113405802.svg)](https://zenodo.org/badge/latestdoi/113405802)
-The latest DOI as of 13 Apr 2019 is 10.5281/zenodo.2639127
+The latest DOI as of 13 Apr 2019 is 10.5281/zenodo.2639127. The software us under
+a "3-Clause BSD License".  See the LICENSE file.
 
 This is the model used for a paper expected to be released as Logan, Dunne,
 Ryan, Baskett, and Donner 2019.  Publication details are not yet available and
