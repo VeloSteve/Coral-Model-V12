@@ -4,6 +4,8 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     % the two genotypes for massive only.
         % vgi - 2D array, the same size as S and C, with symbiont variance.
         % gi  - Symbiont mean genotype over time
+        
+    baskett = false;
     
     if ssi >= length(vgi)
         sEnd = length(vgi);
@@ -46,14 +48,13 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
         T = temps(j);
         % As used in Spring 2017 code:
         r = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(0, T - g)) * rm;
+        rates(j, :) = r;
         %r2014 = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
         % Baskett 2009 eq. 3
-        r2009 = (1- (vg + con.EnvVx(1:2:3) + (g - T).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
-        %rEpp = rm;
-        rates(j, :) = r;
-        %rates2014(j, :) = r2014;
-        rates2009(j, :) = r2009;
-        %ratesEpp(j, :) = rEpp;
+        if baskett
+            r2009 = (1- (vg + con.EnvVx(1:2:3) + (g - T).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
+            rates2009(j, :) = r2009;
+        end
         % Save T at which growth curve drops to zero.
         if isnan(tGTZ) && r(1) > 0
             tGTZ = T;
@@ -75,7 +76,9 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
 
     plot(temps, rates(:,1), specs{1}); %, gi(:,2)); %, gi(:,3), gi(:,4));
     hold on;
-    plot(temps, rates2009(:,1), specs{5});
+    if baskett
+        plot(temps, rates2009(:,1), specs{5});
+    end
     plot([g(1) g(1)], [min(min(rates)) max(max(rates))], ':k');  % current optimum
    
     patch('DisplayName', 'Historic T Range', 'YData', ty, 'XData', tx, 'FaceAlpha', 0.2, 'LineStyle', 'none', 'FaceColor', [.75 .75 .75])
@@ -86,12 +89,17 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
 
     set(gca, 'FontSize', 21);
     t = sprintf('Growth rate vs T for Reef %d in %s, RCP = %3.1f', k, yearStr, str2double(extractAfter(RCP, 'rcp'))/10.0);
-    title(t);
+    % title(t);
     xlabel('Temperature (C)');
     ylabel('Growth Rate');
     %set(axes1,'FontSize',21);
-    legend({'symbiont growth', 'Baskett 2009', 'Adapted T', 'Historic Range', 'Recent Range'}, ...
-        'Location', 'best', 'FontSize',18);
+    if baskett
+        legend({'Symbiont Growth', 'Baskett 2009', 'Adapted T', 'Historic Range', 'Recent Range'}, ...
+            'Location', 'best', 'FontSize',18);
+    else
+        legend({'Symbiont Growth', 'Adapted T', 'Historic Range', 'Recent Range'}, ...
+            'Location', 'best', 'FontSize',18);
+    end
 
     xlim([tMin tMax]);
     % Now just use a fixed y range
