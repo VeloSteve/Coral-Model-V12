@@ -8,6 +8,7 @@ function BleachingHistory_Subplots_WithDT()
 % test runs made later can't accidentally overwrite the data we want to publish.
 relPath = '../FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_August9/';
 shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_Mode9_August31/';
+addpath('..');
 
 inverse = false;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
@@ -23,6 +24,8 @@ rcpName = {'RCP 2.6', 'RCP 4.5', 'RCP 6.0', 'RCP 8.5'};
 
 % Use tight_subplot (license in license_tight_subplot.txt) to control spacing
 % rows, columns, gap, height, width
+% The "pos" output has 4 values per subplot, each ordered left, bottom, width,
+% height
 [ha, pos] = tight_subplot(2, 2, 0.05, [0.1 0.06], [0.1 0.1]);
 
 legText = {};
@@ -37,7 +40,7 @@ for i = 1:4
     cases = [];
     hFile = '';
     for eee = 0:1
-        for ooo = 0:1           
+        for ooo = 0:0           
             if ~(eee == 1 && ooo == 1)  % Skip one curve  !!!!
                 hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
                 load(hFile, 'yForPlot');
@@ -113,11 +116,16 @@ pos2 = pos{2};
 
 % subplot positions are left, bottom, width, height
 % Align the color bar to the top and bottom of the plots.
-colorbar('Position', [pos4(1)+pos4(3)+0.025  pos4(2)  0.03  pos2(2)+pos2(4)-pos4(2)], ...
+%colorbar('Position', [pos4(1)+pos4(3)+0.025  pos4(2)  0.03  pos2(2)+pos2(4)-pos4(2)], ...
+%         'Ticks', 0:1:3);
+% Try half the height:  posN are ordered LBWH?
+barBottom = pos4(2)+pos4(4)/2;
+barHeight = pos2(2)+pos2(4)/2-pos4(2)-pos4(4)/2;
+colorbar('Position', [pos4(1)+pos4(3)+0.025  barBottom  0.03 barHeight ], ...
          'Ticks', 0:1:3);
 % Add a label above the colorbar
 annotation(gcf, 'textbox', ...
-    [pos4(1)+pos4(3)+0.015, 0.96, 0.03, 0.03], ...
+    [pos4(1)+pos4(3)+0.015, barBottom+barHeight+0.02, 0.03, 0.03], ...
     'String', '\DeltaT(°C)', ...
     'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
 
@@ -142,16 +150,7 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
     base = [0 0 0];
     light = [0.5 0.5 0.5];
     other = [0.6 0.0 0.8]; % orange:[1.0 0.5 0.0];
-    %{
-    col{1} = base;    
-    col{2} = base;
 
-    col{3} = light;
-    col{4} = light;
-    
-    col{5} = other;
-    col{6} = other;    
-    %} 
     col{1} = base;    
     col{2} = light;
 
@@ -196,15 +195,23 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
         %    set(plot1(i), 'LineStyle', '--');
         %end 
         switch i
+            %case 1 
+            %    set(plot1(i), 'LineStyle', '-');
+            %case 2 
+            %    set(plot1(i), 'LineStyle', '-');
+            %case 3 
+            %    set(plot1(i), 'LineStyle', ':');
+            %case 4 
+            %    set(plot1(i), 'LineStyle', ':');            
+            %case 6 
+            %    set(plot1(i), 'LineStyle', '-');            
             case 1 
                 set(plot1(i), 'LineStyle', '-');
             case 2 
-                set(plot1(i), 'LineStyle', '-');
-            case 3 
                 set(plot1(i), 'LineStyle', ':');
-            case 4 
-                set(plot1(i), 'LineStyle', ':');            
-            case 6 
+            case 3 
+                set(plot1(i), 'LineStyle', '--');            
+            case 5 
                 set(plot1(i), 'LineStyle', '-');
         end
     end
@@ -246,8 +253,12 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, rightSide)
         %legend1 = legend([plot1(1) plot1(2) plot1(3) plot1(4) plot1(5)], ...
         %    'no adaptation', 'no adaptation + OA', 'symbiont evolution', 'symbiont shuffling', 'shuffling with evolution');
         % Same content, but shuffle the order!
-        legend1 = legend([plot1(1) plot1(2) plot1(4) plot1(3) plot1(5)], ...                    
-            'no adaptation', 'no adaptation & OA',  'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
+        % This was the legend before May 1, 2019:
+%        legend1 = legend([plot1(1) plot1(2) plot1(4) plot1(3) plot1(5)], ...                    
+%            'no adaptation', 'no adaptation & OA',  'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
+        % Now without the OA line:            
+        legend1 = legend([plot1(1) plot1(3) plot1(2) plot1(4)], ...                    
+            'no adaptation', 'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
         set(legend1,'Location','northwest','FontSize',20);
     end 
 end
