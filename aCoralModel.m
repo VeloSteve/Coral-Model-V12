@@ -22,7 +22,7 @@ end
 % Be sure we ALSO have a ParameterDictionary because it can be used to
 % generate path names.
 [ps, pd] = getInputStructure(parameters);
-pd.print()
+
 
 % Clear variables which I want to examine between runs, but not carry over.
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
@@ -45,6 +45,10 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  doGenotypeFigure, doDetailedStressStats, allFigs, ...
  saveVarianceStats, newMortYears] = explodeVariables(ps);
 
+if ~optimizerMode 
+    pd.print();
+end
+
 % XXX timeIteration expects a double for superMode - that probably should be
 % changed, but for now just do a cast.
 superMode = double(superMode);
@@ -64,9 +68,11 @@ dataReefs = [];
 % 0:  runs sequentially.
 % > 0 tries to start the requested number of workers, failing if the value
 %     is greater than the value specified in Matlab's Parallel Preferences.
-fprintf('%d Threads from GUI or script\n', useThreads);
 [queueMax] = parallelSetup(useThreads);
-fprintf('Starting (after parallel setup) at %s\n', datestr(now));
+if ~optimizerMode
+    fprintf('%d Threads from GUI or script\n', useThreads);
+    fprintf('Starting (after parallel setup) at %s\n', datestr(now));
+end
 
 %% Less frequently changed model parameters
 
@@ -80,9 +86,11 @@ modelChoices = pd.getModelChoices();
 % mapDirectory contains maps, console output, and miscellaneous figures
 figDirectory = pd.getDirectoryName('_figs/');
 mapDirectory = pd.getDirectoryName('_maps/');
+warning('off', 'MATLAB:MKDIR:DirectoryExists');
 mkdir(figDirectory);
 mkdir(mapDirectory);
 mkdir(strcat(outputPath, 'bleaching'));
+warning('on', 'MATLAB:MKDIR:DirectoryExists');
 
 % Initialize a file for logging most of what goes to the console.
 echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
@@ -439,7 +447,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         par_bleachState(reefCount, :, :) = bleachStateOne;
         par_mortState(reefCount, :, :) = mortStateOne;
 
-        if parSwitch && mod(reefCount, printFreq) == 0
+        if ~optimizerMode && parSwitch && mod(reefCount, printFreq) == 0
             pct = (100*reefCount/length(toDoPart{parSet}));
             if  doProgressBar
                 pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
@@ -519,8 +527,10 @@ clearvars C_cum_chunk C_year_chunk Massive_dom_chunk histSuper_chunk histOrig_ch
 superSum = superSum/reefsThisRun;
 histSum = histSum/reefsThisRun;
 histEvSum = histEvSum/reefsThisRun;
-logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
-    superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
+if ~optimizerMode
+    logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
+        superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
+end
 
 
 % Count bleaching events between 1985 and 2010 inclusive.
@@ -538,6 +548,14 @@ count852010 = sum(events85_2010);
 Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
 fprintf('Bleaching by event = %6.4f %%\n', ...
     Bleaching_85_10_By_Event);
+
+% When optimizing for psw2_new values, the last thing we need is
+% Bleaching_84_10_By_Event, so return early.
+if optimizerMode
+    fclose('all'); % Just in case some file was left open.
+    return;
+end
+
 
 % Build an array with the last year each reef is alive. First add a
 % column to mortState which is true when all coral types are dead.
@@ -646,7 +664,7 @@ fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
 
-if (optimizerMode == false && doProgressBar == false)
+if (doProgressBar == false)
     saveExcelHistory(outputPath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end

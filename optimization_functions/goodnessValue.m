@@ -3,7 +3,6 @@ function [goodness, bleach] = goodnessValue(targetBleaching, psw2_new, b8510)
     % Baskett 2009 gives values of
     % "0.9 for Moorea and Curac¸ao; 0.8 for St. John, U.S. Virgin Islands;
     % 0.7 for all Australian sites; and 1.3 for Ko Phuket, Thailand."
-    % For now check just Ko Phuket, number 793
     ko = abs(psw2_new(793) - 1.3);
     % St. John is at 18.35, -64.75  Reef 420 is at [-64.50,18.31]
     vi = abs(psw2_new(420) - 0.8);

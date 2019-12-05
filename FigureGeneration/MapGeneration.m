@@ -5,14 +5,14 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapGeneration(Reefs_latlon, values, figNum  )
+function [] = MapGeneration(Reefs_latlon, values, figNum, tName )
 
 format shortg;
 
 % A scale for "red=bad, blue=good" plots.
 % customColors = customScale();
 
-tName = strcat('Reef Cell Historical Temperatures, °C');
+%tName = strcat('Reef Cell Historical Temperatures, °C');
 % Green points everywhere
 oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName);
 
@@ -79,6 +79,9 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     % Rectangles don't do color mapping, so make a substitute.
     minT = floor(min(values));
     maxT = ceil(max(values));
+    if maxT < 5.0
+        maxT = 5.0
+    end
     tRange = maxT - minT;
     cVals = length(cMap);
     fprintf('minT = %d, maxT = %d \n', minT, maxT)
@@ -129,8 +132,8 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     %ylim([-0.7 0.7])
 
     cb = colorbar;
-    cb.Ticks = [20 25 30 35];
-    cb.TickLabels = [{'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
+    cb.Ticks = [0 5 10 15 20 25 30 35];
+    cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
     aaa = gca;
     aaa.FontSize = 32;
     title(t)

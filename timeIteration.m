@@ -17,8 +17,8 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
     shuffleGFactor = ones(1, con.Cn);
     
     % Needed for bleaching calculations:
-    % If would prevent wasted space when not using superMode 8, but mex won't
-    % compile because variables are used later and it fears a lack of
+    % The "if" would prevent wasted space when not using superMode 8, but mex
+    % won't compile because variables are used later and it fears a lack of
     % definition.
     %if superMode == 8
         bleach(:, :) = false; % Important - otherwise we get old values!

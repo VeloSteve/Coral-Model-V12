@@ -160,11 +160,11 @@ classdef parameterDictionary
             for i = keys(obj.params)
                 key = i{1};
                 par = obj.params(key);
-                if isempty(par.value)
-                    str.(key) = par.default;
-                else
+%                if isempty(par.value)
+%                    str.(key) = par.default;
+%                else
                     str.(key) = par.value;
-                end
+%                end
             end
         end
         
@@ -196,7 +196,13 @@ classdef parameterDictionary
               % Setting p.value directly is a bug, because it bypasses error
               % and range checking!
               % p.value = val;
-              p = p.set(val);
+              % But make an exception for the keyReefs array.  The lowest
+              % integer allowed is 1, but an empty array is acceptable.
+              if name == "keyReefs" && isempty(val)
+                  p.value = val;
+              else
+                  p = p.set(val);
+              end
               addOne(obj, p);
               % fprintf('After set and add, value is '); disp(obj.get(name));
             end

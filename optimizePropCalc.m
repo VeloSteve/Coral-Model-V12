@@ -58,7 +58,7 @@ option{1} = {'bleachFrac', 0.22, 0.225};  % Not normally used.
 option{2} = {'pMin', 0.36, 0.36};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; % Variable "y" in the draft paper.
-option{5} = {'div', 7.03, 7.23 };     % Varialbe "s" in the draft paper.
+option{5} = {'div', 7.03, 7.23 };     % Variable "s" in the draft paper.
 
 
 options = [2, 3, 4, 5]; % Which variables may vary. Okay to include some with steps=1

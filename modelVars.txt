@@ -1,10 +1,10 @@
 {"E":false,"GUIBase":"C:/Users/Steve/Google Drive/Coral_Model_Steve/GUIState_AndRunHistory/",
-"OA":false,"RCP":"rcp60","allFigs":false,"codeBase":"D:/GitHub/Coral-Model-V12/",
-"dataset":"ESM2M","doCoralCoverFigure":true,"doCoralCoverMaps":false,
+"OA":false,"RCP":"rcp85","allFigs":true,"codeBase":"D:/GitHub/Coral-Model-V12/",
+"dataset":"ESM2M","doCoralCoverFigure":true,"doCoralCoverMaps":true,
 "doDetailedStressStats":false,"doGenotypeFigure":false,"doGrowthRateFigure":false,
-"doPlots":true,"doProgressBar":false,"everyx":1,"keyReefs":[1487, 1272, 1357],
+"doPlots":true,"doProgressBar":false,"everyx":1,"keyReefs":[],
 "m_mapPath":"D:/GitHub/m_map/","matPath":"D:/GitHub/Coral-Model-V12/mat_files/",
 "newMortYears":false,"omegaPath":"D:/GitHub/Coral-Model-V12/ClimateData/",
-"optimizerMode":false,"outputBase":"D:/CoralTest/V12Test-gui/",
+"optimizerMode":false,"outputBase":"D:/CoralTest/V12-thesis/",
 "saveVarianceStats":false,"specialSubset":"useEveryx","sstPath":"D:/GitHub/Coral-Model-V12/ClimateData/",
-"superAdvantage":0,"superMode":0,"superStart":2020,"useThreads":5}
+"superAdvantage":1,"superMode":8,"superStart":2035,"useThreads":5}

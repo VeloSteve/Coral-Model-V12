@@ -1,7 +1,8 @@
 %% Repeatedly run the model for many cases at once.
 
 % Read the default inputs as a starting point.
-parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+% parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+parameters = '.\modelVars.txt';
 [~, pd] = getInputStructure(parameters);
 
 % Each use of this script will require some editing, since the selection of
@@ -9,10 +10,21 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 % On 2/26/2018 we need two different symbiont introduction strategies
 % with 3 different temperature deltas and 4 different rcp cases.
 
+% Modes are described in setupSuperSymbionts.m
+
 % 80 runs:
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-deltaTList = [0, 0.5, 0.625, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5, 4.0]; % [0.0, 1.0];
-modeList = [0, 7, 9]; % [0, 7];  % 0 7
+deltaTList = [0.275, 0.33,  0.375, 0.53125, ... 
+    0.3, 0.35, 0.4, 0.45, 0.5625, ...
+    0.0, 0.01, 0.1, 0.25, 0.5, 0.625, 0.75, 1.0, 1.125, 1.25, 1.375, ...
+    1.5,  1.625, 1.75, 1.875, 2.0, 2.25, 2.5, 2.75, 2.875, 3.0, 3.125,   ...
+    3.25, 3.375, 3.5, 3.625, 3.75, 3.875, 4.0]; % [0.0, 1.0];
+%deltaTList = [0.275, 0.33,  0.375, 0.53125]; 
+%deltaTList = [0.3, 0.35, 0.4, 0.45, 0.5625]; 
+%deltaTList = [0, 0.01, 0.1, 0.25, 0.5, 0.625, 0.75, 1.0, 1.125, 1.25, 1.375, ...
+%    1.5,  1.625, 1.75, 1.875, 2.0, 2.25, 2.5, 2.75, 2.875, 3.0, 3.125,   ...
+%    3.25, 3.375, 3.5, 3.625, 3.75, 3.875, 4.0]; % [0.0, 1.0];
+modeList = [0]; % [0, 7];  % 0 7 9
 eList = [0];
 oaList = [0];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
@@ -34,6 +46,7 @@ for ooo = oaList  % 0:1
         for rrr = rcpList
             for ttt = deltaTList
                 for mmm = modeList
+                    close all;
                     % Modes 0 AND 7 are the same when the advantage is zero, so skip one.
                     if ~(ttt == 0.0 && mmm == 7)
                         pd.set('E', eee == 1);
