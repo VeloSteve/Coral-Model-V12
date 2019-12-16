@@ -13,8 +13,8 @@ timerStart = tic;
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
-    parameters = 'D:\sync\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars_paper.txt';
+    %parameters = 'D:\sync\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
     % Normal code - above is for debug only.
     % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
@@ -142,7 +142,18 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 if exist('optimizerMode', 'var')
     propTest = 1;
 else
-    propTest = getPropTest(E, RCP, bleachingTarget);
+    %propTest = getPropTest(E, RCP, bleachingTarget);
+    % In response to internal review, try using fixed proptest values for all
+    % runs with the same E value, regardless of RCP.
+    % Possible values are
+    % RCP   2.6 4.5 6.0 8.5
+    % E=0   20  24  25  21   - 20 has the lowest S, 25 is closest to the mean
+    % E=1   22  26  27  23   - 22 has the lowest S, 27 is closest to the mean
+    if (E == 0)
+        propTest = 25;
+    else
+        propTest = 27;
+    end
 end
 pswInputs = pswInputs(:, propTest); %#ok<NODEF>
 

@@ -48,6 +48,7 @@ classdef ParameterDictionary
             % Mapping code - not ours, so don't publish the repository.
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
             addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
+
             
             % Science
             addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85'}));
@@ -71,7 +72,7 @@ classdef ParameterDictionary
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
             % Model source
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
-
+           
             % Output options
             addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925, true));  % Note nullAllowed final argument.
             addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
@@ -84,6 +85,7 @@ classdef ParameterDictionary
             addOne(p, modelLogicalParameter('output', 'doGrowthRateFigure', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doDetailedStressStats', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'saveVarianceStats', 'logical', false));
+
             
             % All allowed parameters are now defined.  If arguments are
             % given set parameters from there.  This provides validation.
