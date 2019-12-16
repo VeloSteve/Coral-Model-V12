@@ -5,16 +5,16 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapGeneration(Reefs_latlon, values  )
+function [] = MapGeneration(Reefs_latlon, values, figNum, tName )
 
 format shortg;
 
 % A scale for "red=bad, blue=good" plots.
-customColors = customScale();
+% customColors = customScale();
 
-tName = strcat('Reef Cell Historical Temperatures, °C');
+%tName = strcat('Reef Cell Historical Temperatures, °C');
 % Green points everywhere
-oneMap(12, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName);
+oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName);
 
 
 
@@ -28,7 +28,6 @@ end  % End the main MapGeneration function.
 % values what to plot at each position
 % cRange man and max data values for color scale
 % t title
-% outFile pdf output file
 function [] = oneMap(n, lons, lats, values, cMap, t)
     f = figure(n);
 
@@ -78,11 +77,14 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     end
     
     % Rectangles don't do color mapping, so make a substitute.
-    minT = min(values);
-    maxT = max(values);
+    minT = floor(min(values));
+    maxT = ceil(max(values));
+    if maxT < 5.0
+        maxT = 5.0
+    end
     tRange = maxT - minT;
     cVals = length(cMap);
-    
+    fprintf('minT = %d, maxT = %d \n', minT, maxT)
     
     %scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
     % Added later: report on reef cell sizes it's easy to do here since
@@ -99,15 +101,17 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     
     % Temporarily, add rectangles for the Hughes, et al. regions
     %            Au/Asia,     Indian,    Pacific,   Atlantic
-    cornerLon = [ 98.6 160.6  32.5 123.0 134.5 -77.4 -93.8 -59.5];
-    cornerLat = [-31.5  32.5 -28.4  27.3 -21.5 25.5   9.3  32.2];
-    idx = find(cornerLon < 0);
-    cornerLon(idx) = cornerLon(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
-    [cLon, cLat] = m_ll2xy(cornerLon, cornerLat);
-    for i = 1:4
-        disp(i)
-        rectangle('Position', [cLon(i*2-1),  cLat(i*2-1), cLon(i*2)-cLon(i*2-1), cLat(i*2)-cLat(i*2-1)], ...
-            'EdgeColor', [0 0 0]    );
+    if false
+        cornerLon = [ 98.6 160.6  32.5 123.0 134.5 -77.4 -93.8 -59.5];
+        cornerLat = [-31.5  32.5 -28.4  27.3 -21.5 25.5   9.3  32.2];
+        idx = find(cornerLon < 0);
+        cornerLon(idx) = cornerLon(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
+        [cLon, cLat] = m_ll2xy(cornerLon, cornerLat);
+        for i = 1:4
+            disp(i)
+            rectangle('Position', [cLon(i*2-1),  cLat(i*2-1), cLon(i*2)-cLon(i*2-1), cLat(i*2)-cLat(i*2-1)], ...
+                'EdgeColor', [0 0 0]    );
+        end
     end
 
 
@@ -118,8 +122,8 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
         colormap(cMap)
     end
 
-    % caxis([minT maxT]);
-    caxis([20 30]);
+     caxis([minT maxT]);
+    % caxis([20 30]);
     
     % For just Galapagos to Bermuda:
     %xlim([-1.8 -1])
@@ -128,8 +132,8 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     %ylim([-0.7 0.7])
 
     cb = colorbar;
-    cb.Ticks = [20 25 30];
-    cb.TickLabels = [{'20 °C'} {'25 °C'} {'30 °C'}];
+    cb.Ticks = [0 5 10 15 20 25 30 35];
+    cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
     aaa = gca;
     aaa.FontSize = 32;
     title(t)
