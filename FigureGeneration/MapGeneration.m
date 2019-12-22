@@ -5,19 +5,18 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapGeneration(Reefs_latlon, values, figNum, tName )
+function [] = MapGeneration(Reefs_latlon, values, figNum, tName, lowestScaleMax )
+    if nargin < 5
+        lowestScaleMax = 5;
+    end
+    format shortg;
 
-format shortg;
+    % A scale for "red=bad, blue=good" plots.
+    % customColors = customScale();
 
-% A scale for "red=bad, blue=good" plots.
-% customColors = customScale();
-
-%tName = strcat('Reef Cell Historical Temperatures, °C');
-% Green points everywhere
-oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName);
-
-
-
+    %tName = strcat('Reef Cell Historical Temperatures, °C');
+    % Green points everywhere
+    oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName, lowestScaleMax);
 
 end  % End the main MapGeneration function.
 
@@ -28,8 +27,19 @@ end  % End the main MapGeneration function.
 % values what to plot at each position
 % cRange man and max data values for color scale
 % t title
-function [] = oneMap(n, lons, lats, values, cMap, t)
+function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     f = figure(n);
+    if n == 3
+        set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 15, 4]);
+    elseif n == 4
+        set(gcf, 'Units', 'inches', 'Position', [17, 1.5, 15, 4]);
+    elseif n == 1
+        set(gcf, 'Units', 'inches', 'Position', [1, 7.0, 15, 4]);
+    elseif n == 2
+        set(gcf, 'Units', 'inches', 'Position', [17, 7.0, 15, 4]);
+    else
+        set(gcf, 'Units', 'inches', 'Position', [4, 4, 15, 4]);
+    end
 
         clf;
         % first pass only:
@@ -77,10 +87,16 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     end
     
     % Rectangles don't do color mapping, so make a substitute.
-    minT = floor(min(values));
-    maxT = ceil(max(values));
-    if maxT < 5.0
-        maxT = 5.0
+    % If using less than 1 for max, round to tenths instead of 1s.
+    if lowestScaleMax < 0.999
+        minT = floor(min(values)*10)/10.0;
+        maxT = ceil(max(values)*10)/10.0;
+    else
+        minT = floor(min(values));
+        maxT = ceil(max(values));
+    end
+    if maxT < lowestScaleMax
+        maxT = lowestScaleMax;
     end
     tRange = maxT - minT;
     cVals = length(cMap);
@@ -132,8 +148,20 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     %ylim([-0.7 0.7])
 
     cb = colorbar;
-    cb.Ticks = [0 5 10 15 20 25 30 35];
-    cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
+    % These maps were originally developed for temperature, using 5 C multiples.
+    % When using standard deviation, values will be smaller.  As a kludge, use
+    % the size of lowestScalMax (less than 5) as an indicator that the range
+    % will be small.
+    if lowestScaleMax >= 5
+        cb.Ticks = [0 5 10 15 20 25 30 35];
+        cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
+    elseif lowestScaleMax < 0.999
+        cb.Ticks = [-1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1];
+        cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
+    else
+        cb.Ticks = [-1 0 1 2 3 4 5 6];
+        cb.TickLabels = [{'-1'} {'0'} {'1'} {'2'} {'3'} {'4'} {'5'} {'6'}];        
+    end
     aaa = gca;
     aaa.FontSize = 32;
     title(t)
