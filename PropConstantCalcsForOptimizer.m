@@ -25,7 +25,9 @@ format shortg; c = clock; date = strcat(num2str(c(1)),num2str(c(2)),num2str(c(3)
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 %GetSST_norm_GFDL_ESM2M % sub m-file for extracting SSTs for a ALL reef grid cells
-[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
+% [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
+% matPath is no longer used, 12/2019.
+[SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
 
 SST_1861_2000 = SST(:,1:1680);
 SSThist = SST_1861_2000;
@@ -71,17 +73,18 @@ pswInputs(:,25) = [0.36; 1.5; 0.46; 4.8700];  % RCP 6.0, E=0
 pswInputs(:,26) = [0.36; 1.5; 0.46; 5.4411];  % RCP 4.5, E=1
 pswInputs(:,27) = [0.36; 1.5; 0.46; 5.3756];  % RCP 6.0, E=1
 
-%% New on 9/6/2017
-% XXX NOT UPDATED FOR NEW SEED - CAN'T GET THERE!
-%  === For 15% target ===
-pswInputs(:,28) = [0.36; 1.5; 0.46; 6.9778];  % RCP 2.6, E=0
-pswInputs(:,29) = [0.36; 1.5; 0.46; 7.8000];  % RCP 2.6, E=1
-pswInputs(:,30) = [0.36; 1.5; 0.46; 7.1444];  % RCP 4.5, E=0
-pswInputs(:,31) = [0.36; 1.5; 0.46; 7.8889];  % RCP 4.5, E=1
-pswInputs(:,32) = [0.36; 1.5; 0.46; 7.0556];  % RCP 6.0, E=0
-pswInputs(:,33) = [0.36; 1.5; 0.46; 7.9111];  % RCP 6.0, E=1
-pswInputs(:,34) = [0.36; 1.5; 0.46; 7.1333];  % RCP 8.5, E=0
-pswInputs(:,35) = [0.36; 1.5; 0.46; 7.9000];  % RCP 8.5, E=1
+%% New on 12/21/2019
+%  === For 5% target, adding shuffling, mode 9, 1C, 1861 ===
+pswInputs(:,28) = [0.2; 1.5; 0.46; 12.4200];  % RCP 2.6, E=0
+pswInputs(:,29) = [0.2; 1.5; 0.46; 14.8222];  % RCP 2.6, E=1
+pswInputs(:,30) = [0.2; 1.5; 0.46; 12.7211];  % RCP 4.5, E=0
+pswInputs(:,31) = [0.2; 1.5; 0.46; 15.3667];  % RCP 4.5, E=1
+pswInputs(:,32) = [0.2; 1.5; 0.46; 12.4111];  % RCP 6.0, E=0
+pswInputs(:,33) = [0.2; 1.5; 0.46; 14.8833];  % RCP 6.0, E=1
+pswInputs(:,34) = [0.2; 1.5; 0.46; 12.1222];  % RCP 8.5, E=0
+pswInputs(:,35) = [0.2; 1.5; 0.46; 14.5878];  % RCP 8.5, E=1
+% Shuffling, 1.5C (2C was nearly impossible to reach)
+pswInputs(:,36) = [0.025; 1.5; 0.46; 34.5378]; % RCP 2.6, E=1
 
 [~, pswCount] = size(pswInputs);
 

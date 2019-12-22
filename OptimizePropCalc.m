@@ -18,15 +18,15 @@ optimizerMode = true;  % existence of this variable tells the solver we're optim
 keepOldResults = false;  % Use results across multiple runs - only valid if model parameters and step sizes don't change.
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
-maxSteps = 19; % 7, 13, 19 are useful multiples
-boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
-maxRuns = 1;  % Stop after this many runs, if no other stopping condition is reached.
+maxSteps = 7; % 7, 13, 19 are useful multiples
+boxStart = false;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
+maxRuns = 100;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
-maxRandomEnd = 26; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
+maxRandomEnd = 1; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.
 equalBestTol = 0.05; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
 
-RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
+RCP = 'rcp26'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 
 %% NOTE
 % to continue building the plottable result array after a MATLAB restart:
@@ -40,7 +40,7 @@ RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 %%
 % Target values - most values are set up to target zero or a fixed value.
 % This is variable:
-targetBleaching = 10.0;
+targetBleaching = 5.0;
 %% Possible values for constants in this equation:
 % max(0.3,min(1.3,( mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist)) ).^0.5/11
 % where the 0.063 is considered fixed and the other values are known below as
@@ -62,10 +62,10 @@ targetBleaching = 10.0;
 pswOnly = true; % limit variable modification to the 4 used for psw2 (2-5)
 option{1} = {'bleachFrac', 0.22, 0.225};
 
-option{2} = {'pMin', 0.36, 0.36};
+option{2} = {'pMin', 0.025, 0.025};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; 
-option{5} = {'div', 7.03, 7.23 };
+option{5} = {'div', 34.50, 34.58 };
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};
@@ -310,7 +310,7 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
 
         multiPlot.active = false;
         try
-            A_Coral_Model_170118
+            [percentMortality, Bleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model;
         catch ME
             if (strcmp(ME.message,'ExcessiveBleaching'))
                 Bleaching_85_10_By_Event = 1000.0; % arbitrary large value
@@ -450,7 +450,8 @@ if ~pswOnly
     optimizerBleachParams.cRecoverMult = option{14}{5};
 end
 optimizerMode = false;  % flag still exists, but allow excel output in this final run.
-A_Coral_Model_170118
+[percentMortality, Bleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model;
+
 clear optimizerMode;    % so subsequent manual runs aren't affected.
 
 fprintf('%s\n', bestList{end});

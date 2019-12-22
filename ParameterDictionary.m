@@ -70,6 +70,7 @@ classdef ParameterDictionary
             addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
             addOne(p, modelLogicalParameter('comp', 'skipPostProcessing', 'logical', false));
             addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
+            addOne(p, modelLogicalParameter('comp', 'optimizerMode', 'logical', false));
             % Model source
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
            

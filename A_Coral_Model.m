@@ -7,7 +7,7 @@
 % Performance and structural changes 9/2016 by Steve Ryan (jaryan)  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %function [SST, TIME] = A_Coral_Model(parameters)
-function A_Coral_Model(parameters)
+function [percentMortality, Bleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model(parameters)
 timerStart = tic;
 
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
@@ -22,7 +22,7 @@ end
 % Be sure we ALSO have a ParameterDictionary because it can be used to
 % generate path names.
 [ps, pd] = getInputStructure(parameters);
-pd.print()
+
 
 % Clear variables which I want to examine between runs, but not carry over.
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
@@ -45,7 +45,11 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
- saveVarianceStats, newMortYears] = explodeVariables(ps);
+ saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(ps);
+
+if ~(exist('optimizerMode', 'var') && optimizerMode)
+    pd.print()
+end
 
 % XXX timeIteration expects a double for superMode - that probably should be
 % changed, but for now just do a cast.
@@ -139,21 +143,21 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
 % Selection of variance column from psw2_new.
-if exist('optimizerMode', 'var')
+if exist('optimizerMode', 'var') && optimizerMode
     propTest = 1;
 else
-    %propTest = getPropTest(E, RCP, bleachingTarget);
-    % In response to internal review, try using fixed proptest values for all
+    propTest = getPropTest(E, RCP, superMode, superAdvantage, superStartYear, bleachingTarget);
+    % In response to NOAA internal review, try using fixed proptest values for all
     % runs with the same E value, regardless of RCP.
     % Possible values are
     % RCP   2.6 4.5 6.0 8.5
     % E=0   20  24  25  21   - 20 has the lowest S, 25 is closest to the mean
     % E=1   22  26  27  23   - 22 has the lowest S, 27 is closest to the mean
-    if (E == 0)
-        propTest = 25;
-    else
-        propTest = 27;
-    end
+    %if (E == 0)
+    %    propTest = 25;
+    %else
+    %    propTest = 27;
+    %end
 end
 pswInputs = pswInputs(:, propTest); %#ok<NODEF>
 
@@ -565,7 +569,9 @@ parfor (parSet = 1:queueMax, parSwitch)
                 fprintf(pf, '%d', round(pct));
                 fclose(pf);
             else
-                fprintf('Set %d is %3.0f percent complete.\n', parSet, pct);
+                if ~optimizerMode
+                    fprintf('Set %d is %3.0f percent complete.\n', parSet, pct);
+                end
             end
         end
 
@@ -778,7 +784,7 @@ if ~skipPostProcessing
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
     oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
-    Stats_Tables(bleachState, mortState, lastYearAlive, ...
+    percentMortality = Stats_Tables(bleachState, mortState, lastYearAlive, ...
        lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
         bleachParams, doDetailedStressStats, oMode);
     

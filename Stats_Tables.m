@@ -16,7 +16,7 @@
 % bleachParams is just passed on to an out .mat file as a record of the
 %     setup of this run.
 %   
-function Stats_Tables(bleachState, mortState, lastYearAlive, ...
+function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, ...
         startYear, RCP, E, OA, bleachParams, detailStats, optimizerMode) %#ok<INUSL>
     % Subset all of the input arrays which list all reefs to just those
@@ -187,25 +187,25 @@ function Stats_Tables(bleachState, mortState, lastYearAlive, ...
     labels{3, 3} = loLim;
     labels{4, 3} = max(latitude(:));
 
+    if ~optimizerMode
+        logTwo('Permanently bleached reefs as of the date given:\n');
+        printTable(labels, permBleached, length(years));
 
-    logTwo('Permanently bleached reefs as of the date given:\n');
-    printTable(labels, permBleached, length(years));
+        logTwo('\nPermanent mortality as of the date given:\n');
+        printTable(labels, percentMortality, length(years));
 
-    logTwo('\nPermanent mortality as of the date given:\n');
-    printTable(labels, percentMortality, length(years));
+        logTwo('\nPercentage of reefs with more than one massive coral bleaching event in the previous 10 years.\n');
+        printTable(labels, highFrequency, length(years));
 
-    logTwo('\nPercentage of reefs with more than one massive coral bleaching event in the previous 10 years.\n');
-    printTable(labels, highFrequency, length(years));
+        logTwo('\nPercentage of LIVING reefs with more than one bleaching event in the previous 10 years.\n');
+        printTable(labels, frequentLive, length(years));
 
-    logTwo('\nPercentage of LIVING reefs with more than one bleaching event in the previous 10 years.\n');
-    printTable(labels, frequentLive, length(years));
+        logTwo('\nPercentage of reefs with at least one coral type in an unrecovered state.\n');
+        printTable(labels, unrecovered, length(years));
 
-    logTwo('\nPercentage of reefs with at least one coral type in an unrecovered state.\n');
-    printTable(labels, unrecovered, length(years));
-
-    logTwo('\nPercentage of reefs with any form of current bleaching or mortality.\n');
-    printTable(labels, allStress, length(years));
-    
+        logTwo('\nPercentage of reefs with any form of current bleaching or mortality.\n');
+        printTable(labels, allStress, length(years));
+    end
     
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
