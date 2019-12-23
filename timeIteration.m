@@ -1,7 +1,7 @@
 %#codegen
 function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, dt, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
-        superSeedFraction, superMode, superAdvantage, oneShot, bleach, bleachParams, ...
+        superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, bleach, bleachParams, ...
         con)
     
     % currentAdvantage may be modified in some modes.  Don't change
@@ -152,12 +152,12 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
             % Don't turn anything abruptly on and off, but apply a growth
             % penalty when the tolerant symbionts dominate.   
             if SiPlusOne(3) > SiPlusOne(1)
-                shuffleGFactor(1) = 0.5;
+                shuffleGFactor(1) = 1 - superGrowthPenalty;
             else
                 shuffleGFactor(1) = 1.0;
             end
             if SiPlusOne(4) > SiPlusOne(2)
-                shuffleGFactor(2) = 0.5;
+                shuffleGFactor(2) = 1.0 - superGrowthPenalty;
             else
                 shuffleGFactor(2) = 1.0;                
             end

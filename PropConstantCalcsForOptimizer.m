@@ -83,9 +83,15 @@ pswInputs(:,32) = [0.2; 1.5; 0.46; 12.4111];  % RCP 6.0, E=0
 pswInputs(:,33) = [0.2; 1.5; 0.46; 14.8833];  % RCP 6.0, E=1
 pswInputs(:,34) = [0.2; 1.5; 0.46; 12.1222];  % RCP 8.5, E=0
 pswInputs(:,35) = [0.2; 1.5; 0.46; 14.5878];  % RCP 8.5, E=1
+
 % Shuffling, 1.5C (2C was nearly impossible to reach)
 pswInputs(:,36) = [0.025; 1.5; 0.46; 34.5378]; % RCP 2.6, E=1
 
+% Shuffling, 1.5C, 0.25 growth penalty (all cases above assumed 0.5)
+pswInputs(:,44) = [0.025; 1.5; 0.46; 33.9722]; % RCP 2.6, E=1
+
+% Shuffling, 1C, 0.25 growth penalty
+pswInputs(:,52) = [0.025; 1.5; 0.46; 15.2778]; % RCP 2.6, E=1
 [~, pswCount] = size(pswInputs);
 
 

@@ -58,6 +58,7 @@ classdef ParameterDictionary
             addOne(p, modelIntParameter('science', 'superStart', 'integer', 2035, 1861, 2100));
             addOne(p, modelIntParameter('science', 'superMode', 'integer', 0, 0, 9));
             addOne(p, modelDoubleParameter('science', 'superAdvantage', 'double', 0.0, 0.0, 10.0));
+            addOne(p, modelDoubleParameter('science', 'superGrowthPenalty', 'double', 0.0, 0.0, 10.0));
 
             
             % Computing
