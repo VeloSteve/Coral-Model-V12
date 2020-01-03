@@ -1,8 +1,8 @@
-function [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
+function [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w, ratio_w)
 
 % tight_subplot creates "subplot" axes with adjustable gaps and margins
 %
-% [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
+% [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w, ratio_w)
 %
 %   in:  Nh      number of axes in hight (vertical direction)
 %        Nw      number of axes in width (horizontaldirection)
@@ -12,6 +12,9 @@ function [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
 %                   or [lower upper] for different lower and upper margins 
 %        marg_w  margins in width in normalized units (0...1)
 %                   or [left right] for different left and right margins 
+%        ratio_w relative width of the axes in a single row.  For example if
+%                axes use the same units but show different ranges, this is
+%                useful.  Defaults to an array of ones.
 %
 %  out:  ha     array of handles of the axes objects
 %                   starting from upper left corner, going row-wise as in
@@ -29,6 +32,8 @@ function [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
 if nargin<3; gap = .02; end
 if nargin<4 || isempty(marg_h); marg_h = .05; end
 if nargin<5; marg_w = .05; end
+if nargin<6; ratio_w = ones([Nh*Nw, 1]); end
+ratioTotal = sum(ratio_w);
 
 if numel(gap)==1; 
     gap = [gap gap];
@@ -42,6 +47,7 @@ end
 
 axh = (1-sum(marg_h)-(Nh-1)*gap(1))/Nh; 
 axw = (1-sum(marg_w)-(Nw-1)*gap(2))/Nw;
+axwUnit = Nw * axw / ratioTotal;
 
 py = 1-marg_h(2)-axh; 
 
@@ -53,10 +59,10 @@ for ih = 1:Nh
     for ix = 1:Nw
         ii = ii+1;
         ha(ii) = axes('Units','normalized', ...
-            'Position',[px py axw axh], ...
+            'Position',[px py axwUnit*ratio_w(ix) axh], ...
             'XTickLabel','', ...
             'YTickLabel','');
-        px = px+axw+gap(2);
+        px = px+axwUnit*ratio_w(ix)+gap(2);
     end
     py = py-axh-gap(1);
 end
