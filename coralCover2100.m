@@ -16,7 +16,15 @@ function coralCover2100(C_yearly, coralSymConstants, startYear)
     % Version 2 - calculate cover for each reef separately, then average.
     % For one reef, cover is % cover for branching plus % for massive, summed
     % and capped at 1.
-    C_2100 = squeeze(C_yearly(y, :, :));
+    % With only one reef, we can't use squeeze because we need to retain the
+    % reef (second) dimension, even if it is 1.
+    if size(C_yearly,2) == 1
+        C_2100 = C_yearly(y, 1, :);
+        % remove the leading "1" dimension, but not the second.
+        C_2100 = reshape(C_2100, [1, size(C_yearly, 3)])
+    else
+        C_2100 = squeeze(C_yearly(y, :, :));
+    end
     C_2100(:, 1) = C_2100(:, 1) / coralSymConstants.KCm;
     C_2100(:, 2) = C_2100(:, 2) / coralSymConstants.KCb;
     fraction_2100 = C_2100(:, 2)./(C_2100(:, 1)+C_2100(:, 2));
