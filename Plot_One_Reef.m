@@ -34,14 +34,14 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     persistent figHandle DHM Time; %#ok<PSET>
     persistent plotDHM1; % doesn't need to be modified: plotDHM2;
     persistent plotSST1 plotSST2;
-    persistent plotSD1 plotSD2;
+    persistent plotSD1 plotSD2 plotSD3 plotSD4;
     persistent plotCC1 scatCC2 scatCC1; 
     persistent timeY;
     if nargin == 0
         % Clear variables for a clean start
         %disp('Clean start in Plot worker');
         close all;
-        clearvars figHandle DHM Time plotDHM1 plotDHM2 plotSST1 plotSST2 plotSD1 plotSD2 plotCC1 scatCC2 scatCC1 timeY; 
+        clearvars figHandle DHM Time plotDHM1 plotDHM2 plotSST1 plotSST2 plotSD1 plotSD2 plotSD3 plotSD4 plotCC1 scatCC2 scatCC1 timeY; 
         return;
     end
     
@@ -114,12 +114,23 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             smooth2 = movmean(S(:,2)./C(:,2), [smoothSymbiont smoothSymbiont]);
             set(plotSD1, 'YData', smooth1);
             set(plotSD2, 'YData', smooth2);
+            if size(S, 2) >= 4
+                smooth3 = movmean(S(:,3)./C(:,3), [smoothSymbiont smoothSymbiont]);
+                smooth4 = movmean(S(:,4)./C(:,4), [smoothSymbiont smoothSymbiont]);
+                set(plotSD3, 'YData', smooth3);
+                set(plotSD4, 'YData', smooth4);
+            end
         else
             set(plotSD1, 'YData', S(:,1)./C(:,1));
             set(plotSD2, 'YData', S(:,2)./C(:,2));
+            if size(S, 2) >= 4
+                set(plotSD3, 'YData', S(:,3)./C(:,3));
+                set(plotSD4, 'YData', S(:,4)./C(:,4));
+            end
         end
-        set(plotSD1, 'YData', smooth1);
-        set(plotSD2, 'YData', smooth2);
+        % redundant at best, probably a bug:
+        %set(plotSD1, 'YData', smooth1);
+        %set(plotSD2, 'YData', smooth2);
 
 
         set(plotCC1, {'YData'}, {C(:,1), C(:,2)}');
@@ -178,10 +189,20 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             plotSD1 = plot(time, smooth1,'color','y','LineWidth',1);
             hold on;
             plotSD2 = plot(time, smooth2,'color','g','LineWidth',1);
+            if size(S, 2) >= 4
+                smooth3 = movmean(S(:,3)./C(:,3), [smoothSymbiont smoothSymbiont]);
+                smooth4 = movmean(S(:,4)./C(:,4), [smoothSymbiont smoothSymbiont]);
+                plotSD3 = plot(time, smooth3,'color',[0.8 0.8 0],'LineWidth',1);
+                plotSD4 = plot(time, smooth4,'color',[0, 0.8, 0],'LineWidth',1);
+            end
         else
             plotSD1 = plot(time, S(:,1)./C(:,1),'color','y','LineWidth',1);
             hold on;
             plotSD2 = plot(time, S(:,2)./C(:,2),'color','g','LineWidth',1);
+            if size(S, 2) >= 4
+                plotSD3 = plot(time, S(:,3)./C(:,3),'color',[0.8 0.8 0],'LineWidth',1);
+                plotSD4 = plot(time, S(:,4)./C(:,4),'color',[0, 0.8, 0],'LineWidth',1);
+            end
         end
 
         xlabel('Time (years)') ;
