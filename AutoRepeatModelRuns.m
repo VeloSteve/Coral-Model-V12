@@ -10,11 +10,11 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 % with 3 different temperature deltas and 4 different rcp cases.
 
 % 80 runs:
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-deltaTList = [0, 0.5, 1.0, 1.5, 2.0]; % [0.0, 1.0];
-modeList = [0, 9]; % [0, 7];  % 0 7
+rcpList = {'rcp45'}; %{'rcp26', 'rcp45',  'rcp85'}; % 'rcp60',
+deltaTList = [1.0]; % [0.0, 1.0];
+modeList = [9]; % [0, 7];  % 0 7
 eList = [0, 1];
-oaList = [0, 1];
+oaList = [0];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
 
 fprintf("--------------------------------------------------\n");
@@ -50,7 +50,7 @@ for ooo = oaList  % 0:1
                         fprintf('Starting model with E = %d, OA = %d, RCP %s, superMode %d, superAdvantage %d\n', ...
                             eee, ooo, rrr{1}, mmm, ttt);
                         fprintf('   and keyReefs = %d', pd.get('keyReefs'))
-
+                        close all
                         A_Coral_Model(pd)
                         fprintf('Completed %d of %d runs.\n', autoRunCount, nRuns);
                     end
