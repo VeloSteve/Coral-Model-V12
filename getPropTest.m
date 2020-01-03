@@ -50,24 +50,30 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     
     % Start including shuffling cases.  Note that the order of entry is
     % different here, but of course it doesn't matter.
-    propCases(28, :) = [0, 26, 9, 1.0, 0.5, 1861, 5];  % RCP 2.6, E=0
-    propCases(29, :) = [1, 26, 9, 1.0, 0.5, 1861, 5];  % RCP 2.6, E=1
-    propCases(30, :) = [0, 45, 9, 1.0, 0.5, 1861, 5];  % RCP 4.5, E=0
-    propCases(31, :) = [1, 45, 9, 1.0, 0.5, 1861, 5];  % RCP 4.5, E=1
-    propCases(32, :) = [0, 60, 9, 1.0, 0.5, 1861, 5];  % RCP 6.0, E=0
-    propCases(33, :) = [1, 60, 9, 1.0, 0.5, 1861, 5];  % RCP 6.0, E=1
-    propCases(34, :) = [0, 85, 9, 1.0, 0.5, 1861, 5];  % RCP 8.5, E=0
-    propCases(35, :) = [1, 85, 9, 1.0, 0.5, 1861, 5];  % RCP 8.5, E=1
+    % Advantage 1.0C, growth penalty 25%
+    propCases(28, :) = [0, 26, 9, 1.0, 0.25, 1861, 5];  % RCP 2.6, E=0
+    propCases(29, :) = [1, 26, 9, 1.0, 0.25, 1861, 5];  % RCP 2.6, E=1
+    propCases(30, :) = [0, 45, 9, 1.0, 0.25, 1861, 5];  % RCP 4.5, E=0
+    propCases(31, :) = [1, 45, 9, 1.0, 0.25, 1861, 5];  % RCP 4.5, E=1
+    propCases(32, :) = [0, 60, 9, 1.0, 0.25, 1861, 5];  % RCP 6.0, E=0
+    propCases(33, :) = [1, 60, 9, 1.0, 0.25, 1861, 5];  % RCP 6.0, E=1
+    propCases(34, :) = [0, 85, 9, 1.0, 0.25, 1861, 5];  % RCP 8.5, E=0
+    propCases(35, :) = [1, 85, 9, 1.0, 0.25, 1861, 5];  % RCP 8.5, E=1
 
     % Shuffling, but with advantage = 1.5C
-    propCases(36, :) = [1, 26, 9, 1.5, 0.5, 1861, 5];  % RCP 8.5, E=1
+    propCases(36, :) = [1, 26, 9, 1.5, 0.25, 1861, 5];  % RCP 2.6, E=1
+    propCases(37, :) = [1, 45, 9, 1.5, 0.25, 1861, 5];  % RCP 4.5, E=1
+    propCases(38, :) = [1, 60, 9, 1.5, 0.25, 1861, 5];  % RCP 6.0, E=1
+    propCases(39, :) = [1, 85, 9, 1.5, 0.25, 1861, 5];  % RCP 8.5, E=1
+    propCases(40, :) = [0, 26, 9, 1.5, 0.25, 1861, 5];  % RCP 2.6, E=0
+    propCases(41, :) = [0, 45, 9, 1.5, 0.25, 1861, 5];  % RCP 4.5, E=0
+    propCases(42, :) = [0, 60, 9, 1.5, 0.25, 1861, 5];  % RCP 6.0, E=0
+    propCases(43, :) = [0, 85, 9, 1.5, 0.25, 1861, 5];  % RCP 8.5, E=0
     
-    % And now with a shuffling growth penalty of 0.25, rather than 0.5.
-    % This was previously not a variable.
-    propCases(44, :) = [1, 26, 9, 1.5, 0.25, 1861, 5];  % RCP 8.5, E=1
-    
-    propCases(52, :) = [1, 26, 9, 1.0, 0.25, 1861, 5];  % RCP 8.5, E=1
-    % Values: (E, RCP, superMode, superAdvantage, superGrowthPenalty, startYear, bleachTarget)
+    % Shuffling, advantage = 1.0C NO growth penalty
+    propCases(45, :) = [1, 45, 9, 1.0, 0.0, 1861, 5];  % RCP 4.5, E=1
+    propCases(49, :) = [0, 45, 9, 1.0, 0.0, 1861, 5];  % RCP 4.5, E=0    
+
     
     %% Now select the matching case (if any) based on input parameters
     % (E, RCP, superMode, advantage, start, bleachTarget)
@@ -99,11 +105,17 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     ggg = propCases(:, 5) == superGrowthPenalty;
     yyy = propCases(:, 6) == startYear;
     bbb = propCases(:, 7) == bleachTarget;
-    propTest = find(eee & rrr & sss & aaa & ggg & yyy & bbb);
+    % If there is zero advantage or mode is zero, we don't care about
+    % growth penalty or start year.
+    if superMode == 0 || advantage == 0.0
+        propTest = find(eee & rrr & sss & aaa & bbb);
+    else
+        propTest = find(eee & rrr & sss & aaa & ggg & yyy & bbb);
+    end
     if size(propTest) > 1
         error('propTest is not uniquely specified by E = %d, RCP = %s, superMode = %d, advantage = %d, superGrowthPenalty = %d, startYear = %d, bleachTarget = %d', ...
             E, RCP, superMode, advantage, superGrowthPenalty, startYear, bleachTarget);
-    elseif size(propTest) == 0 | propTest == 0
+    elseif isempty(propTest) | size(propTest) == 0 | propTest == 0
             error('propTest is not defined for E = %d, RCP = %s, superMode = %d, advantage = %d, superGrowthPenalty = %d, startYear = %d, bleachTarget = %d', ...
             E, RCP, superMode, advantage, superGrowthPenalty, startYear, bleachTarget);
     end

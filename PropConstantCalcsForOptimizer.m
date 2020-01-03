@@ -74,25 +74,33 @@ pswInputs(:,26) = [0.36; 1.5; 0.46; 5.4411];  % RCP 4.5, E=1
 pswInputs(:,27) = [0.36; 1.5; 0.46; 5.3756];  % RCP 6.0, E=1
 
 %% New on 12/21/2019
+% All now have 25% growth penalty, not 50%
 %  === For 5% target, adding shuffling, mode 9, 1C, 1861 ===
-pswInputs(:,28) = [0.2; 1.5; 0.46; 12.4200];  % RCP 2.6, E=0
-pswInputs(:,29) = [0.2; 1.5; 0.46; 14.8222];  % RCP 2.6, E=1
-pswInputs(:,30) = [0.2; 1.5; 0.46; 12.7211];  % RCP 4.5, E=0
-pswInputs(:,31) = [0.2; 1.5; 0.46; 15.3667];  % RCP 4.5, E=1
-pswInputs(:,32) = [0.2; 1.5; 0.46; 12.4111];  % RCP 6.0, E=0
-pswInputs(:,33) = [0.2; 1.5; 0.46; 14.8833];  % RCP 6.0, E=1
-pswInputs(:,34) = [0.2; 1.5; 0.46; 12.1222];  % RCP 8.5, E=0
-pswInputs(:,35) = [0.2; 1.5; 0.46; 14.5878];  % RCP 8.5, E=1
+pswInputs(:,28) = [0.2; 1.5; 0.46; 12.7167];  % RCP 2.6, E=0
+pswInputs(:,29) = [0.2; 1.5; 0.46; 15.2778];  % RCP 2.6, E=1
+pswInputs(:,30) = [0.2; 1.5; 0.46; 12.9000];  % RCP 4.5, E=0
+pswInputs(:,31) = [0.2; 1.5; 0.46; 15.6466];  % RCP 4.5, E=1
+pswInputs(:,32) = [0.2; 1.5; 0.46; 12.6833];  % RCP 6.0, E=0
+pswInputs(:,33) = [0.2; 1.5; 0.46; 15.2500];  % RCP 6.0, E=1
+pswInputs(:,34) = [0.2; 1.5; 0.46; 12.3500];  % RCP 8.5, E=0
+pswInputs(:,35) = [0.2; 1.5; 0.46; 14.8667];  % RCP 8.5, E=1
 
 % Shuffling, 1.5C (2C was nearly impossible to reach)
-pswInputs(:,36) = [0.025; 1.5; 0.46; 34.5378]; % RCP 2.6, E=1
+pswInputs(:,36) = [0.025; 1.5; 0.46; 33.9722]; % RCP 2.6, E=1
+pswInputs(:,37) = [0.025; 1.5; 0.46; 34.1333]; % RCP 4.5, E=1
+pswInputs(:,38) = [0.025; 1.5; 0.46; 33.2500]; % RCP 6.0, E=1
+pswInputs(:,39) = [0.025; 1.5; 0.46; 33.1042]; % RCP 8.5, E=1
+pswInputs(:,40) = [0.025; 1.5; 0.46; 24.8083]; % RCP 2.6, E=0
+pswInputs(:,41) = [0.025; 1.5; 0.46; 24.8042]; % RCP 4.5, E=0
+pswInputs(:,42) = [0.025; 1.5; 0.46; 24.4833]; % RCP 6.0, E=0
+pswInputs(:,43) = [0.025; 1.5; 0.46; 24.2500]; % RCP 8.5, E=0
 
-% Shuffling, 1.5C, 0.25 growth penalty (all cases above assumed 0.5)
-pswInputs(:,44) = [0.025; 1.5; 0.46; 33.9722]; % RCP 2.6, E=1
+% Shuffling, 1.0C, but growth penalty zero!
+pswInputs(:,45) = [0.025; 1.5; 0.46; 15.7222]; % RCP 4.5, E=1
+pswInputs(:,49) = [0.025; 1.5; 0.46; 13.0375]; % RCP 4.5, E=0
 
-% Shuffling, 1C, 0.25 growth penalty
-pswInputs(:,52) = [0.025; 1.5; 0.46; 15.2778]; % RCP 2.6, E=1
 [~, pswCount] = size(pswInputs);
+
 
 
 %% CALULATE PROP CONSTANT FOR EACH GRID CELL

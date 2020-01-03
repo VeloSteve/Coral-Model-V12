@@ -18,15 +18,15 @@ optimizerMode = true;  % existence of this variable tells the solver we're optim
 keepOldResults = false;  % Use results across multiple runs - only valid if model parameters and step sizes don't change.
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
-maxSteps = 19; % 7, 13, 19 are useful multiples
-boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
-maxRuns = 100;  % Stop after this many runs, if no other stopping condition is reached.
+maxSteps = 13; % 7, 13, 19 are useful multiples
+boxStart = false;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
+maxRuns = 1;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
 maxRandomEnd = 1; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.
-equalBestTol = 0.05; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
+equalBestTol = 0.04; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
 
-RCP = 'rcp26'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
+RCP = 'rcp45'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 
 %% NOTE
 % to continue building the plottable result array after a MATLAB restart:
@@ -65,7 +65,7 @@ option{1} = {'bleachFrac', 0.22, 0.225};
 option{2} = {'pMin', 0.025, 0.025};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; 
-option{5} = {'div', 15.02, 15.48 };
+option{5} = {'div', 12.95, 13.1};
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};
@@ -218,7 +218,7 @@ randomEnd = 0;    % random attempts around the best value found by stepping
 bestList = {};
 badList = {}; % not actually bad, just no improvement.
 while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
-    % This big if-else just hold the different was of selecting the next
+    % This big if-else just hold the different ways of selecting the next
     % test case.  No coral calculations are done here.
     if ~isempty(boxIndex)
         useIV = true;
@@ -245,8 +245,8 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
         fprintf('======= equal best code, %d left.\n', length(equalBests));
         skips = 0;
         equalBests(1) = [];  % Must use smooth parens on left, square brackets on right.
-        bestIndex = equalBests{1};
-        [possible, inputIndex, good] = nextInputs(result, bestIndex, possible, nextVar, steps, up);
+        testIndex = equalBests{1};
+        [possible, inputIndex, good] = nextInputs(result, testIndex, possible, nextVar, steps, up);
         randomEnd = 0;
         stepType = 'Linear Next';
     else
