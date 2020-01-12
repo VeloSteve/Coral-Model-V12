@@ -19,14 +19,15 @@ keepOldResults = false;  % Use results across multiple runs - only valid if mode
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
 maxSteps = 13; % 7, 13, 19 are useful multiples
-boxStart = false;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
+boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
 maxRuns = 1;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
 maxRandomEnd = 1; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.
 equalBestTol = 0.04; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
 
-RCP = 'rcp45'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
+%RCP = 'rcp60'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
+RCP = RCPset;
 
 %% NOTE
 % to continue building the plottable result array after a MATLAB restart:
@@ -40,7 +41,8 @@ RCP = 'rcp45'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 %%
 % Target values - most values are set up to target zero or a fixed value.
 % This is variable:
-targetBleaching = 5.0;
+%targetBleaching = 5.0;
+targetBleaching = targetSet;
 %% Possible values for constants in this equation:
 % max(0.3,min(1.3,( mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist)) ).^0.5/11
 % where the 0.063 is considered fixed and the other values are known below as
@@ -65,7 +67,8 @@ option{1} = {'bleachFrac', 0.22, 0.225};
 option{2} = {'pMin', 0.025, 0.025};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; 
-option{5} = {'div', 12.95, 13.1};
+%option{5} = {'div', 5.33, 5.67};
+option{5} = {'div', useLowerS, useUpperS};
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};
@@ -310,6 +313,7 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
 
         multiPlot.active = false;
         try
+            close all;
             [percentMortality, Bleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model;
         catch ME
             if (strcmp(ME.message,'ExcessiveBleaching'))
@@ -467,7 +471,7 @@ else
     cumResult = max(cumResult, result);
 end
 
-showBests(cumResult, possible, steps);
+[sBelow, sAbove] = showBests(cumResult, possible, steps);
 optElapsed = toc(optTimerStart);
 fprintf('Optimization finished in %7.1f seconds.\n', optElapsed);
 fprintf('at %s\n', datestr(now));

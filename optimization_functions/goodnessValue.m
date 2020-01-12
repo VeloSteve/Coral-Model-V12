@@ -31,7 +31,11 @@ function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, perce
     % Trying higher bleachDiff factor since 10% target runs are only going
     % to about 5 with those values.
     %goodness = 4.0 * empirical + 1.0 * pg + 16.0 * bleachDiff;
-    goodness = 1.0 * empirical + 4.0 * pg + 8.0 * bleachDiff; 
+    % This line was used through 2018 and 2019
+    %goodness = 1.0 * empirical + 4.0 * pg + 8.0 * bleachDiff; 
+    % Ignore old empirical results, since model details have
+    % changed. Jan 2020.
+    goodness = 4.0 * pg + 8.0 * bleachDiff; 
     %goodness = pg + 2.0 * bleachDiff; 
     fprintf('Diffs: ko = %f, vi = %f, mo = %f, empirical = %f, pg = %d, bleaching = %d, goodness = %f\n', ko, vi, mo, empirical, pg, bleach, goodness);
 end

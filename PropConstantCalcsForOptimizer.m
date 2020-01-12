@@ -38,66 +38,97 @@ SSThist = SST_1861_2000;
 %% Store optimizer inputs from propInputValues with any constant values to be computed.
 pswInputs(:,1) = propInputValues';
 
-%% Updated 9/20/2017, target 10% with first 3 parameters fixed to the same
-% values as the 5% cases numbered 20 to 27.
-%  === For 10% target ===
-pswInputs(:,2) = [0.36; 1.5; 0.46; 6.4367];  % RCP 2.6, E=0
-pswInputs(:,3) = [0.36; 1.5; 0.46; 7.0778];  % RCP 2.6, E=1
-pswInputs(:,4) = [0.36; 1.5; 0.46; 6.5311];  % RCP 4.5, E=0
-pswInputs(:,5) = [0.36; 1.5; 0.46; 7.1600];  % RCP 4.5, E=1
-pswInputs(:,6) = [0.36; 1.5; 0.46; 6.4978];  % RCP 6.0, E=0
-pswInputs(:,7) = [0.36; 1.5; 0.46; 7.1389];  % RCP 6.0, E=1
-pswInputs(:,8) = [0.36; 1.5; 0.46; 6.5233];  % RCP 8.5, E=0
-pswInputs(:,9) = [0.36; 1.5; 0.46; 7.1189];  % RCP 8.5, E=1
+%% Update 1/9/2020, values for targets 3, 5 and 10% bleaching.
+% The 5% target values are complete for most combinations of parameters,
+% while 3% and 10% are there for comparision in a supplemental figure.
+% Except where noted, the growth penalty is 0.5.
 
-%% Updated 9/19/2017, as for 10%
-%  === For 3% target ===
-pswInputs(:,10) = [0.36; 1.5; 0.46; 3.7633];  % RCP 2.6, E=0
-pswInputs(:,11) = [0.36; 1.5; 0.46; 4.2711];  % RCP 2.6, E=1
-pswInputs(:,12) = [0.36; 1.5; 0.46; 3.9344];  % RCP 4.5, E=0
-pswInputs(:,13) = [0.36; 1.5; 0.46; 4.4422];  % RCP 4.5, E=1
-pswInputs(:,14) = [0.36; 1.5; 0.46; 3.8133];  % RCP 6.0, E=0
-pswInputs(:,15) = [0.36; 1.5; 0.46; 4.3533];  % RCP 6.0, E=1
-pswInputs(:,16) = [0.36; 1.5; 0.46; 3.7778];  % RCP 8.5, E=0
-pswInputs(:,17) = [0.36; 1.5; 0.46; 4.2933];  % RCP 8.5, E=1
+% === Target 3% ===
+% No shuffling advantage
+pswInputs(:, 2) = [0.025; 1.5; 0.45; 3.4444]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 3) = [0.025; 1.5; 0.45; 3.1435]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 4) = [0.025; 1.5; 0.45; 4.0278]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 5) = [0.025; 1.5; 0.45; 3.6944]; % RCP 8.5, E=1, OA=0
+pswInputs(:, 6) = [0.025; 1.5; 0.45; 4.0046]; % RCP 4.5, E=1, OA=1
+pswInputs(:, 7) = [0.025; 1.5; 0.45; 3.6713]; % RCP 8.5, E=1, OA=1
 
-%% 9/19/2017  Adjust for new seed values divisors are larger by about 0.61
-% === For 5% target ===
-pswInputs(:,20) = [0.36; 1.5; 0.46; 4.8356];  % RCP 2.6, E=0
-pswInputs(:,21) = [0.36; 1.5; 0.46; 4.8444];  % RCP 8.5, E=0
-pswInputs(:,22) = [0.36; 1.5; 0.46; 5.2389];  % RCP 2.6, E=1
-pswInputs(:,23) = [0.36; 1.5; 0.46; 5.3222];  % RCP 8.5, E=1
-% 2/28/17 Add rcp4.5 and 6.0
-pswInputs(:,24) = [0.36; 1.5; 0.46; 4.9411];  % RCP 4.5, E=0
-pswInputs(:,25) = [0.36; 1.5; 0.46; 4.8700];  % RCP 6.0, E=0
-pswInputs(:,26) = [0.36; 1.5; 0.46; 5.4411];  % RCP 4.5, E=1
-pswInputs(:,27) = [0.36; 1.5; 0.46; 5.3756];  % RCP 6.0, E=1
+% === Target 5% ===
+% No shuffling advantage
+pswInputs(:, 8) = [0.025; 1.5; 0.45; 4.3426]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 9) = [0.025; 1.5; 0.45; 4.4745]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 10) = [0.025; 1.5; 0.45; 4.3519]; % RCP 6, E=0, OA=0
+pswInputs(:, 11) = [0.025; 1.5; 0.45; 4.339]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 12) = [0.025; 1.5; 0.45; 4.6806]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 13) = [0.025; 1.5; 0.45; 4.8056]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 14) = [0.025; 1.5; 0.45; 4.6898]; % RCP 6, E=1, OA=0
+pswInputs(:, 15) = [0.025; 1.5; 0.45; 4.6574]; % RCP 8.5, E=1, OA=0
+% Shuffling advantage of 0.5 C
+pswInputs(:, 60) = [0.025; 1.5; 0.45; 5.4259]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 61) = [0.025; 1.5; 0.45; 5.6111]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 62) = [0.025; 1.5; 0.45; 5.3009]; % RCP 6, E=0, OA=0
+pswInputs(:, 63) = [0.025; 1.5; 0.45; 5.3056]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 64) = [0.025; 1.5; 0.45; 5.6574]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 65) = [0.025; 1.5; 0.45; 5.8102]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 66) = [0.025; 1.5; 0.45; 5.5231]; % RCP 6, E=1, OA=0
+pswInputs(:, 67) = [0.025; 1.5; 0.45; 5.5231]; % RCP 8.5, E=1, OA=0
 
-%% New on 12/21/2019
-% All now have 25% growth penalty, not 50%
-%  === For 5% target, adding shuffling, mode 9, 1C, 1861 ===
-pswInputs(:,28) = [0.2; 1.5; 0.46; 12.7167];  % RCP 2.6, E=0
-pswInputs(:,29) = [0.2; 1.5; 0.46; 15.2778];  % RCP 2.6, E=1
-pswInputs(:,30) = [0.2; 1.5; 0.46; 12.9000];  % RCP 4.5, E=0
-pswInputs(:,31) = [0.2; 1.5; 0.46; 15.6466];  % RCP 4.5, E=1
-pswInputs(:,32) = [0.2; 1.5; 0.46; 12.6833];  % RCP 6.0, E=0
-pswInputs(:,33) = [0.2; 1.5; 0.46; 15.2500];  % RCP 6.0, E=1
-pswInputs(:,34) = [0.2; 1.5; 0.46; 12.3500];  % RCP 8.5, E=0
-pswInputs(:,35) = [0.2; 1.5; 0.46; 14.8667];  % RCP 8.5, E=1
 
-% Shuffling, 1.5C (2C was nearly impossible to reach)
-pswInputs(:,36) = [0.025; 1.5; 0.46; 33.9722]; % RCP 2.6, E=1
-pswInputs(:,37) = [0.025; 1.5; 0.46; 34.1333]; % RCP 4.5, E=1
-pswInputs(:,38) = [0.025; 1.5; 0.46; 33.2500]; % RCP 6.0, E=1
-pswInputs(:,39) = [0.025; 1.5; 0.46; 33.1042]; % RCP 8.5, E=1
-pswInputs(:,40) = [0.025; 1.5; 0.46; 24.8083]; % RCP 2.6, E=0
-pswInputs(:,41) = [0.025; 1.5; 0.46; 24.8042]; % RCP 4.5, E=0
-pswInputs(:,42) = [0.025; 1.5; 0.46; 24.4833]; % RCP 6.0, E=0
-pswInputs(:,43) = [0.025; 1.5; 0.46; 24.2500]; % RCP 8.5, E=0
 
-% Shuffling, 1.0C, but growth penalty zero!
-pswInputs(:,45) = [0.025; 1.5; 0.46; 15.7222]; % RCP 4.5, E=1
-pswInputs(:,49) = [0.025; 1.5; 0.46; 13.0375]; % RCP 4.5, E=0
+% The next 4 have a growth penalty of 0.25 rather than 0.5
+% Shuffling advantage 1 C from here.
+pswInputs(:, 16) = [0.025; 1.5; 0.45; 5.5324]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 17) = [0.025; 1.5; 0.45; 5.6667]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 18) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
+pswInputs(:, 19) = [0.025; 1.5; 0.45; 5.5417]; % RCP 8.5, E=0, OA=0
+% Back to a penalty of 0.5
+pswInputs(:, 20) = [0.025; 1.5; 0.45; 5.5509]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 21) = [0.025; 1.5; 0.45; 5.6713]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 22) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
+pswInputs(:, 23) = [0.025; 1.5; 0.45; 5.537]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 24) = [0.025; 1.5; 0.45; 5.8056]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 25) = [0.025; 1.5; 0.45; 5.8287]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 26) = [0.025; 1.5; 0.45; 5.7454]; % RCP 6, E=1, OA=0
+pswInputs(:, 27) = [0.025; 1.5; 0.45; 5.6991]; % RCP 8.5, E=1, OA=0
+% Shuffling advantage 1.5 from here.
+pswInputs(:, 28) = [0.025; 1.5; 0.45; 5.3843]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 29) = [0.025; 1.5; 0.45; 5.3843]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 30) = [0.025; 1.5; 0.45; 5.3843]; % RCP 6, E=0, OA=0
+pswInputs(:, 31) = [0.025; 1.5; 0.45; 5.2963]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 32) = [0.025; 1.5; 0.45; 5.6343]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 33) = [0.025; 1.5; 0.45; 5.6204]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 34) = [0.025; 1.5; 0.45; 5.6389]; % RCP 6, E=1, OA=0
+pswInputs(:, 35) = [0.025; 1.5; 0.45; 5.4861]; % RCP 8.5, E=1, OA=0
+
+% === Target 10% ===
+% Shuffling advantage back to 0.
+pswInputs(:, 36) = [0.025; 1.5; 0.45; 5.9537]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 37) = [0.025; 1.5; 0.45; 5.8426]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 38) = [0.025; 1.5; 0.45; 6.4398]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 39) = [0.025; 1.5; 0.45; 6.2685]; % RCP 8.5, E=1, OA=0
+pswInputs(:, 40) = [0.025; 1.5; 0.45; 6.4676]; % RCP 4.5, E=1, OA=1
+pswInputs(:, 41) = [0.025; 1.5; 0.45; 6.2917]; % RCP 8.5, E=1, OA=1
+
+% Average RCP values for otherwise identical cases.  There's always
+% a first case at RCP 2.6, average with the next 3.
+% NOTE: this gives indexes up to 58, but don't add more consecutively because
+% there is a block of entries above from 60 to 67.  If more cases appear, make a
+% new loop and skip to 70 or higher.
+startI = [8, 12, 16, 20, 24, 28, 32, 60, 64];
+currentSet = 50;
+for i = startI
+    cum = 0.0;
+    for j = 0:3
+        cum = cum + pswInputs(4, i+j);
+    end
+    ppp = pswInputs(:, startI);
+    pswInputs(:, currentSet) = [ppp(1), ppp(2), ppp(3), cum/4];
+    currentSet = currentSet + 1;
+end
+% Averaged s values as of 10 Jan 2020 are:
+% [4.3770,4.70835,5.570625,5.575225,5.7697,5.3623,5.594925]
+% for 57 and 58 values are 5.4109 and 5.6285.
+
+
 
 [~, pswCount] = size(pswInputs);
 

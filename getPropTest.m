@@ -19,67 +19,90 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     
     % When start is > 2010 there is no effect, so let that match a date of zero.
     % Also, treat "control400" the same as "rcp26".
-    % Values are E, RCP, superMode, advantage, start, bleachTarget
-    propCases = NaN(64, 7);
-    propCases(20, :) = [0, 26, 0, 0, 0, 0, 5];
-    propCases(24, :) = [0, 45, 0, 0, 0, 0, 5];
-    propCases(25, :) = [0, 60, 0, 0, 0, 0, 5];
-    propCases(21, :) = [0, 85, 0, 0, 0, 0, 5];
-    propCases(22, :) = [1, 26, 0, 0, 0, 0, 5];
-    propCases(26, :) = [1, 45, 0, 0, 0, 0, 5];
-    propCases(27, :) = [1, 60, 0, 0, 0, 0, 5];
-    propCases(23, :) = [1, 85, 0, 0, 0, 0, 5];
+    propCases = NaN(41, 7);
     
-    propCases(2, :) = [0, 26, 0, 0, 0, 0, 10];
-    propCases(4, :) = [0, 45, 0, 0, 0, 0, 10];
-    propCases(6, :) = [0, 60, 0, 0, 0, 0, 10];
-    propCases(8, :) = [0, 85, 0, 0, 0, 0, 10];
-    propCases(3, :) = [1, 26, 0, 0, 0, 0, 10];
-    propCases(5, :) = [1, 45, 0, 0, 0, 0, 10];
-    propCases(7, :) = [1, 60, 0, 0, 0, 0, 10];
-    propCases(9, :) = [1, 85, 0, 0, 0, 0, 10];
+    % Values are E, RCP, superMode, advantage, growth penalty, start, bleachTarget
     
-    propCases(10, :) = [0, 26, 0, 0, 0, 0, 3];
-    propCases(12, :) = [0, 45, 0, 0, 0, 0, 3];
-    propCases(14, :) = [0, 60, 0, 0, 0, 0, 3];
-    propCases(16, :) = [0, 85, 0, 0, 0, 0, 3];
-    propCases(11, :) = [1, 26, 0, 0, 0, 0, 3];
-    propCases(13, :) = [1, 45, 0, 0, 0, 0, 3];
-    propCases(15, :) = [1, 60, 0, 0, 0, 0, 3];
-    propCases(17, :) = [1, 85, 0, 0, 0, 0, 3];
+    propCases(2, :) = [0, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=0, OA=0
+    propCases(3, :) = [0, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=0, OA=0
+    propCases(4, :) = [1, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=1, OA=0
+    propCases(5, :) = [1, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=1, OA=0
+    propCases(6, :) = [1, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=1, OA=1
+    propCases(7, :) = [1, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=1, OA=1
     
-    % Start including shuffling cases.  Note that the order of entry is
-    % different here, but of course it doesn't matter.
-    % Advantage 1.0C, growth penalty 25%
-    propCases(28, :) = [0, 26, 9, 1.0, 0.25, 1861, 5];  % RCP 2.6, E=0
-    propCases(29, :) = [1, 26, 9, 1.0, 0.25, 1861, 5];  % RCP 2.6, E=1
-    propCases(30, :) = [0, 45, 9, 1.0, 0.25, 1861, 5];  % RCP 4.5, E=0
-    propCases(31, :) = [1, 45, 9, 1.0, 0.25, 1861, 5];  % RCP 4.5, E=1
-    propCases(32, :) = [0, 60, 9, 1.0, 0.25, 1861, 5];  % RCP 6.0, E=0
-    propCases(33, :) = [1, 60, 9, 1.0, 0.25, 1861, 5];  % RCP 6.0, E=1
-    propCases(34, :) = [0, 85, 9, 1.0, 0.25, 1861, 5];  % RCP 8.5, E=0
-    propCases(35, :) = [1, 85, 9, 1.0, 0.25, 1861, 5];  % RCP 8.5, E=1
+    propCases(8, :) = [0, 26, 9, 0, 0, 1861, 5]; % RCP 2.6, E=0, OA=0
+    propCases(9, :) = [0, 45, 9, 0, 0, 1861, 5]; % RCP 4.5, E=0, OA=0
+    propCases(10, :) = [0, 60, 9, 0, 0, 1861, 5]; % RCP 6, E=0, OA=0
+    propCases(11, :) = [0, 85, 9, 0, 0, 1861, 5]; % RCP 8.5, E=0, OA=0
+    propCases(12, :) = [1, 26, 9, 0, 0, 1861, 5]; % RCP 2.6, E=1, OA=0
+    propCases(13, :) = [1, 45, 9, 0, 0, 1861, 5]; % RCP 4.5, E=1, OA=0
+    propCases(14, :) = [1, 60, 9, 0, 0, 1861, 5]; % RCP 6, E=1, OA=0
+    propCases(15, :) = [1, 85, 9, 0, 0, 1861, 5]; % RCP 8.5, E=1, OA=0
+    
+    propCases(16, :) = [0, 26, 9, 1, 0.25, 1861, 5]; % RCP 2.6, E=0, OA=0
+    propCases(17, :) = [0, 45, 9, 1, 0.25, 1861, 5]; % RCP 4.5, E=0, OA=0
+    propCases(18, :) = [0, 60, 9, 1, 0.25, 1861, 5]; % RCP 6, E=0, OA=0
+    propCases(19, :) = [0, 85, 9, 1, 0.25, 1861, 5]; % RCP 8.5, E=0, OA=0
+    
+    propCases(20, :) = [0, 26, 9, 1, 0.5, 1861, 5]; % RCP 2.6, E=0, OA=0
+    propCases(21, :) = [0, 45, 9, 1, 0.5, 1861, 5]; % RCP 4.5, E=0, OA=0
+    propCases(22, :) = [0, 60, 9, 1, 0.5, 1861, 5]; % RCP 6, E=0, OA=0
+    propCases(23, :) = [0, 85, 9, 1, 0.5, 1861, 5]; % RCP 8.5, E=0, OA=0
+    propCases(24, :) = [1, 26, 9, 1, 0.5, 1861, 5]; % RCP 2.6, E=1, OA=0
+    propCases(25, :) = [1, 45, 9, 1, 0.5, 1861, 5]; % RCP 4.5, E=1, OA=0
+    propCases(26, :) = [1, 60, 9, 1, 0.5, 1861, 5]; % RCP 6, E=1, OA=0
+    propCases(27, :) = [1, 85, 9, 1, 0.5, 1861, 5]; % RCP 8.5, E=1, OA=0
+    
+    propCases(28, :) = [0, 26, 9, 1.5, 0.5, 1861, 5]; % RCP 2.6, E=0, OA=0
+    propCases(29, :) = [0, 45, 9, 1.5, 0.5, 1861, 5]; % RCP 4.5, E=0, OA=0
+    propCases(30, :) = [0, 60, 9, 1.5, 0.5, 1861, 5]; % RCP 6, E=0, OA=0
+    propCases(31, :) = [0, 85, 9, 1.5, 0.5, 1861, 5]; % RCP 8.5, E=0, OA=0
+    propCases(32, :) = [1, 26, 9, 1.5, 0.5, 1861, 5]; % RCP 2.6, E=1, OA=0
+    propCases(33, :) = [1, 45, 9, 1.5, 0.5, 1861, 5]; % RCP 4.5, E=1, OA=0
+    propCases(34, :) = [1, 60, 9, 1.5, 0.5, 1861, 5]; % RCP 6, E=1, OA=0
+    propCases(35, :) = [1, 85, 9, 1.5, 0.5, 1861, 5]; % RCP 8.5, E=1, OA=0
+    
+    propCases(36, :) = [0, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=0, OA=0
+    propCases(37, :) = [0, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=0, OA=0
+    propCases(38, :) = [1, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=1, OA=0
+    propCases(39, :) = [1, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=1, OA=0
+    propCases(40, :) = [1, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=1, OA=1
+    propCases(41, :) = [1, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=1, OA=1
+    
+    % Build special cases where a single value is returned for all cases
+    % which differ only in RCP value.
+    % All are for a target bleaching value of 5.  OA = 0 unless specified.
+    propCases(50, :) = [0, 0, 9, 0, 0, 1861, 5]; % E=0, no advantage
+    propCases(51, :) = [1, 0, 9, 0, 0, 1861, 5]; % E=1, no advantage
+    propCases(52, :) = [0, 0, 9, 1, 0.25, 1861, 5]; % E=0, 1.0 advantage, penalty 0.25
+    propCases(53, :) = [0, 0, 9, 1, 0.5, 1861, 5]; % E=0, 1.0 advantage, penalty 0.5   
+    propCases(54, :) = [1, 0, 9, 1, 0.5, 1861, 5]; % E=1, 1.0 advantage, penalty 0.5
+    propCases(55, :) = [0, 0, 9, 1.5, 0.5, 1861, 5]; % E=0, 1.5 advantage, penalty 0.5
+    propCases(56, :) = [1, 0, 9, 1.5, 0.5, 1861, 5]; % E=1, 1.5 advantage, penalty 0.5
+    propCases(57, :) = [0, 0, 9, 0.5, 0.5, 1861, 5]; % E=0, 0.5 advantage, penalty 0.5
+    propCases(58, :) = [1, 0, 9, 0.5, 0.5, 1861, 5]; % E=1, 0.5 advantage, penalty 0.5
 
-    % Shuffling, but with advantage = 1.5C
-    propCases(36, :) = [1, 26, 9, 1.5, 0.25, 1861, 5];  % RCP 2.6, E=1
-    propCases(37, :) = [1, 45, 9, 1.5, 0.25, 1861, 5];  % RCP 4.5, E=1
-    propCases(38, :) = [1, 60, 9, 1.5, 0.25, 1861, 5];  % RCP 6.0, E=1
-    propCases(39, :) = [1, 85, 9, 1.5, 0.25, 1861, 5];  % RCP 8.5, E=1
-    propCases(40, :) = [0, 26, 9, 1.5, 0.25, 1861, 5];  % RCP 2.6, E=0
-    propCases(41, :) = [0, 45, 9, 1.5, 0.25, 1861, 5];  % RCP 4.5, E=0
-    propCases(42, :) = [0, 60, 9, 1.5, 0.25, 1861, 5];  % RCP 6.0, E=0
-    propCases(43, :) = [0, 85, 9, 1.5, 0.25, 1861, 5];  % RCP 8.5, E=0
-    
-    % Shuffling, advantage = 1.0C NO growth penalty
-    propCases(45, :) = [1, 45, 9, 1.0, 0.0, 1861, 5];  % RCP 4.5, E=1
-    propCases(49, :) = [0, 45, 9, 1.0, 0.0, 1861, 5];  % RCP 4.5, E=0    
+    % Symbiont advantage of 0.5 C in these cases:
+    propCases(60, :) = [0, 26, 9, 0.5, 0.5, 1861, 5]; % RCP 2.6, E=0, OA=0
+    propCases(61, :) = [0, 45, 9, 0.5, 0.5, 1861, 5]; % RCP 4.5, E=0, OA=0
+    propCases(62, :) = [0, 60, 9, 0.5, 0.5, 1861, 5]; % RCP 6, E=0, OA=0
+    propCases(63, :) = [0, 85, 9, 0.5, 0.5, 1861, 5]; % RCP 8.5, E=0, OA=0
+    propCases(64, :) = [1, 26, 9, 0.5, 0.5, 1861, 5]; % RCP 2.6, E=1, OA=0
+    propCases(65, :) = [1, 45, 9, 0.5, 0.5, 1861, 5]; % RCP 4.5, E=1, OA=0
+    propCases(66, :) = [1, 60, 9, 0.5, 0.5, 1861, 5]; % RCP 6, E=1, OA=0
+    propCases(67, :) = [1, 85, 9, 0.5, 0.5, 1861, 5]; % RCP 8.5, E=1, OA=0
 
+    
     
     %% Now select the matching case (if any) based on input parameters
     % (E, RCP, superMode, advantage, start, bleachTarget)
     % Before doing the logic, make some adjustments to the inputs.
     % Make RCP an integer.
-    rcpNum = str2num(replace(RCP, 'rcp', ''));
+    if RCP == "average"
+        rcpNum = 0;
+    else
+        rcpNum = str2num(replace(RCP, 'rcp', ''));
+    end
     % If nothing happens before 2010, the symbiont options can all be zero.
     % startYear is a vector, one per reef.  If there are diverse values, this
     % will require a new "s" for each case.  If there is just one, we can use
@@ -90,9 +113,13 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
         error("There is currently no support for interventions starting at a variety of years before 2011.");
     end
     
-    if (advantage == 0) || (startYear > 2010)
-        superMode = 0;
+    % Collapse to equivalent cases.
+    if advantage == 0
+        superGrowthPenalty = 0;
+    end
+    if startYear > 2010
         advantage = 0;
+        superGrowthPenalty = 0;
         startYear = 0;
     end
     % This could be done in one line of code, but this is easier for beginners.
