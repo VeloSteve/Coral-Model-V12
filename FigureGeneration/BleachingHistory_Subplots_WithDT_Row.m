@@ -6,15 +6,15 @@ function BleachingHistory_Subplots_WithDT_Row()
 % The files for a new set of runs to be plotted should be copied to safe place
 % and referenced in relPath below.  This is intentionally a manual step so that
 % test runs made later can't accidentally overwrite the data we want to publish.
-relPath = '../FigureData/healthy_4panel_figure1/bleaching_FineTimeScale_Jan2/';
-shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_Mode9_Jan3_Adv1.0_NoPenalty/';
+relPath = '../FigureData/healthy_4panel_figure1/bleaching_NoAdvantage_Jan10/';
+shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_1C_Jan10/';
 
 inverse = true;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
 smoothT = 7; % same, but applied to the background temps
 figure('color', 'w');
-set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 7.5]);
+set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 19, 7.5]);
 
 % Make subplots across, each for one rcp scenario.
 % Within each, have lines for E=0/1 and OA=0/1

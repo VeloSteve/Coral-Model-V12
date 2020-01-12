@@ -1,7 +1,7 @@
 vertical = false;
 rcps = [ 4.5 8.5];
 letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
-inputPath = 'C:/Users/Steve/Google Drive/Coral_Model_Steve/_Paper Versions/Figures/LastYearHealthy/';
+inputPath = '../FigureData/LastYearMaps_Figure3/';
 description = strings(8,1);
 
 % Less loop-based approached so we can have an arbitrary display order.
@@ -13,7 +13,7 @@ for rcp = rcps
     panelRCP(num) = rcp;
     description(num) = ' no adaptation';
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM0.sA0_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
     p1 = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
@@ -41,7 +41,7 @@ for rcp = rcps
     description(num) = ' symbiont evolution';
     
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM0.sA0_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
     p1 = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
@@ -84,8 +84,8 @@ if vertical
     set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 13, 14]);
     [ha, pos] = tight_subplot(panels, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 else
-    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 5.5]);
-    [ha, pos] = tight_subplot(panels/2, 2, [0.05, -0.09], [0.04, 0.1], [0.0 0.05]);
+    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 8.5]);
+    [ha, pos] = tight_subplot(panels/2, 2, [0.02, -0.09], [0.0, 0.05], [0.0 0.05]);
 end
 
 

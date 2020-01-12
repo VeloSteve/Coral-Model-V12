@@ -28,6 +28,7 @@ end  % End the main MapGeneration function.
 % cRange man and max data values for color scale
 % t title
 function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
+    persistent LONG LAT longSort latSort;
     f = figure(n);
     if n == 3
         set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 15, 4]);
@@ -49,41 +50,44 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
         m_grid('box','off','linestyle','none','backcolor',[.9 .99 1], ...
             'xticklabels', [], 'yticklabels', [], 'ytick', 0, 'xtick', 0);
 
-    % Points with last-year mortality values:
-    idx = find(lons < 0);
-    lons(idx) = lons(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
-    [LONG,LAT] = m_ll2xy(lons,lats); % convert reef points to M-Map lat long
-    
-    % Get unique coordinates in ascending order.
-    longSort = unique(LONG);
-    latSort = unique(LAT);
-    
-    longSort(end, 2) = longSort(end, 1)-longSort(end-1, 1);
-    longSort(1, 2) = longSort(2, 1)-longSort(1, 1);
-    longSort(2:end-1, 2) = min(longSort(2:end-1, 1)-longSort(1:end-2, 1), longSort(3:end, 1)-longSort(2:end-1, 1));
-    latSort(end, 2) = latSort(end, 1)-latSort(end-1, 1);
-    latSort(1, 2) = latSort(2, 1)-latSort(1, 1);
-    latSort(2:end-1, 2) = min(latSort(2:end-1, 1)-latSort(1:end-2, 1), latSort(3:end, 1)-latSort(2:end-1, 1));
-    
-    % If a longitude location has no adjacent neighbor the cell will be too
-    % wide.  Don't let a width value be more than 50% bigger than its neighbors.
-    idx = find(longSort(2:end, 2) > 1.5*longSort(1:end-1, 2));
-    idx = idx + 1;
-    while ~isempty(idx)
-        disp('Shrinking multiple longitude steps.');
-        longSort(idx, 2) = min(longSort(idx+1, 2), longSort(idx-1, 2));
+    % Assume that all maps in a run will use the same lat/lon inputs, so we
+    % can save time by re-using the values computed here:
+    if isempty(LONG) || isempty(LAT) || isempty(longSort) || isempty(latSort)
+        idx = find(lons < 0);
+        lons(idx) = lons(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
+        [LONG,LAT] = m_ll2xy(lons,lats); % convert reef points to M-Map lat long
+
+        % Get unique coordinates in ascending order.
+        longSort = unique(LONG);
+        latSort = unique(LAT);
+
+        longSort(end, 2) = longSort(end, 1)-longSort(end-1, 1);
+        longSort(1, 2) = longSort(2, 1)-longSort(1, 1);
+        longSort(2:end-1, 2) = min(longSort(2:end-1, 1)-longSort(1:end-2, 1), longSort(3:end, 1)-longSort(2:end-1, 1));
+        latSort(end, 2) = latSort(end, 1)-latSort(end-1, 1);
+        latSort(1, 2) = latSort(2, 1)-latSort(1, 1);
+        latSort(2:end-1, 2) = min(latSort(2:end-1, 1)-latSort(1:end-2, 1), latSort(3:end, 1)-latSort(2:end-1, 1));
+
+        % If a longitude location has no adjacent neighbor the cell will be too
+        % wide.  Don't let a width value be more than 50% bigger than its neighbors.
         idx = find(longSort(2:end, 2) > 1.5*longSort(1:end-1, 2));
         idx = idx + 1;
-    end
-    
-    % Same for latitude, though it does not seem to happen there.
-    idx = find(latSort(2:end, 2) > 1.5*latSort(1:end-1, 2));
-    idx = idx + 1;
-    while ~isempty(idx)
-        disp('Shrinking multiple latitude steps.');
-        latSort(idx, 2) = min(latSort(idx+1, 2), latSort(idx-1, 2));
+        while ~isempty(idx)
+            disp('Shrinking multiple longitude steps.');
+            longSort(idx, 2) = min(longSort(idx+1, 2), longSort(idx-1, 2));
+            idx = find(longSort(2:end, 2) > 1.5*longSort(1:end-1, 2));
+            idx = idx + 1;
+        end
+
+        % Same for latitude, though it does not seem to happen there.
         idx = find(latSort(2:end, 2) > 1.5*latSort(1:end-1, 2));
         idx = idx + 1;
+        while ~isempty(idx)
+            disp('Shrinking multiple latitude steps.');
+            latSort(idx, 2) = min(latSort(idx+1, 2), latSort(idx-1, 2));
+            idx = find(latSort(2:end, 2) > 1.5*latSort(1:end-1, 2));
+            idx = idx + 1;
+        end
     end
     
     % Rectangles don't do color mapping, so make a substitute.
@@ -115,23 +119,7 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
         rectangle('Position', [x - w/2, y - h/2, w, h], 'FaceColor', reefColor, 'EdgeColor', reefColor    );
     end
     
-    % Temporarily, add rectangles for the Hughes, et al. regions
-    %            Au/Asia,     Indian,    Pacific,   Atlantic
-    if false
-        cornerLon = [ 98.6 160.6  32.5 123.0 134.5 -77.4 -93.8 -59.5];
-        cornerLat = [-31.5  32.5 -28.4  27.3 -21.5 25.5   9.3  32.2];
-        idx = find(cornerLon < 0);
-        cornerLon(idx) = cornerLon(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
-        [cLon, cLat] = m_ll2xy(cornerLon, cornerLat);
-        for i = 1:4
-            disp(i)
-            rectangle('Position', [cLon(i*2-1),  cLat(i*2-1), cLon(i*2)-cLon(i*2-1), cLat(i*2)-cLat(i*2-1)], ...
-                'EdgeColor', [0 0 0]    );
-        end
-    end
-
-
-    
+  
     if isempty(cMap)
         colormap default;
     else

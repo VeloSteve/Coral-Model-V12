@@ -17,20 +17,20 @@ dataset = 'ESM2M';
 SST1900 = SST(:, 1:yearEnd(1900));
 SST1900 = hottest(SST1900);
 sdSST1900 = std(SST1900, 0, 2);
-MapGeneration(Reefs_latlon, sdSST1900, 1, "RCP 8.5 Standard deviation of Hottest SST, 1861-1900", 2);
+MapGeneration(Reefs_latlon, sdSST1900, 21, "RCP 8.5 - std[SST] 1861-1900", 2);
 
 % Same for 2050 to 2080
 SST2050 = SST(:, yearStart(2050):yearEnd(2080));
 SST2050 = hottest(SST2050);
 sdSST2050 = std(SST2050, 0, 2);
-MapGeneration(Reefs_latlon, sdSST2050, 2, "RCP 8.5 Standard deviation of Hottest SST, 2050-2080", 2);
+MapGeneration(Reefs_latlon, sdSST2050, 22, "RCP 8.5 - std[SST], 2050-2080", 2);
 
 % Delta 2050-historical
 dt = sdSST2050-sdSST1900;
-MapGeneration(Reefs_latlon, dt, 3, "RCP 8.5 Difference in SD from 1861-1900 to 2050-2080 Hottest Months", 1);
+MapGeneration(Reefs_latlon, dt, 23, "RCP 8.5 - \Delta std[SST] 1861-1900 to 2050-2080", 1);
 
 % Same data, change scale
-MapGeneration(Reefs_latlon, dt, 4, "RCP 8.5 Difference in SD from 1861-1900 to 2050-2080 Hottest Months", 0.2);
+MapGeneration(Reefs_latlon, dt, 24, "RCP 8.5 - \Delta std[SST] 1861-1900 to 2050-2080", 0.2);
 
 function i = yearStart(y)
     % Calculate the index in the monthly time array for 15 Jan of the given

@@ -1,6 +1,5 @@
 % To use this, put the old Figure 1 on the screen and then run this script.
 
-% Flip all curves on all axes.
 fig = gcf;
 axList = findall(fig, 'type', 'axes');
 for a = 1:4
