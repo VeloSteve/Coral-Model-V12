@@ -32,8 +32,9 @@ function [ha, pos] = tight_subplot(Nh, Nw, gap, marg_h, marg_w, ratio_w)
 if nargin<3; gap = .02; end
 if nargin<4 || isempty(marg_h); marg_h = .05; end
 if nargin<5; marg_w = .05; end
-if nargin<6; ratio_w = ones([Nh*Nw, 1]); end
-ratioTotal = sum(ratio_w);
+if nargin<6; ratio_w = ones([Nh, Nw]); end
+% Apply ratios only to width for now.
+ratioTotal = sum(ratio_w(1, :));
 
 if numel(gap)==1; 
     gap = [gap gap];
