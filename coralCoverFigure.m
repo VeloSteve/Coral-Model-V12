@@ -1,5 +1,8 @@
 function coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
     superAdvantage, fullMapDir)
+    % Note that C_yearly has only two columns, so this depends on the assumption
+    % that the first two columns are representative of total coral!    
+
     % New dominance graph
     % Get stats based on C_yearly - try getting quantiles per row.
     % C_yearly has year/reef/coral type

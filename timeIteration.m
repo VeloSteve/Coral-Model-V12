@@ -37,46 +37,71 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
     %end
     
     origEvolved = 0.0;
-    ri = zeros(timeSteps+1, con.Sn * con.Cn); % actual growth rate at optimal temp
+    ri = zeros(timeSteps+1, con.Sn * con.Cn); % actual symbiont growth rate at optimal temp
+    
+    % If needed, replicate C and S seeds to match the number in use.
+    SCratio = size(S, 2) / size(C, 2);
+    % Jan 2020 - don't automatically seed the second coral copy.  If there's
+    % an actual seed specified it will be used.
+    % MATLAB Coder doesn't allow changing the size of passed variables, so
+    % create a new copy of C_seed here.
+    if size(C_seed, 2) < size(C, 2)
+        C_seed2 = zeros(1, 4);
+        C_seed2(1:2) = C_seed(1:2);
+        %C_seed(size(C,2)) = 0.0;  % fill with zeros to match
+    else
+        C_seed2 = C_seed;
+    end
+    % C_seed = repmat(C_seed, 1, size(C, 2) / size(C_seed, 2));
+    S_seed = repmat(S_seed, 1, size(S, 2) / size(S_seed, 2));
+    
+    % Competitive effects are specified by con.A, but note that the effect of
+    % a species on itself is 1.  We need to make this a 2D matrix and replicate
+    % to cover the number of corals.  This DOES assume that we have 2 coral
+    % types, always listed massive before branching.
+    % It's an extra thing to pass in, but do this outside the loop for speed.
+    cMult = size(C_seed2, 2) / 2;
+    alpha = repmat([1 con.A(1); con.A(2) 1], cMult);
+    
+    % These constants need to match the number of corals.
+    gStart = repmat([con.Gm con.Gb], 1, cMult); 
+    % The con struct can't be resized in a mex function, so make local variables and
+    % pass them to Runge_Kutta_2
+    % where results can go into local variables.
+    KCx = repmat(con.KC, 1, cMult);
+    Mu = repmat(con.Mu, 1, cMult);
+    um = repmat(con.um, 1, cMult);
+    KSx = repmat(con.KS, 1, cMult);
 
     for i = 1:timeSteps
         rm  = con.a*exp(con.b*temp(i,1)) ; % maximum possible growth rate at optimal temp
         
         % Update of the G constant if acidification is included.
+        % As with some variables above, the resize means it must be passed
+        % separately.  It could be better to move all this resizing outside
+        % to A_Coral_Model or elsewhere.
         if OA == 1   % to include OA effects on coral growth rate in model
             % modify growth rate based on aragonite saturation state
             % note that omegaFactor containts the required multiplier, not
             % the saturation state values.
             % This multiplies by factors of 0.55, 0.7, 0.85, 1.0
             % as omega steps from 1 to 4.
-            con.G = shuffleGFactor .* [con.Gm con.Gb] * omegaFactor(i);
+            G = repmat(shuffleGFactor, 1, cMult) .* gStart * omegaFactor(i);
         else
-            con.G = shuffleGFactor .* [con.Gm con.Gb];
+            G = repmat(shuffleGFactor, 1, cMult) .* gStart;
         end
-        
-        %rm = 1; % try running wo Eppley eqn !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        %ri(i,:) = (1- (vgi(i,:) + EnvV + (gi(i,:) - temp(i)).^2) ./ (2*SelVx)) * rm ; % symbiont average growth rate at time i
-         
-        % Original version prior to 2/1/2017:
-        % ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) * rm ;% Prevents cold water bleaching
 
-        
         % Try decreasing growth rate in cooler water based on Eppley
         % equation per John/Simon/Cheryl 2/8/2017.
-        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(0, temp(i) - gi(i,:))) * rm;
-        
-        %{
-        if i<962 && mod(i, 12) == 1
-            fprintf('At i = 1 delta for old: %7.2f  for new: %7.2f\n', gi(i,1)-temp(i), gi(i,3)-temp(i));
-            fprintf('         ri for    old: %7.2f  for new: %7.2f\n', ri(i,1), ri(i, 3));
-        end
-        %}
-        
+        %ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(0, temp(i) - gi(i,:))) * rm;
+        % XXX test!
+        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(2, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(2, temp(i) - gi(i,:))) * rm;
+              
         % Solve ordinary differential equations using 2nd order Runge Kutta
         %Runge_Kutta_2_min0_160503 %% run sub-mfile to solve ODE using min0 to prevents cold water bleaching
         [SiPlusOne, CiPlusOne] = Runge_Kutta_2(S(i, :), C(i, :), i, dt, ...
-                                            ri, rm, temp, vgi, gi, SelVx, C_seed, ...
-                                            S_seed, con);
+                                            ri, rm, temp, vgi, gi, SelVx, C_seed2, ...
+                                            S_seed, con, alpha, KCx, Mu, um, KSx, G);
                                         
         % Compute bleaching state (new 8/14/2018)
         % Only check at the end of each year to be consistent with
@@ -94,7 +119,7 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
                             % Check for recovery
                             % Is each component strong enough to be considered?
                             seedRecS = thisYearS(coral) > sRecoverySeedMult(coral)*S_seed(coral);
-                            seedRecC = thisYearC(coral) > cRecoverySeedMult(coral)*C_seed(coral);
+                            seedRecC = thisYearC(coral) > cRecoverySeedMult(coral)*C_seed2(coral);
                             if seedRecS && seedRecC
                                 bleach(simYear:end, coral) = false;
                                 % Note that shuffling is not turned off immediately
@@ -172,23 +197,27 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         % time step.  Also reset the S_seed(:, 3:4) values to be this value if
         % it is less than or equal the normal seed, and otherwise to match
         % the normal seeds (S_seed(:, 1:2)
-        if i < suppressSuperIndex || ~suppressSuperIndex
-            S(i+1, 3:end) = 0.0;
-        elseif i > 1 && i == suppressSuperIndex
-            S(i+1, 3:end) = S_seed(3:end) * superSeedFraction;
-            %fprintf('Introduced S3 at %7.2d i = %d\n', S(i+1, 3), (i+1));
-            if oneShot
-                S_seed(3:end) = 0.0;
-            elseif superSeedFraction < 1
-                S_seed(3:end) = superSeedFraction * S_seed(3:end);
+        if superMode == 9
+            ; % leave things alone!
+        else
+            if i < suppressSuperIndex || ~suppressSuperIndex
+                S(i+1, 3:end) = 0.0;
+            elseif i > 1 && i == suppressSuperIndex
+                S(i+1, 3:end) = S_seed(3:end) * superSeedFraction;
+                %fprintf('Introduced S3 at %7.2d i = %d\n', S(i+1, 3), (i+1));
+                if oneShot
+                    S_seed(3:end) = 0.0;
+                elseif superSeedFraction < 1
+                    S_seed(3:end) = superSeedFraction * S_seed(3:end);
+                end
+                %{
+            elseif oneShot && (i > suppressSuperIndex)
+                % Set S to zero if small.  Do we really want this?
+                % It has little impact on mortality (surprisingly), but slows
+                % down runs badly.
+                S(S < 1.0) = 0.0;
+                %}
             end
-            %{
-        elseif oneShot && (i > suppressSuperIndex)
-            % Set S to zero if small.  Do we really want this?
-            % It has little impact on mortality (surprisingly), but slows
-            % down runs badly.
-            S(S < 1.0) = 0.0;
-            %}
         end
         % Next four lines were in the Runge Kutta file, but are not part of
         % that algorithm.

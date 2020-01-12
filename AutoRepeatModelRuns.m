@@ -9,9 +9,9 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 % On 2/26/2018 we need two different symbiont introduction strategies
 % with 3 different temperature deltas and 4 different rcp cases.
 
-% 80 runs:
-rcpList = {'rcp45'}; %{'rcp26', 'rcp45',  'rcp85'}; % 'rcp60',
-deltaTList = [1.0]; % [0.0, 1.0];
+% Every combination will be a separate run.
+rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'}; % 'rcp60',
+deltaTList = [0.5]; % [0.0, 1.0];
 modeList = [9]; % [0, 7];  % 0 7
 eList = [0, 1];
 oaList = [0];

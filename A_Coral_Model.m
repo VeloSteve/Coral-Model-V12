@@ -47,6 +47,12 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  doGenotypeFigure, doDetailedStressStats, allPDFs, ...
  saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(ps);
 
+% Growth penalty is irrelevant for superAdvantage, but can have side
+% effects.
+if superAdvantage == 0.0
+    superGrowthPenalty = 0.0;
+end
+    
 if ~(exist('optimizerMode', 'var') && optimizerMode)
     pd.print()
 end
@@ -87,9 +93,9 @@ modelChoices = pd.getModelChoices();
 % mapDirectory contains maps, console output, and miscellaneous figures
 pdfDirectory = strcat(pd.getDirectoryName('_figs/'));
 mapDirectory = strcat(pd.getDirectoryName('_maps/'));
-mkdir(pdfDirectory);
-mkdir(mapDirectory);
-mkdir(strcat(outputPath, 'bleaching'));
+[~, ~, ~] = mkdir(pdfDirectory);
+[~, ~, ~] = mkdir(mapDirectory);
+[~, ~, ~] = mkdir(strcat(outputPath, 'bleaching'));
 
 % Initialize a file for logging most of what goes to the console.
 echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
@@ -146,20 +152,13 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 if exist('optimizerMode', 'var') && optimizerMode
     propTest = 1;
 else
-    propTest = getPropTest(E, RCP, superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget)
-    % In response to NOAA internal review, try using fixed proptest values for all
-    % runs with the same E value, regardless of RCP.
-    % Possible values are
-    % RCP   2.6 4.5 6.0 8.5
-    % E=0   20  24  25  21   - 20 has the lowest S, 25 is closest to the mean
-    % E=1   22  26  27  23   - 22 has the lowest S, 27 is closest to the mean
-    %if (E == 0)
-    %    propTest = 25;
-    %else
-    %    propTest = 27;
-    %end
+    % propTest = getPropTest(E, RCP, superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget)
+    % Send RCP = "average" to tell getPropTest to select a case which has an s
+    % value averaged over all RCP scenarios matching the other parameters.
+    propTest = getPropTest(E, "average", superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget);
 end
 pswInputs = pswInputs(:, propTest); %#ok<NODEF>
+fprintf("Using psw2 case %d with an s value of %8.4f\n", propTest, pswInputs(4));
 
 % For figures to illustrate various input patterns, plot on a map and exit
 % the program.
@@ -200,7 +199,8 @@ MutV  = [vM vM];               % Mutational variance matrix for symbiont calcs
 MutVx = repmat(MutV,1,coralSymConstants.Sn);     % Mutational variance matrix for coral calcs
 % January 2016, more variables need replication when Sn > 1
 coralSymConstants.EnvVx = repmat(coralSymConstants.EnvV,1,coralSymConstants.Sn);     % Environmental variance matrix
-coralSymConstants.KSx = repmat(coralSymConstants.KS,1,coralSymConstants.Sn);     % Environmental variance matrix
+% later. coralSymConstants.KSx = repmat(coralSymConstants.KS,1,coralSymConstants.Sn);     % Environmental variance matrix
+
 
 %% Set up indexing and time arrays before entering the main loop.
 months = length(TIME);
@@ -270,6 +270,12 @@ timeSteps = length(time) - 1;      % number of time steps to calculate
 % arrays defined before the loop.  Instead of creating the contents at full
 % size and passing big arrays of nan to the workers, it make more sense to
 % pass these dummy arrays and allocate the required memory in each worker.
+% We need the number of corals:
+if superMode == 9
+    ccol = coralSymConstants.Cn;          % for shuffling, symbiont types exist in one coral.
+else
+    ccol = coralSymConstants.Sn * coralSymConstants.Cn;
+end
 for i = queueMax:-1:1
     kOffset(i) = min(toDoPart{i}); % Number of first reef in these chunks.
     % Inputs
@@ -287,21 +293,28 @@ for i = queueMax:-1:1
     bleachState_chunk{i} = false(1,1);
     mortState_chunk{i} = false(1,1);
 
-    C_cum_chunk{i} = zeros(length(time), coralSymConstants.Sn*coralSymConstants.Cn); % Sum coral cover for all reefs.
+    C_cum_chunk{i} = zeros(length(time), ccol); % Sum coral cover for all reefs.
     % 3D array sized (time by reef by coral type).  Note that we don't care
     % about the identity of the reefs in this case, so we just need enough
     % columns for all reefs actually calculated, ignoring those which are
     % skipped.
     C_year_chunk{i} = zeros(years, chunkSize, coralSymConstants.Cn); % Coral cover for all reefs, but just 2 columns.
+    S_year_chunk{i} = zeros(years, chunkSize, coralSymConstants.Sn * coralSymConstants.Cn); % All 4 symbionts.
     Massive_dom_chunk{i} = zeros(length(time), 1);
 
 end
 
 %% RUN EVOLUTIONARY MODEL
 % Get the correct compiled solver for this case.
-iteratorHandle = selectIteratorFunction(length(time), architecture);
-% the last argument in the parfor specifies the maximum number of workers.
+iteratorHandle = selectIteratorFunction(length(time), ccol, architecture);
+%XXX  Warning: only for debug, use a false time length to fool the selector to
+% return the uncompiled version of the function.
+%iteratorHandle = selectIteratorFunction(9999, 9, architecture);
+
 timerStartParfor = tic;
+% the last argument in the parfor specifies the maximum number of workers.
+% To run serially for debug or when generating a mex file, comment the parfor
+% and uncomment the for on the following line.
 parfor (parSet = 1:queueMax, parSwitch)
 %for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
@@ -332,6 +345,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     par_kOffset = kOffset(parSet);
     par_C_cum = C_cum_chunk{parSet};
     par_C_year = C_year_chunk{parSet};
+    par_S_year = S_year_chunk{parSet};
     par_Massive_dom = Massive_dom_chunk{parSet};
     par_HistSuperSum = 0.0;
     par_HistOrigSum = 0.0;
@@ -515,8 +529,15 @@ parfor (parSet = 1:queueMax, parSwitch)
                 % Growth rate vs. T as well
                 % TODO: dies when suppressSI = 0
                 if strcmp(RCP(1:3), 'rcp')
-                    growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),suppressSI)), 'yyyy'), ...
-                        k, temp, fullYearRange, gi, vgi, suppressSI, ...
+                    % Jan 2020: hardwire to 1985 instead of start of shuffling
+                    % or intervention
+                    % Get the index of the month in the monthly array.  Note
+                    % that the find returns an index in months, but "time" is in
+                    % timesteps, so divide by dt.
+                    hardIndex = findDateIndex(strcat('14-Sep-', '1985'), strcat('16-Sep-','1985'), TIME)/dt;
+                    %growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),suppressSI)), 'yyyy'), ...
+                    growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),hardIndex)), 'yyyy'), ...
+                        k, temp, fullYearRange, gi, vgi, hardIndex, ...
                         coralSymConstants, SelVx, RCP);         
                 end
             end
@@ -525,16 +546,20 @@ parfor (parSet = 1:queueMax, parSwitch)
 
         par_C_cum = par_C_cum + C; % interp1(tResults, C, TIME, 'pchip');
         par_Massive_dom = par_Massive_dom + C(:, 1) > C(:, 2);
-        % Time and memory will be consumed, but we need stats on coral
-        % cover.
-        par_C_year(:, reefCount, 1) =  decimate(C(:, 1), stepsPerYear, 'fir');
-        par_C_year(:, reefCount, 2) =  decimate(C(:, 2), stepsPerYear, 'fir');
         
         %% New clean stats section
-        
-        [ C_monthly, S_monthly, ~, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
+        [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
             Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
      
+        % Time and memory will be consumed, but we need stats on coral
+        % cover.
+        % Now the decimation from Clean_Bleach_Stats is used.
+        % par_C_year(:, reefCount, 1) =  decimate(C(:, 1), stepsPerYear, 'fir');
+        % par_C_year(:, reefCount, 2) =  decimate(C(:, 2), stepsPerYear, 'fir');
+        % columns are years, chunkSize, coralSymConstants.Cn
+        par_C_year(:, reefCount, :) = C_yearly();
+        par_S_year(:, reefCount, :) = S_yearly();
+        
         % XXXXXXXXXX XXX
         % copy new bleaching calculation (ignoring some mortality) over the
         % normal one TESTING ONLY:
@@ -588,6 +613,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     mortState_chunk{parSet} = par_mortState;
     C_cum_chunk{parSet} = par_C_cum;
     C_year_chunk{parSet} = par_C_year(:, 1:reefCount, :);
+    S_year_chunk{parSet} = par_S_year(:, 1:reefCount, :);
     Massive_dom_chunk{parSet} = par_Massive_dom;
     histSuper_chunk(parSet) = par_HistSuperSum;
     histOrig_chunk(parSet) = par_HistOrigSum;
@@ -627,6 +653,7 @@ end
 clearvars bleachEvents_chunk bleachState_chunk mortState_chunk; % release some memory.
 
 C_yearly = horzcat(C_year_chunk{:});
+S_yearly = horzcat(S_year_chunk{:});
 % Total coral cover across all reefs, for ploting shift of dominance.
 % C_cumulative = zeros(length(time), coralSymConstants.Sn*coralSymConstants.Cn);
 % Massive_dom_cumulative = zeros(length(time), 1);
@@ -640,7 +667,7 @@ for i = 1:queueMax
     histSum = histSum + histOrig_chunk(i);
     histEvSum = histEvSum + histOrigEvolved_chunk(i);
 end
-clearvars C_cum_chunk C_year_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
+clearvars C_cum_chunk C_year_chunk S_year_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
 superSum = superSum/reefsThisRun;
 histSum = histSum/reefsThisRun;
 histEvSum = histEvSum/reefsThisRun;
@@ -790,6 +817,8 @@ if ~skipPostProcessing
     
     % New 3/7/2018: output cover in 2100.
     coralCover2100(C_yearly, coralSymConstants, startYear);
+    % New 1/8/2020: consider which symbionts are dominant
+    shuffleStats(S_yearly, coralSymConstants, S_seed, startYear);
 
 
     % Get the years when reefs first experienced lasting mortality and 

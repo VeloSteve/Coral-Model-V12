@@ -16,7 +16,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     % time - a list of all the times in the simulation
     % temp - initialized by Interp_data?
     % Sn  - number of symbionts modeled (1 as of 8/2016)
-    % Cn  - number of corals modeled (2 as of 8/20160)
+    % Cn  - number of corals modeled (2 as of 8/2016)
     % E   - 1 if evolution is on
     % vM  - mutational variance
     % a   - linear growth rate, 1/12 of the value in Baskett 2009
@@ -25,7 +25,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     % KCb, KCm - coral carrying capacity from Baskett 2009
     % KSb, KSm - symbiont carrying capacity from Baskett 2009
     % Outputs:
-    % S, C - 2D arrays of coral population values, size to match time on
+    % S, C - 2D arrays of coral population values, sized to match time on
     %       the first dimension and Sn*Cn on the second.
     % vgi - 2D array, the same size as S and C, with symbiont variance.
     %       This seems to have only two distinct values (for now).
@@ -33,7 +33,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
 
     % Initialize the temperature to which symbionts are adapted (their
     % genotype).
-    hist = mean(temp(1:initializationIndex)) ;    
+    hist = mean(temp(1:initializationIndex)) ;   
     %fprintf('SI range %s to %s\n', datestr(time(superInitRange(1))), datestr(time(superInitRange(2))));
     switch superMode
         case {0, 5, 6, 7, 8, 9}
@@ -49,13 +49,18 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
             error('Only symbiont modes 0 to 9 are supported.');
     end
 
-    col = con.Sn * con.Cn;
-    gi = NaN(length(time), col) ;  % Symbiont mean genotype over time
+    scol = con.Sn * con.Cn;      % regardless of mode, we need this many symbiont populations.
+    if superMode == 9
+        ccol = con.Cn;          % for shuffling, symbiont types exist in one coral.
+    else
+        ccol = con.Sn * con.Cn;
+    end
+    gi = NaN(length(time), scol) ;  % Symbiont mean genotype over time
     gi(1,1) = hist;             % Optimally adapted symbiont on massive corals w/ hist 
     gi(1,2) = hist;             % Susceptible symbiont on branching corals w/ hist
     
     % fill all four
-    if col == 4
+    if scol == 4
         if isempty(histSuper)
             % won't be applied, but needs some value
             gi(1, 3:4) = 0.0;
@@ -73,9 +78,9 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     % gi(1,8) = hist+3*x;         % Tolerant symbiont on branching corals w/ hist+x
 
     %Genotype Variance w (E=1) and wo Evolution (E=0)
-    vgi = zeros(length(time), col) ;
+    vgi = zeros(length(time), scol) ;
     if E==1
-        for y=1:col
+        for y=1:scol
             if mod(y,2) == 0    % if even - check whether this works when Sn and Cn are not 1 and 2.
                 vgi(1,y) = (vM *SelV(2)/(con.a*exp(con.b*gi(1,2))))^0.5;   % Symbiont variance on branching corals
             else
@@ -88,21 +93,31 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     %% Initialize Coral and Symbiont Population Size and Carrying Capacity
 
     % Initialize coral population sizes
-    C = zeros(length(time), col) ;
-    for y=1:col
+    C = zeros(length(time), ccol) ;
+    % TODO: this is creating populations > K if there is more than one
+    % population of each type.  Should the first get the lion's share, or should
+    % they be equal?
+    % Try this:
+    if superMode==9
+        fraction = repmat(con.Cn / ccol, 1, ccol);
+    else
+        fraction = [repmat(1, 1, ccol/2) repmat(0, 1, ccol/2)];
+    end
+    for y=1:ccol
         if mod(y,2) == 0 % if even
-            C(1,y) = con.KCb*0.8 ;   % Branching coral population size
+            C(1,y) = fraction(y) * con.KCb*0.8 ;   % Branching coral population size
         else
-            C(1,y) = con.KCm*0.2 ;   % Massive coral population size
+            C(1,y) = fraction(y) * con.KCm*0.2 ;   % Massive coral population size
         end
     end
 
     % Initialize symbiont population sizes
-    S = zeros(length(time), col) ; % Symbiont pop size over time
-    % Assume that there are always two corals, but Sn can vary.
-    for y=1:2:col
+    S = zeros(length(time), scol) ; % Symbiont pop size over time
+    % Assume that there are always two corals, but Sn can vary.  TODO???
+    for y=1:2:scol
         % For 4 symbionts y = 1 and 3 are for massive, original symbiont type first
         % y = 2 and 4 are for branching.
+        % If 
         symIdx = (y+1)/2; % old or new symbiont
         S(1,y  ) = 0.9*startSymFractions(symIdx)*con.KSm*C(1,1);         % historically-adapted symbiont pop on massives
         S(1,y+1) = 0.9*startSymFractions(symIdx)*con.KSb*C(1,2);         % historically-adapted symbiont pop on branching

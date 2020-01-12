@@ -44,7 +44,9 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
         rm  = con.a*exp(con.b*temps(j)) ; % maximum possible growth rate at optimal temp
         T = temps(j);
         % As used in Spring 2017 code:
-        r = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(0, T - g)) * rm;
+        %r = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(0, T - g)) * rm;
+        % XXX - testing
+        r = (1- (vg + con.EnvVx(1:2:3) + (min(2, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(2, T - g)) * rm;
         %r2014 = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
         % Baskett 2009 eq. 3
         r2009 = (1- (vg + con.EnvVx(1:2:3) + (g - T).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
@@ -63,7 +65,7 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     
     specs = {'-k', '-m', ':c', '--m', '-b', ':b', '-.k'};
 
-    figHandle = figure(4000+k);
+    figHandle = figure(6000+k);
     set(figHandle, 'color', 'w', 'OuterPosition',[60 269 1000 783]);
     %axes1 = axes;
 
@@ -71,15 +73,16 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     ty = [growthScale fliplr(growthScale)];
     tx = repelem(historicRange, 2);
 
-
+    % Rates for first massive coral, black line
     plot(temps, rates(:,1), specs{1}); %, gi(:,2)); %, gi(:,3), gi(:,4));
     hold on;
-    plot(temps, rates2009(:,1), specs{5});
+    % Rates for first massive coral, magenta line
+    plot(temps, rates(:,2), specs{2}); %, gi(:,2)); %, gi(:,3), gi(:,4));
+
+    % remove Baskett plot(temps, rates2009(:,1), specs{5});
+    % Vertical line at massive 1 optimum
     plot([g(1) g(1)], [min(min(rates)) max(max(rates))], ':k');  % current optimum
-    %plot([g(2) g(2)], [min(min(rates)) max(max(rates))], '-.k');
-    % replaced by shaded areas
-    % plot([t0 t0], [min(min(rates)) max(max(rates))], '--k');  % current actual T
-    
+    % Historic T range
     patch('DisplayName', 'Historic T Range', 'YData', ty, 'XData', tx, 'FaceAlpha', 0.2, 'LineStyle', 'none', 'FaceColor', [.75 .75 .75])
     % Shade area for recent temperatures.
     ty = [growthScale fliplr(growthScale)];
@@ -92,7 +95,7 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     xlabel('Temperature (C)');
     ylabel('Growth Rate');
     %set(axes1,'FontSize',21);
-    legend({'symbiont growth', 'Baskett 2009', 'Adapted T', 'Historic Range', 'Recent Range'}, ...
+    legend({'symbiont growth', 'enhanced symbiont growth', 'Adapted T', 'Historic Range', 'Recent Range'}, ...
         'Location', 'best', 'FontSize',18);
 
     xlim([tMin tMax]);

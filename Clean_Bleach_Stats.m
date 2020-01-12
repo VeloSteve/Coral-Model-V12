@@ -1,4 +1,4 @@
-function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
+function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead ] ...
     = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, bleachParams, coralConstants )
 %Clean_Bleach_Stats computes columns of coral health flags for plotting and tables.
     %   This is a complete rewrite of Get_Bleach_Freq to remove any unneeded
@@ -27,11 +27,16 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
 
     %% Indexes and counts used below.
     % Number of corals and symbionts can vary.
+    % Also (4 Jan 2019) note that mode 9 shuffling implies 4 symbionts in each
+    % of two corals.  The other modes have 4 symbionts in 4 corals.
+    % Cn and Sn are the number of types, not the number of populations.
     numCorals = coralConstants.Cn;
     numSymb = coralConstants.Sn;
     [crow, ccol] = size(C);
     [srow, scol] = size(S);
-    assert(ccol == numCorals*numSymb, 'Corals should have one column for each coral/symbiont type combination.');
+    % No longer assume that each symbiont gets its own coral!
+    % assert(ccol == numCorals*numSymb, 'Corals should have one column for each coral/symbiont type combination.');
+    assert(mod(ccol, numCorals) == 0, 'Corals should have one column for each coral/symbiont type combination.');
     assert(scol == numCorals*numSymb, 'Symbionts should have one column for each coral/symbiont type combination.');
     assert(srow == crow, 'Length of C and S arrays must match.');
     % dt is the fraction of a month for each time step
@@ -42,16 +47,22 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
     assert(length(C)*dt == length(TIME), 'Expected months in TIME to equal timesteps in C times dt.');
 
     %%  Cover
+    % Preallocate by setting the last value to zero.
     C_monthly(monthCount, ccol) = 0;
     C_yearly(yearCount, ccol) = 0;
     S_monthly(monthCount, scol) = 0;
+    S_yearly(yearCount, scol) = 0;
 
+    % Reduce to monthly or yearly using a filter rather than just picking
+    % points.  decimate handles vectors, not matrices.
     for i=1:ccol
         C_monthly(:, i) = decimate(C(:, i), stepsPerMonth , 'fir');
         C_yearly(:, i) = decimate(C(:, i), stepsPerYear, 'fir');
     end
     for i = 1:scol
         S_monthly(:, i) = decimate(S(:, i), stepsPerMonth , 'fir');
+        % S_yearly isn't used in this function, but is a return value.
+        S_yearly(:, i) = decimate(S(:, i), stepsPerYear , 'fir');
     end
 
     %% Bleaching
@@ -60,26 +71,25 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
     % Note that Cmin (unlike the C_* arrays above only includes 2 columns, 
     % because the others are duplicates.  Also note that Cmin is one row per
     % year, NOT the same as in the old Get_bleach_freq code.
-    % Smin is simular, but S is first SUMMED across odd and even columns, since
+    % Smin is similar, but S is first SUMMED across odd and even columns, since
     % either type of symbiont is considered to count interchangeably.
     Cmin(yearCount, numCorals) = 0;
     Smin(yearCount, numCorals) = 0;
     
     % Sum S.  S columns are arranged as (symbiont 1 in coral 1, symbiont 1 in
     % coral2, symbiont 2 in coral 1, etc. - it should really be 3D.
+    % The "S" part is unchanged by the addition of mode 9 shuffling.
     Ssum(:, 1:numCorals) = S(:, 1:numCorals);
     for j = numCorals+1:scol
-        jFirst = j - numCorals*(ceil(j/numCorals) - 1);  % shift to first set of columns.
+        jFirst = numCorals - mod(j, numCorals);  % shift to first set of columns.
         Ssum(:, jFirst) = Ssum(:, jFirst) + S(:, j);
     end
     % Now get the annual minimum for each.
-    for j = 1:numCorals
-        for i = 1:yearCount
-            iEnd =  i*stepsPerYear;
-            iStart = iEnd - stepsPerYear + 1;
-            Cmin(i, j) = min(C(iStart:iEnd, j));
-            Smin(i, j) = min(Ssum(iStart:iEnd, j));
-        end
+    for i = 1:yearCount
+        iEnd =  i*stepsPerYear;
+        iStart = iEnd - stepsPerYear + 1;
+        Cmin(i, 1:numCorals) = min(C(iStart:iEnd, 1:numCorals));
+        Smin(i, 1:numCorals) = min(Ssum(iStart:iEnd, 1:numCorals));
     end
 
     % The actual bleaching calculation begins here.

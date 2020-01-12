@@ -11,7 +11,9 @@
 % 12-1-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
-                            rm, temp, vgi, gi, SelVx, C_seed, S_seed, con)
+                            rm, temp, vgi, gi, SelVx, C_seed, S_seed, con, ...
+                            alpha, KCx, Mu, um, KSx, G)
+
 	% Inputs:
     % Sold - symbiont populations - "S old" the i'th row of the S array
     % Cold - coral populations - "C old" the i'th row of the C array
@@ -29,7 +31,8 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     % con is the only optional variable, speeding calls when it is not
     % needed.
         % Sn - number of symbionts modeled
-        % KSx - symbiont carrying capacities from Baskett 2009
+        % KSx - symbiont carrying capacities from Baskett 2009, repeated for
+        % each population.
         % G  - constants from the Coral_Sym_constants file  ?
         % KS - same symbiont capacities as KSx   XXX
         % KC - coral carrying capacities from Baskett 2009
@@ -41,29 +44,22 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
         % EnvV - environmental variance from Baskett 2009
         % EnvVx - EnvV copied once per symbiont type
 
-    Sn    = con.Sn;
-    KSx   = con.KSx;
-    G     = con.G;
-    KS    = con.KS;
-    KC    = con.KC;
+    %Sn    = con.Sn;
+    %KS    = con.KS;
+    %KC    = con.KC;
     A     = con.A;
-    Mu    = con.Mu;
-    um    = con.um;
     a     = con.a;
     b     = con.b;
     EnvVx = con.EnvVx;
+    % Warning: these 5 still exist in the con struct, but are now resized in
+    % timeIteration and passed separately.
+    % KSx   = con.KSx;
+    % KCx   = con.KCx;
+    % Mu    = con.Mu;
+    % um    = con.um;
+    % G     = con.G;
 
-    %{
-    Sm = Sold(1);            % Sum of all symbionts on massive corals
-    Sb = Sold(2);            % Sum of all symbionts on branching corals
-    SA = [Sm Sb];           % Symbionts sum matrix for coral calcs
-    if Sn > 1
-        SAx = repmat(SA,1,Sn);  % Symbionts sum matrix for symbiont calcs
-    else
-        SAx = SA;
-    end
-    %}
-    
+   
     %%
     % Note that storage order with two symbionts per coral time is
     % massive1, branching1, massive2, branching2
@@ -71,28 +67,42 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     % and "2" as an introduced or other alternate type.
     %%
     
-    Sm = sum(Sold(1:2:end));  % Sum symbionts in massives
-    Sb = sum(Sold(2:2:end));  % Sum symbionts in branching
-    SA = [Sm Sb];
+    % TODO this should create a per-coral sum since symbionts in different
+    % corals don't compete with eachother.
+    if size(Sold, 2) > size(Cold, 2)
+        multForS = size(Sold, 2) / size(Cold, 2);
+        Sm = sum(Sold(1:2:end));  % Sum symbionts in massives
+        Sb = sum(Sold(2:2:end));  % Sum symbionts in branching
+        SA = [Sm Sb];
+    else
+        multForS = 1;
+        SA = Sold;
+    end
+    % SA has the right size for the coral calculation, but for 
     % SAx = Sold(1, :);  % replaced 1/30/2017 with line below
-    SAx = repmat(SA, 1, 2);
+    % also wrong. 1/3/2020 SAx = repmat(SA, 1, 2);
     
-    C1 = [Cold(2) Cold(1)];   % [branch mass]
-    C2 = [Cold(1) Cold(2)];   % [mass branch]
+  
+    % New 2020: Get a carrying capacity for each symbiont, even if there are
+    % more symbionts than corals.
+    % Typically there are either 1 or 2 symbionts per coral population, but
+    % always an integer multiple.  This is used in several places.
+    %currentKS = repmat(KSx .* Cold, 1, multForS);
+    % Since C 3 and 4 are basically junk in mode zero, don't use the values.
+    % This will need work if the number of symbionts changes.
+    % Just use 2 copies of the first 4 corals!
+    currentKS = repmat(KSx(1:2) .* Cold(1:2), 1, 2);
+    SAs = repmat(SA, 1, multForS);
     
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
-    dSk1 = dt .* Sold ./ (KSx .* Cold) .* (ri(i,:) .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK
-    dCk1 = dt .* (C2 .* (G .* SA./ (KS .* C2).* (KC-A .* C1-C2)./KC - Mu ./(1+um .* SA./(KS .* C2))) ); %Change in coral pops %OK
-    
-    % Until 2/17/2017 the dSk1 array was being indexed as a 2D array, but
-    % it's just 1 x number of symbionts!
-    dSm = sum(dSk1(1:2:end));
-    dSb = sum(dSk1(2:2:end));
-    %dSm = dSk1(1,1); % change in sum of all symbionts on massive corals
-    %dSb = dSk1(1,2); % change in sum of all symbionts on branching corals
-    % not used. dS  = [dSm dSb];           % change in sum of all symbionts matrix for coral calcs
-    
-    ctemp = temp(i)+temp(i+1);    % current temp step
+    dSk1 = dt .* Sold ./ currentKS .* (ri(i,:) .*currentKS - rm .* SAs ) ;  %Change in symbiont pops %OK
+    % The dot-product used here works for 2 corals, but for we need a proper
+    % matrix multiplication.
+    % Also, dimension everything to match the actual number of corals.
+    % dCk1 = dt .* (C2 .* (G .* SA./ (KS .* C2).* (KC-A .* C1-C2)./KC - Mu ./(1+um .* SA./(KS .* C2))) ); %Change in coral pops %OK
+    dCk1 = dt .* (Cold .* (G .* SA./ (KSx .* Cold).* (KCx-(alpha*Cold')')./KCx - Mu ./(1+um .* SA./(KSx .* Cold))) ); %Change in coral pops %OK
+      
+    ctemp = temp(i)+temp(i+1);    % current temp at half step (times 2)
     rmk2  = a*exp(b*0.5*(ctemp)); % maximum possible growth rate at optimal temp at t=i+0.5
     
     %%
@@ -106,51 +116,58 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     %rik2  =   (1- (vgi(i,:) + EnvVx + (min(1.0, gi(i,:) - 0.5*ctemp)).^2)./(2*SelVx)) * rmk2; % symbiont average growth rate at t=i+0.5
     % Try decreasing growth rate in cooler water based on Eppley
     % equation per John/Simon/Cheryl 2/8/2017.
-    rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp - gi(i,:))) * rmk2; 
+    % Jan 2020: ctemp needs to be divided by 2 in BOTH places to get the average!
+    %rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % XXX Test: partial mod to see the effect:
+    rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
 
+    % Coral population at t = t + dt/2
+    hC = max(Cold + 0.5*dCk1, C_seed);    
     
-    hCm = max(Cold(1)+0.5*dCk1(1,1), C_seed(1));  % Massive corals at t=i+0.5
-    hCb = max(Cold(2)+0.5*dCk1(1,2), C_seed(2));  % Branching corals at t=i+0.5
-    hC2 = [hCm hCb];             % Coral pop matrix for coral calcs at t=i+0.5
-    if Sn > 1
-        hCx = repmat(hC2,1,Sn);      % Coral pop matrix for symbiont calcs at t=i+0.5
+    % Symbiont populations at t = t + dt/2
+    hS = max(Sold + 0.5*dSk1, S_seed); 
+    if size(Sold, 2) > size(Cold, 2)
+        hSm = sum(Sold(1:2:end));  % Sum symbionts in massives
+        hSb = sum(Sold(2:2:end));  % Sum symbionts in branching
+        hSA = [hSm hSb];
     else
-        hCx = hC2;
+        hSA = hS;
     end
-    hC1 = [hCb hCm];             % [branch mass]
     
-    %{
-    % Old code assumes seeds are the same for all symbionts.  Change to use
-    % unique values.  Also note that hSAx was never used!
-    hSm  = max(Sm+0.5*dSm, S_seed);       % sum of all symbionts on massive corals at t=i+0.5
-    hSb  = max(Sb+0.5*dSb, S_seed);       % sum of all symbionts on branching corals at t=i+0.5
-    hSA  = [hSm hSb];        % Symbionts sum matrix for coral calcs at t=i+0.5
-    if Sn > 1
-        hSAx = repmat(hSA,1,Sn); % Symbionts sum matrix for symbionts calcs at t=i+0.5
-    else
-        hSAx = hSA;
-    end
-    %}
-    % Sm, Sb, dSm, and dSb are scalars representing the sum of all
-    % symbionts for massive or branching and for the initial values and
-    % t+1/2 deltas.  S_seed was a scalar, but is now a 1x4 vector for the
-    % case of 2 corals and 2 symbionts.  We just want sums, since the coral
-    % is treated as 2 copies of the same thing.
-    hSm  = max(Sm+0.5*dSm, max(S_seed(1), S_seed(3)));       % sum of all symbionts on massive corals at t=i+0.5
-    hSb  = max(Sb+0.5*dSb, max(S_seed(2), S_seed(4)));       % sum of all symbionts on branching corals at t=i+0.5
-    hSA  = [hSm hSb];        % Symbionts sum matrix for coral calcs at t=i+0.5
-    
-    
-    dSk2 = dt*(Sold+0.5*dSk1) ./ (KSx.*hCx) .* (rik2.* KSx.*hCx - rmk2 * (SAx+0.5*dSk1) ); %Change in symbiont pops at t=i+0.5 %OK
-    dCk2 = dt* (hC2.*(G.*hSA./(KS.*hC2).*(KC-A.*hC1-hC2)./KC-Mu./(1+um.*hSA./(KS.*hC2)))); %Change in coral pops at t=i+0.5
-    %{
-    if i< 962 && mod(i, 12) == 1
-        fprintf('dSk1 = %7.2d %7.2d %7.2d %7.2d   dSk2 = %7.2d %7.2d %7.2d %7.2d\n', dSk1, dSk2);
-    end
-    %}
+    %currentKS = repmat(KSx .* hC, 1, multForS);
+    currentKS = repmat(KSx(1:2) .* hC(1:2), 1, 2);
+
+    hSAs = repmat(hSA, 1, multForS);
+
+
+    dSk2 = dt*(Sold+0.5*dSk1) ./ currentKS .* (rik2.* currentKS - rmk2 * (hSAs+0.5*dSk1) ); %Change in symbiont pops at t=i+0.5 %OK
+    dCk2 = dt* (hC.*(G.*hSA./(KSx.*hC).*(KCx-(alpha*hC')')./KCx-Mu./(1+um.*hSA./(KSx.*hC)))); %Change in coral pops at t=i+0.5
+
     Snew = max(Sold + dSk2, S_seed);              % Symbiont pops at t=i+1
 % dCk2 has one row, two columns
 % C_seed is also a 2x1 array.
-    Cnew = max(Cold + repmat(dCk2,1,Sn), repmat(C_seed, 1, Sn)); % Coral pops at t=i+1
+    %Cnew = max(Cold + dCk2, C_seed); % Coral pops at t=i+1
+    % Experiment with just blanking out C 3,4
+    Cnew = zeros(size(Cold), 'like', Cold);
+    Cnew(1:2) = max(Cold(1:2) + dCk2(1:2), C_seed(1:2)); % Coral pops at t=i+1
 
+if false
+    if size(Cold,2) == 4
+        fprintf('Cold %+11.3e %+11.3e %+11.3e %+11.3e\n', Cold);
+        fprintf('dCk1 %+11.3e %+11.3e %+11.3e %+11.3e\n', dCk1);
+        fprintf('hC   %+11.3e %+11.3e %+11.3e %+11.3e\n', hC);
+        fprintf('dCk2 %+11.3e %+11.3e %+11.3e %+11.3e\n', dCk2);
+        fprintf('Cnew %+11.3e %+11.3e %+11.3e %+11.3e\n\n', Cnew);
+    else
+        fprintf('Cold %+11.3e %+11.3e\n', Cold);
+        fprintf('dCk1 %+11.3e %+11.3e\n', dCk1);
+        fprintf('hC   %+11.3e %+11.3e\n', hC);
+        fprintf('dCk2 %+11.3e %+11.3e\n', dCk2);
+        fprintf('Cnew %+11.3e %+11.3e\n\n', Cnew);
+    end
+    fprintf('Sold %+11.3e %+11.3e %+11.3e %+11.3e\n', Sold);
+    fprintf('dSk1 %+11.3e %+11.3e %+11.3e %+11.3e\n', dSk1);
+    fprintf('dSk2 %+11.3e %+11.3e %+11.3e %+11.3e\n', dSk2);
+    fprintf('Snew %+11.3e %+11.3e %+11.3e %+11.3e\n\n', Snew);    
+end
 end

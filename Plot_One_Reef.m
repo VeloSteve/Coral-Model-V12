@@ -115,8 +115,9 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             set(plotSD1, 'YData', smooth1);
             set(plotSD2, 'YData', smooth2);
             if size(S, 2) >= 4
-                smooth3 = movmean(S(:,3)./C(:,3), [smoothSymbiont smoothSymbiont]);
-                smooth4 = movmean(S(:,4)./C(:,4), [smoothSymbiont smoothSymbiont]);
+                cStart = size(C, 2) - 1;  % start with the next-to-last coral
+                smooth3 = movmean(S(:,3)./C(:,cStart), [smoothSymbiont smoothSymbiont]);
+                smooth4 = movmean(S(:,4)./C(:,cStart+1), [smoothSymbiont smoothSymbiont]);
                 set(plotSD3, 'YData', smooth3);
                 set(plotSD4, 'YData', smooth4);
             end
@@ -124,8 +125,9 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             set(plotSD1, 'YData', S(:,1)./C(:,1));
             set(plotSD2, 'YData', S(:,2)./C(:,2));
             if size(S, 2) >= 4
-                set(plotSD3, 'YData', S(:,3)./C(:,3));
-                set(plotSD4, 'YData', S(:,4)./C(:,4));
+                cStart = size(C, 2) - 1;  % start with the next-to-last coral
+                set(plotSD3, 'YData', S(:,3)./C(:,cStart));
+                set(plotSD4, 'YData', S(:,4)./C(:,cStart+1));
             end
         end
         % redundant at best, probably a bug:
@@ -190,8 +192,9 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             hold on;
             plotSD2 = plot(time, smooth2,'color','g','LineWidth',1);
             if size(S, 2) >= 4
-                smooth3 = movmean(S(:,3)./C(:,3), [smoothSymbiont smoothSymbiont]);
-                smooth4 = movmean(S(:,4)./C(:,4), [smoothSymbiont smoothSymbiont]);
+                cStart = size(C, 2) - 1;  % start with the next-to-last coral
+                smooth3 = movmean(S(:,3)./C(:,cStart), [smoothSymbiont smoothSymbiont]);
+                smooth4 = movmean(S(:,4)./C(:,cStart+1), [smoothSymbiont smoothSymbiont]);
                 plotSD3 = plot(time, smooth3,'color',[0.8 0.8 0],'LineWidth',1);
                 plotSD4 = plot(time, smooth4,'color',[0, 0.8, 0],'LineWidth',1);
             end
@@ -200,8 +203,9 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             hold on;
             plotSD2 = plot(time, S(:,2)./C(:,2),'color','g','LineWidth',1);
             if size(S, 2) >= 4
-                plotSD3 = plot(time, S(:,3)./C(:,3),'color',[0.8 0.8 0],'LineWidth',1);
-                plotSD4 = plot(time, S(:,4)./C(:,4),'color',[0, 0.8, 0],'LineWidth',1);
+                cStart = size(C, 2) - 1;  % start with the next-to-last coral
+                plotSD3 = plot(time, S(:,3)./C(:,cStart),'color',[0.8 0.8 0],'LineWidth',1);
+                plotSD4 = plot(time, S(:,4)./C(:,cStart+1),'color',[0, 0.8, 0],'LineWidth',1);
             end
         end
 

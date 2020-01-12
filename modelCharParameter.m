@@ -48,7 +48,7 @@ classdef modelCharParameter < modelParameter
                     % No constraints on this parameter.
                     obj.value = v;
                 else
-                    error('Value %s is not in the list of possible values of %s.', v, obj.name);
+                    error('Value %s is not in the list of possible values of %s. List: %s', v, obj.name, char(obj.possible)');
                 end
             else
                 error('You can not set a string for %s to %s\n', obj.name, v);

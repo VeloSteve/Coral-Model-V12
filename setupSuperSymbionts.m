@@ -20,9 +20,17 @@ function [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
 % in mode 9 there is a growth penalty against the coral when there are more
 % tolerant than sensitive symbionts.
 
+% For now (January 2020) assume that in mode 9 only we combine both symbiont
+% populations in a single coral population.
+% TODO If the other modes are used again, this should be revisited.
+
     % Some MATLAB doesn't like mixing int32 and double, so
     superStart = double(superStart);
-    startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
+    if superMode == 9
+        startSymFractions = [1.0-10^-6 10^-6];  % Starting fraction for native and shuffled symbionts.
+    else
+        startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
+    end
     if strcmp(RCP, 'control400')
         last = 1860+400+1;
     else
@@ -64,7 +72,7 @@ function [startSymFractions, superStartYear, superSeedFraction, oneShot] = ...
     % for 0.01 -> KSm/introduced = 3000
     % for 0.0001 -> KSm/introduced = 300000
     oneShot = false;  % After supersymbiont introduction, set its seed to zero.
-    assert(startSymFractions(2) == 0, 'Start with no symbionts if they are to be suppressed at first.');
+    assert(superMode == 9 || startSymFractions(2) == 0, 'Start with no symbionts if they are to be suppressed at first.');
     assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 end
 
