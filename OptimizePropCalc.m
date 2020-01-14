@@ -20,7 +20,7 @@ checkEquals = true;  % When more than one "equal best" is found, check all neigh
 % Discrete steps for each parameter.  Set to one for constants.
 maxSteps = 13; % 7, 13, 19 are useful multiples
 boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
-maxRuns = 1;  % Stop after this many runs, if no other stopping condition is reached.
+maxRuns = 100;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
 maxRandomEnd = 1; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.

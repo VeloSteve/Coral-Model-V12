@@ -23,10 +23,10 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     
     % Values are E, RCP, superMode, advantage, growth penalty, start, bleachTarget
     
-    propCases(2, :) = [0, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=0, OA=0
-    propCases(3, :) = [0, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=0, OA=0
-    propCases(4, :) = [1, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=1, OA=0
-    propCases(5, :) = [1, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=1, OA=0
+    %propCases(2, :) = [0, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=0, OA=0
+    %propCases(3, :) = [0, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=0, OA=0
+    %propCases(4, :) = [1, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=1, OA=0
+    %propCases(5, :) = [1, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=1, OA=0
     propCases(6, :) = [1, 45, 9, 0, 0, 1861, 3]; % RCP 4.5, E=1, OA=1
     propCases(7, :) = [1, 85, 9, 0, 0, 1861, 3]; % RCP 8.5, E=1, OA=1
     
@@ -62,10 +62,10 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     propCases(34, :) = [1, 60, 9, 1.5, 0.5, 1861, 5]; % RCP 6, E=1, OA=0
     propCases(35, :) = [1, 85, 9, 1.5, 0.5, 1861, 5]; % RCP 8.5, E=1, OA=0
     
-    propCases(36, :) = [0, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=0, OA=0
-    propCases(37, :) = [0, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=0, OA=0
-    propCases(38, :) = [1, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=1, OA=0
-    propCases(39, :) = [1, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=1, OA=0
+    %propCases(36, :) = [0, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=0, OA=0
+    %propCases(37, :) = [0, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=0, OA=0
+    %propCases(38, :) = [1, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=1, OA=0
+    %propCases(39, :) = [1, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=1, OA=0
     propCases(40, :) = [1, 45, 9, 0, 0, 1861, 10]; % RCP 4.5, E=1, OA=1
     propCases(41, :) = [1, 85, 9, 0, 0, 1861, 10]; % RCP 8.5, E=1, OA=1
     
@@ -92,8 +92,12 @@ function [propTest] = getPropTest(E, RCP, superMode, advantage, superGrowthPenal
     propCases(66, :) = [1, 60, 9, 0.5, 0.5, 1861, 5]; % RCP 6, E=1, OA=0
     propCases(67, :) = [1, 85, 9, 0.5, 0.5, 1861, 5]; % RCP 8.5, E=1, OA=0
 
-    
-    
+
+
+
+
+
+
     %% Now select the matching case (if any) based on input parameters
     % (E, RCP, superMode, advantage, start, bleachTarget)
     % Before doing the logic, make some adjustments to the inputs.

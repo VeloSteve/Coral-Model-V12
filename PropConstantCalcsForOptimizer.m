@@ -30,137 +30,118 @@ format shortg; c = clock; date = strcat(num2str(c(1)),num2str(c(2)),num2str(c(3)
 [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
 
 SST_1861_2000 = SST(:,1:1680);
-SSThist = SST_1861_2000;
+% never used? SSThist = SST_1861_2000;
 
 %% LOAD OLD SELECTIONAL VARIANCE (psw2) 
 %load ('~/Dropbox/Matlab/SymbiontGenetics/mat_files/psw2_trials.mat','psw2_var_allv2')
 
 %% Store optimizer inputs from propInputValues with any constant values to be computed.
+% expand the array once, including space for averages:
+pswInputs(4, 65+ceil(65/4)) = 0;
+
 pswInputs(:,1) = propInputValues';
 
-%% Update 1/9/2020, values for targets 3, 5 and 10% bleaching.
-% The 5% target values are complete for most combinations of parameters,
-% while 3% and 10% are there for comparision in a supplemental figure.
-% Except where noted, the growth penalty is 0.5.
-
-% === Target 3% ===
-% No shuffling advantage
-pswInputs(:, 2) = [0.025; 1.5; 0.45; 3.4444]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 3) = [0.025; 1.5; 0.45; 3.1435]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 4) = [0.025; 1.5; 0.45; 4.0278]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 5) = [0.025; 1.5; 0.45; 3.6944]; % RCP 8.5, E=1, OA=0
-pswInputs(:, 6) = [0.025; 1.5; 0.45; 4.0046]; % RCP 4.5, E=1, OA=1
-pswInputs(:, 7) = [0.025; 1.5; 0.45; 3.6713]; % RCP 8.5, E=1, OA=1
-
-% === Target 5% ===
-% No shuffling advantage
-pswInputs(:, 8) = [0.025; 1.5; 0.45; 4.3426]; % RCP 2.6, E=0, OA=0
-pswInputs(:, 9) = [0.025; 1.5; 0.45; 4.4745]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 10) = [0.025; 1.5; 0.45; 4.3519]; % RCP 6, E=0, OA=0
-pswInputs(:, 11) = [0.025; 1.5; 0.45; 4.339]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 12) = [0.025; 1.5; 0.45; 4.6806]; % RCP 2.6, E=1, OA=0
-pswInputs(:, 13) = [0.025; 1.5; 0.45; 4.8056]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 14) = [0.025; 1.5; 0.45; 4.6898]; % RCP 6, E=1, OA=0
-pswInputs(:, 15) = [0.025; 1.5; 0.45; 4.6574]; % RCP 8.5, E=1, OA=0
-% Shuffling advantage of 0.5 C
-pswInputs(:, 60) = [0.025; 1.5; 0.45; 5.4259]; % RCP 2.6, E=0, OA=0
-pswInputs(:, 61) = [0.025; 1.5; 0.45; 5.6111]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 62) = [0.025; 1.5; 0.45; 5.3009]; % RCP 6, E=0, OA=0
-pswInputs(:, 63) = [0.025; 1.5; 0.45; 5.3056]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 64) = [0.025; 1.5; 0.45; 5.6574]; % RCP 2.6, E=1, OA=0
-pswInputs(:, 65) = [0.025; 1.5; 0.45; 5.8102]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 66) = [0.025; 1.5; 0.45; 5.5231]; % RCP 6, E=1, OA=0
-pswInputs(:, 67) = [0.025; 1.5; 0.45; 5.5231]; % RCP 8.5, E=1, OA=0
+%% Update 1/13/2020, values for targets 3, 5 and 10% bleaching.
+% Now all cases are in sets which include all 4 RCP values, so averaging can be
+% done automatically.
 
 
+% Be sure to skip pswInputs(:, 1) because "1" use used for optimization.
+% == Target 3, no advantage ==
+pswInputs(:, 2) = [0.025; 1.5; 0.45; 3.1481]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 3) = [0.025; 1.5; 0.45; 3.4444]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 4) = [0.025; 1.5; 0.45; 3.0972]; % RCP 6, E=0, OA=0
+pswInputs(:, 5) = [0.025; 1.5; 0.45; 3.1435]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 6) = [0.025; 1.5; 0.45; 3.7685]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 7) = [0.025; 1.5; 0.45; 4.0278]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 8) = [0.025; 1.5; 0.45; 3.7731]; % RCP 6, E=1, OA=0
+pswInputs(:, 9) = [0.025; 1.5; 0.45; 3.6944]; % RCP 8.5, E=1, OA=0
+pswInputs(:, 10) = [0.025; 1.5; 0.45; 3.7407]; % RCP 2.6, E=1, OA=1
+pswInputs(:, 11) = [0.025; 1.5; 0.45; 4.0046]; % RCP 4.5, E=1, OA=1
+pswInputs(:, 12) = [0.025; 1.5; 0.45; 3.7407]; % RCP 6, E=1, OA=1
+pswInputs(:, 13) = [0.025; 1.5; 0.45; 3.6713]; % RCP 8.5, E=1, OA=1
 
-% The next 4 have a growth penalty of 0.25 rather than 0.5
-% Shuffling advantage 1 C from here.
-pswInputs(:, 16) = [0.025; 1.5; 0.45; 5.5324]; % RCP 2.6, E=0, OA=0
-pswInputs(:, 17) = [0.025; 1.5; 0.45; 5.6667]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 18) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
-pswInputs(:, 19) = [0.025; 1.5; 0.45; 5.5417]; % RCP 8.5, E=0, OA=0
-% Back to a penalty of 0.5
-pswInputs(:, 20) = [0.025; 1.5; 0.45; 5.5509]; % RCP 2.6, E=0, OA=0
-pswInputs(:, 21) = [0.025; 1.5; 0.45; 5.6713]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 22) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
-pswInputs(:, 23) = [0.025; 1.5; 0.45; 5.537]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 24) = [0.025; 1.5; 0.45; 5.8056]; % RCP 2.6, E=1, OA=0
-pswInputs(:, 25) = [0.025; 1.5; 0.45; 5.8287]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 26) = [0.025; 1.5; 0.45; 5.7454]; % RCP 6, E=1, OA=0
-pswInputs(:, 27) = [0.025; 1.5; 0.45; 5.6991]; % RCP 8.5, E=1, OA=0
-% Shuffling advantage 1.5 from here.
-pswInputs(:, 28) = [0.025; 1.5; 0.45; 5.3843]; % RCP 2.6, E=0, OA=0
-pswInputs(:, 29) = [0.025; 1.5; 0.45; 5.3843]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 30) = [0.025; 1.5; 0.45; 5.3843]; % RCP 6, E=0, OA=0
-pswInputs(:, 31) = [0.025; 1.5; 0.45; 5.2963]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 32) = [0.025; 1.5; 0.45; 5.6343]; % RCP 2.6, E=1, OA=0
-pswInputs(:, 33) = [0.025; 1.5; 0.45; 5.6204]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 34) = [0.025; 1.5; 0.45; 5.6389]; % RCP 6, E=1, OA=0
-pswInputs(:, 35) = [0.025; 1.5; 0.45; 5.4861]; % RCP 8.5, E=1, OA=0
+% == Target 5, no advantage == 
+pswInputs(:, 14) = [0.025; 1.5; 0.45; 4.3426]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 15) = [0.025; 1.5; 0.45; 4.4745]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 16) = [0.025; 1.5; 0.45; 4.3519]; % RCP 6, E=0, OA=0
+pswInputs(:, 17) = [0.025; 1.5; 0.45; 4.339]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 18) = [0.025; 1.5; 0.45; 4.6806]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 19) = [0.025; 1.5; 0.45; 4.8056]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 20) = [0.025; 1.5; 0.45; 4.6898]; % RCP 6, E=1, OA=0
+pswInputs(:, 21) = [0.025; 1.5; 0.45; 4.6574]; % RCP 8.5, E=1, OA=0
+pswInputs(:, 22) = [0.025; 1.5; 0.45; 4.6528]; % RCP 2.6, E=1, OA=1
+pswInputs(:, 23) = [0.025; 1.5; 0.45; 4.8009]; % RCP 4.5, E=1, OA=1
+pswInputs(:, 24) = [0.025; 1.5; 0.45; 4.6574]; % RCP 6, E=1, OA=1
+pswInputs(:, 25) = [0.025; 1.5; 0.45; 4.6389]; % RCP 8.5, E=1, OA=1
+% == Target 5, advantage 1, penalty 0.25 == (only these 4 are at 0.25)
+pswInputs(:, 26) = [0.025; 1.5; 0.45; 5.5324]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 27) = [0.025; 1.5; 0.45; 5.6667]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 28) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
+pswInputs(:, 29) = [0.025; 1.5; 0.45; 5.5417]; % RCP 8.5, E=0, OA=0
+% == Target 5, advantage 0.5 ==
+pswInputs(:, 30) = [0.025; 1.5; 0.45; 5.4259]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 31) = [0.025; 1.5; 0.45; 5.6111]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 32) = [0.025; 1.5; 0.45; 5.3009]; % RCP 6, E=0, OA=0
+pswInputs(:, 33) = [0.025; 1.5; 0.45; 5.3056]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 34) = [0.025; 1.5; 0.45; 5.6574]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 35) = [0.025; 1.5; 0.45; 5.8102]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 36) = [0.025; 1.5; 0.45; 5.5231]; % RCP 6, E=1, OA=0
+pswInputs(:, 37) = [0.025; 1.5; 0.45; 5.5231]; % RCP 8.5, E=1, OA=0
+% == Target 5, advantage 1 ==
+pswInputs(:, 38) = [0.025; 1.5; 0.45; 5.5509]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 39) = [0.025; 1.5; 0.45; 5.6713]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 40) = [0.025; 1.5; 0.45; 5.5417]; % RCP 6, E=0, OA=0
+pswInputs(:, 41) = [0.025; 1.5; 0.45; 5.537]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 42) = [0.025; 1.5; 0.45; 5.8056]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 43) = [0.025; 1.5; 0.45; 5.8287]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 44) = [0.025; 1.5; 0.45; 5.7454]; % RCP 6, E=1, OA=0
+pswInputs(:, 45) = [0.025; 1.5; 0.45; 5.6991]; % RCP 8.5, E=1, OA=0
+% == Target 5, advantage 1.5 ==
+pswInputs(:, 46) = [0.025; 1.5; 0.45; 5.3843]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 47) = [0.025; 1.5; 0.45; 5.3843]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 48) = [0.025; 1.5; 0.45; 5.3843]; % RCP 6, E=0, OA=0
+pswInputs(:, 49) = [0.025; 1.5; 0.45; 5.2963]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 50) = [0.025; 1.5; 0.45; 5.6343]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 51) = [0.025; 1.5; 0.45; 5.6204]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 52) = [0.025; 1.5; 0.45; 5.6389]; % RCP 6, E=1, OA=0
+pswInputs(:, 53) = [0.025; 1.5; 0.45; 5.4861]; % RCP 8.5, E=1, OA=0
+% == Target 10, advantage 0 ==
+pswInputs(:, 54) = [0.025; 1.5; 0.45; 5.8935]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 55) = [0.025; 1.5; 0.45; 5.9537]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 56) = [0.025; 1.5; 0.45; 5.8519]; % RCP 6, E=0, OA=0
+pswInputs(:, 57) = [0.025; 1.5; 0.45; 5.8426]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 58) = [0.025; 1.5; 0.45; 6.3843]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 59) = [0.025; 1.5; 0.45; 6.4398]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 60) = [0.025; 1.5; 0.45; 6.3472]; % RCP 6, E=1, OA=0
+pswInputs(:, 61) = [0.025; 1.5; 0.45; 6.2685]; % RCP 8.5, E=1, OA=0
+pswInputs(:, 62) = [0.025; 1.5; 0.45; 6.4213]; % RCP 2.6, E=1, OA=1
+pswInputs(:, 63) = [0.025; 1.5; 0.45; 6.4676]; % RCP 4.5, E=1, OA=1
+pswInputs(:, 64) = [0.025; 1.5; 0.45; 6.3935]; % RCP 6, E=1, OA=1
+pswInputs(:, 65) = [0.025; 1.5; 0.45; 6.2917]; % RCP 8.5, E=1, OA=1
 
-% === Target 10% ===
-% Shuffling advantage back to 0.
-pswInputs(:, 36) = [0.025; 1.5; 0.45; 5.9537]; % RCP 4.5, E=0, OA=0
-pswInputs(:, 37) = [0.025; 1.5; 0.45; 5.8426]; % RCP 8.5, E=0, OA=0
-pswInputs(:, 38) = [0.025; 1.5; 0.45; 6.4398]; % RCP 4.5, E=1, OA=0
-pswInputs(:, 39) = [0.025; 1.5; 0.45; 6.2685]; % RCP 8.5, E=1, OA=0
-pswInputs(:, 40) = [0.025; 1.5; 0.45; 6.4676]; % RCP 4.5, E=1, OA=1
-pswInputs(:, 41) = [0.025; 1.5; 0.45; 6.2917]; % RCP 8.5, E=1, OA=1
 
-% Average RCP values for otherwise identical cases.  There's always
-% a first case at RCP 2.6, average with the next 3.
-% NOTE: this gives indexes up to 58, but don't add more consecutively because
-% there is a block of entries above from 60 to 67.  If more cases appear, make a
-% new loop and skip to 70 or higher.
-startI = [8, 12, 16, 20, 24, 28, 32, 60, 64];
-currentSet = 50;
-for i = startI
-    cum = 0.0;
+% Average RCP values for otherwise identical cases in sets of 4.
+currentSet = 70;
+for i = [2:4:62]
+    sSum = 0.0;
     for j = 0:3
-        cum = cum + pswInputs(4, i+j);
+        sSum = sSum + pswInputs(4, i+j);
     end
-    ppp = pswInputs(:, startI);
-    pswInputs(:, currentSet) = [ppp(1), ppp(2), ppp(3), cum/4];
+    % Copy the first 3 values and use the averaged s.
+    pswInputs(:, currentSet) = [pswInputs(1:3, i), sSum/4];
     currentSet = currentSet + 1;
 end
-% Averaged s values as of 10 Jan 2020 are:
-% [4.3770,4.70835,5.570625,5.575225,5.7697,5.3623,5.594925]
-% for 57 and 58 values are 5.4109 and 5.6285.
-
-
 
 [~, pswCount] = size(pswInputs);
 
 
 
 %% CALULATE PROP CONSTANT FOR EACH GRID CELL
+% But there's a twist!  RCP
 psw2_new = nan(length(Reefs_latlon),1); % initialize matrix
 for reef = 1:length(Reefs_latlon)
     SSThistReef = SST_1861_2000(reef,:)';  % extract SSTs for grid cell bn 1861-2000
-    % XXX Note that SSThistReef was created but not used in the code I
-    % received!
-    %psw2(k,1) = max(0.7,min(1.3,(mean(exp(0.063*SSThistReef))/var(exp(0.063*SSThistReef)))^0.5 -1.2));% John's new eqn 7/19/16
-    
-    %psw2_new(reef,2) = max(0.6,min(1.3,()); % John's new eqn 7/25/16
-    % break up to find error:
-    %middle = mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef)).^0.25/2;
-    %psw2_new(reef,2) = max(0.6,min(1.3,middle));
-    %{
-    psw2_new(reef,1) = max(propInputValues(1),min(propInputValues(2),(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^propInputValues(3)/propInputValues(4))); % John's new eqn 7/25/16
-    % Fixed values - this costs a little time on each iteration, but keeps
-    % them available.
-    % Next 2 were used between about 1/13 and 1/17/2017
-    %psw2_new(reef,2) = max(0.35,min(1.8,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.355/2.0167)); % 1/13/17 rcp 8.5 optimized
-    %psw2_new(reef,3) = max(0.35,min(1.8,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.4556/2.556)); % 1/13/17 rcp 2.6 optimized
-    % Re-optimized on 1/17 to a 1985-2010 bleaching level of 3 percent.  2%
-    % did not seem feasible
-    psw2_new(reef,2) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/2.517)); % 1/17/17 rcp 8.5 E=0 optimized
-    psw2_new(reef,3) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/3.104)); % 1/17/17 rcp 8.5 E=1 optimized
-    psw2_new(reef,4) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/2.390)); % 1/17/17 rcp 2.6 E=0 optimized
-    psw2_new(reef,5) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/3.063)); % 1/17/17 rcp 2.6 E=1 optimized
-    %}
-    % Try to show the equation more readably:
     % E = exp(0.063.*SSThistReef)
     % max(pMin,min(pMax,(mean(E)./var(E)).^exponent/divisor))
     for j = 1:pswCount

@@ -1,10 +1,10 @@
 wrapTimerStart = tic;
 
 % Call OptimizePropCalc several times, attempting to zoom in on the best value.
-targetSet = 5.0;
+targetSet = 3.0;
 RCPset = 'rcp26';
-useLowerS = 4;
-useUpperS = 6;
+useLowerS = 3;
+useUpperS = 5;
 passes = 3;
 
 for www = 1:passes  

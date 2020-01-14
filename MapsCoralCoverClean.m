@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, ...
     lastYearAlive, events85_2010, eventsAllYears, frequentBleaching, ...
-    mortState, bleachState, fullYearRange, modelChoices)
+    mortState, bleachState, fullYearRange, modelChoices, C_yearly, C_seed, con)
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -233,8 +233,9 @@ end
 
 lastHealthy = NaN(length(Reefs_latlon), 1);
 
+% & operator has precedence before |
 combo = frequentBleaching(:, :, 1) | (mortState(:, :, 1) & mortState(:, :, 2));
-% Now we need do find the last time the value is false (healthy)
+% Now we need to find the last time the value is false (healthy)
 
 for k = activeReefs
     ind = find(~combo(k, :), 1, 'last');
@@ -255,6 +256,69 @@ if verLessThan('matlab', '8.2')
 else
     savefig(strcat(fileBase,'.fig'));
 end
+
+
+
+%% Figure 21.  Maps last year of healthy coral, defined as: 
+%
+% This is similar to Figure 20, but requiring corals to be at 4 * Seed for at
+% least one coral type to be considered healthy.
+%
+% Dimensions:
+% frequentBleaching, mortState, and bleachState are all reefs x years x coral types.
+% mortState and bleachState include an extra column for "all"
+% Store indexes, not years in lastHealthy, until just before plotting.
+
+lastHealthy = NaN(length(Reefs_latlon), 1);
+
+% There's a catch when not all reefs are computed.  Most arrays here have the
+% full 1925 reef rows or columns, but C_yearly is only for the computed reefs.
+% We'll need an expanded version in that case.
+if size(C_yearly, 2) < size(Reefs_latlon, 1)
+    % C_yearly is years/reefs/corals, but the other arrays are
+    % reefs/years/corals!
+    C_full = zeros(size(frequentBleaching));
+    num = 0;
+    for k = activeReefs
+        num = num + 1;
+        C_full(k, :, :) = C_yearly(:, num, :);
+    end 
+else
+    C_full = permute(C_yearly, [2 1 3]);
+end
+adequateCover = false(size(C_full));
+%adequateCover(:, :, 1) = C_full(:, :, 1) > C_seed(1) * 4;
+%adequateCover(:, :, 2) = C_full(:, :, 2) > C_seed(2) * 4;
+adequateCover(:, :, 1) = C_full(:, :, 1) > 0.2 * con.KCm;
+adequateCover(:, :, 2) = C_full(:, :, 2) > 0.2 * con.KCm;
+
+% Compute combo. 1 is bad.
+% & operator has precedence before |
+combo = (~adequateCover(:, :, 1) & ~adequateCover(:, :, 2)) | (frequentBleaching(:, :, 1) | (mortState(:, :, 1) & mortState(:, :, 2)));
+% Now we need to find the last time the value is false (healthy)
+
+for k = activeReefs
+    ind = find(~combo(k, :), 1, 'last');
+    if ~isempty(ind)
+        lastHealthy(k) = ind;
+    end
+end
+% Convert from indices to year.  NaN stays NaN.
+lastHealthy = lastHealthy + fullYearRange(1) - 1;
+lastYearRange = [1950 2100];
+tName = strcat(modelChoices,'. Last Year of Healthy Reef');
+fileBase = strcat(fullDir, modelChoices, '_LastHealthyBothTypesV2');
+outFile = strcat(fileBase, '.pdf');
+oneMap(21, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
+% This one may be post-processed, so save .fig
+if verLessThan('matlab', '8.2')
+    saveas(gcf, fileBase, 'fig');
+else
+    savefig(strcat(fileBase,'.fig'));
+end
+
+
+
 
 end  % End the main MapsCoralCover function.
 
