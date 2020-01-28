@@ -145,7 +145,7 @@ logTwo('Modeling %d reefs.\n', reefsThisRun);
 
 %% LOAD SELECTIONAL VARIANCE (psw2)
 psw2_new = 0; % Let the system know it's a variable at parse time!
-load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
+load (strcat(matPath, 'Optimize_psw2.mat'), 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
 % Selection of variance column from psw2_new.
@@ -155,7 +155,7 @@ else
     % propTest = getPropTest(E, RCP, superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget)
     % Send RCP = "average" to tell getPropTest to select a case which has an s
     % value averaged over all RCP scenarios matching the other parameters.
-    propTest = getPropTest(E, "average", superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget);
+    propTest = getPropTest(E, OA, "average", superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget);
 end
 pswInputs = pswInputs(:, propTest); %#ok<NODEF>
 fprintf("Using psw2 case %d with an s value of %8.4f\n", propTest, pswInputs(4));
@@ -358,7 +358,8 @@ parfor (parSet = 1:queueMax, parSwitch)
         SST_LOC = par_SST(kChunk, :);                     % Reef grid cell location
         SSThist = SST_LOC';                      % Transpose SST matrix
         Omega_hist = par_Omega(kChunk, :);
-        psw2 = psw2_new(k, propTest) ;         % UPDATED** max(0.3,min(1.3,(mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist))).^0.5/7)); % John's new eqn 8/10/16** try this
+        %psw2 = psw2_new(k, propTest) ;         % UPDATED** max(0.3,min(1.3,(mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist))).^0.5/7)); % John's new eqn 8/10/16** try this
+        psw2 = compute_psw2(pswInputs, SSThist(1:1680)); % pass SST for 1861 to 2000
         reefLatlon = par_LatLon(kChunk, :);
         suppressSI = par_SupressSI(kChunk);
         suppressSIM10 = par_SupressSIM10(kChunk);
