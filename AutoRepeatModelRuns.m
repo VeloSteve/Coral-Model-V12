@@ -11,10 +11,10 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 
 % Every combination will be a separate run.
 rcpList = {'rcp45', 'rcp85'}; % 'rcp26', 'rcp45', 'rcp60', 'rcp85'
-deltaTList = [0]; % [0.0, 1.0];
+deltaTList = [1]; % [0.0, 1.0];
 modeList = [9]; % [0, 7];  % 0 7
-eList = [1];
-oaList = [1];
+eList = [1, 0];
+oaList = [0, 1];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
 
 fprintf("--------------------------------------------------\n");
