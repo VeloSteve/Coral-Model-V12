@@ -337,11 +337,18 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     else
         clf;
         % first pass only:
-        m_proj('miller', 'lat', [-40 40]); % , 'lon', 155.0); - offsets map, but drops some data!
+        %m_proj('miller', 'lat', [-40 40]); % , 'lon', 155.0); - offsets map, but drops some data!
+        % Center on the coral triangle, skipping coral-free longitudes around
+        % zero.
+        m_proj('miller', 'lat',[-40 40],'long',[20 340]); % [0 360] for world, but no reefs from -28.5 to +32 longitude
         m_coast('patch',[0.7 0.7 0.7],'edgecolor','none');
         m_grid('box','fancy','linestyle','none','backcolor',[.9 .99 1], 'xticklabels', [], 'yticklabels', []);
     end
 
+    % Shift since maps is now in positive longitude terms.
+    idx = find(lons < 0);
+    lons(idx) = lons(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
+        
     % Points with last-year mortality values:
     [LONG,LAT] = m_ll2xy(lons,lats); hold on % convert reef points to M-Map lat long
 
