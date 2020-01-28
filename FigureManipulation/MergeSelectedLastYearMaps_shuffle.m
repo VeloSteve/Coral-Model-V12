@@ -4,6 +4,7 @@ letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
 inputPath = '../FigureData/LastYearMaps_Figure3/';
 description = strings(8,1);
 
+% Collect the maps in vectors.  Plot them later.
 % Less loop-based approached so we can have an arbitrary display order.
 num = 0;
 eee = 0;
@@ -85,7 +86,7 @@ if vertical
     [ha, pos] = tight_subplot(panels, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 else
     set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 8.5]);
-    [ha, pos] = tight_subplot(panels/2, 2, [0.02, -0.09], [0.0, 0.05], [0.0 0.05]);
+    [ha, pos] = tight_subplot(panels/2, 2, [0.02, 0], [0.0, 0.05], [0.0 0.1]);
 end
 
 

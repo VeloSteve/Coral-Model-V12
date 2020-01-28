@@ -25,22 +25,14 @@ end  % End the main MapGeneration function.
 % lons  longitudes (was [events.lon])
 % lats  latitudes
 % values what to plot at each position
-% cRange man and max data values for color scale
+% cRange min and max data values for color scale
 % t title
 function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     persistent LONG LAT longSort latSort;
     f = figure(n);
-    if n == 3
-        set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 15, 4]);
-    elseif n == 4
-        set(gcf, 'Units', 'inches', 'Position', [17, 1.5, 15, 4]);
-    elseif n == 1
-        set(gcf, 'Units', 'inches', 'Position', [1, 7.0, 15, 4]);
-    elseif n == 2
-        set(gcf, 'Units', 'inches', 'Position', [17, 7.0, 15, 4]);
-    else
-        set(gcf, 'Units', 'inches', 'Position', [4, 4, 15, 4]);
-    end
+    % Scatter the locations a bit to see them draw.
+    % (left, bottom, width, height)
+    set(gcf, 'Units', 'inches', 'Position', [0.5 + n/3, 0.5 + n/4, 15, 4]);
 
         clf;
         % first pass only:
@@ -92,19 +84,26 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     
     % Rectangles don't do color mapping, so make a substitute.
     % If using less than 1 for max, round to tenths instead of 1s.
-    if lowestScaleMax < 0.999
-        minT = floor(min(values)*10)/10.0;
-        maxT = ceil(max(values)*10)/10.0;
+    if size(lowestScaleMax) == [1 2]
+        % Take the values as gives.
+        minT = lowestScaleMax(1);
+        maxT = lowestScaleMax(2);
     else
-        minT = floor(min(values));
-        maxT = ceil(max(values));
-    end
-    if maxT < lowestScaleMax
-        maxT = lowestScaleMax;
+        % Use some heuristics.
+        if lowestScaleMax < 0.999
+            minT = floor(min(values)*10)/10.0;
+            maxT = ceil(max(values)*10)/10.0;
+        else
+            minT = floor(min(values));
+            maxT = ceil(max(values));
+        end
+        if maxT < lowestScaleMax
+            maxT = lowestScaleMax;
+        end
     end
     tRange = maxT - minT;
     cVals = length(cMap);
-    fprintf('minT = %d, maxT = %d \n', minT, maxT)
+    fprintf('minT = %d, maxT = %d, value range %d to %d \n', minT, maxT, min(values), max(values))
     
     %scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
     % Added later: report on reef cell sizes it's easy to do here since
@@ -115,7 +114,7 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
         w = longSort(find(longSort(:, 1) == x), 2);        
         y = LAT(i);
         h = latSort(find(latSort(:, 1) == y), 2);
-        reefColor = cMap(max(1, floor(cVals*(values(i)-minT)/tRange)), :);
+        reefColor = cMap(min(256, max(1, floor(cVals*(values(i)-minT)/tRange))), :);
         rectangle('Position', [x - w/2, y - h/2, w, h], 'FaceColor', reefColor, 'EdgeColor', reefColor    );
     end
     
@@ -140,12 +139,18 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     % When using standard deviation, values will be smaller.  As a kludge, use
     % the size of lowestScalMax (less than 5) as an indicator that the range
     % will be small.
-    if lowestScaleMax >= 5
+    if lowestScaleMax > 5
         cb.Ticks = [0 5 10 15 20 25 30 35];
         cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
     elseif lowestScaleMax < 0.999
         cb.Ticks = [-1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1];
-        cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
+        %cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
+    elseif lowestScaleMax == 1.0
+        cb.Ticks = [-1 -0.5 0 0.5 1];
+        %cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
+    elseif lowestScaleMax == 1.5
+        cb.Ticks = [0 0.5 1 1.5];
+        cb.TickLabels = [{'0'} {'0.5'} {'1'} {'1.5'}]; 
     else
         cb.Ticks = [-1 0 1 2 3 4 5 6];
         cb.TickLabels = [{'-1'} {'0'} {'1'} {'2'} {'3'} {'4'} {'5'} {'6'}];        

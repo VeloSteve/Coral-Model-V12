@@ -1,71 +1,62 @@
-function BleachingHistory_Subplots_WithDT_Row()
-% This figure displays data from multiple runs.  The bleaching history output
-% for each run is written by Stats_Tables.m into the bleaching/BleachingHistory
-% directory within the base output directory for model runs.  For detailed
-% yearly output after 1950, set the model parameter doDetailedStressStats true.
-% The files for a new set of runs to be plotted should be copied to safe place
-% and referenced in relPath below.  This is intentionally a manual step so that
-% test runs made later can't accidentally overwrite the data we want to publish.
-relPath = '../FigureData/healthy_4panel_figure1/bleaching_NoAdvantage_Jan10/';
-shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_1C_Jan10/';
+function  Healthy_6panel_3Targets()
+% This is a variant of BleachingHistory_Subplots_WithDT_Row() used for comparing
+% the effects of different bleaching targets.
+% The old version has 3 or 4 plots left-to-right, for different RCP values.
+% It has 4 curves on each - E=0, E=1, and those two options plus shuffling.
+%
+% The new version will omit the colored background(?) and have 3 rows of 2
+% plots.  The rows represent target bleaching of 3, 5, and 10.  Each row has
+% curves for E and OA of 0,0, 1,1, and 1,0.  Shuffling is not included.
+
+path5 = '../FigureData/healthy_4panel_figure1/bleaching_NoAdvantage_Jan14/';
+path3 = '../FigureData/healthy_4panel_figure1/target3/';
+path10 = '../FigureData/healthy_4panel_figure1/target10/';
+
+path5s = '../FigureData/healthy_4panel_figure1/shuffle_1C_Jan10_17/';
+path3s = '../FigureData/healthy_4panel_figure1/target3_shuffle/';
+path10s = '../FigureData/healthy_4panel_figure1/target10_shuffle/';
 
 inverse = true;  % 100% means 100% undamaged if true.
-topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
 smoothT = 7; % same, but applied to the background temps
 figure('color', 'w');
-set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 19, 7.5]);
+set(gcf, 'Units', 'inches', 'Position', [2, 0, 9.5, 13]);
 
-% Make subplots across, each for one rcp scenario.
-% Within each, have lines for E=0/1 and OA=0/1
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-%rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 8.5'};
-rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 6.0', '(d) RCP 8.5'};
+cols = 2;
+rows = 3;
+rcpList = {'rcp45', 'rcp85'};
+rcpName = {'RCP 4.5', 'RCP 8.5', '', '', '', ''};
+%rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 6.0', '(d) RCP 8.5'};
+rcpList = repmat(rcpList, 1, rows);
 
 % Use tight_subplot (license in license_tight_subplot.txt) to control spacing
-% rows, columns, gap, height, width
-[ha, pos] = tight_subplot(1, 4, 0.03, [0.15 0.06], 0.1, [3 2 2 2]);
+% rows, columns, gap (h w), margin height (lower upper), margin width (left right), relative width (my addition)
+[ha, pos] = tight_subplot(rows, cols, [0.04 0.06], [0.15 0.05], [0.2 0.15], [1 1]);
 
-% Can we mess with the positions now?  pos contains one array per subplot, each
-% representing left, bottom, width, height.  Note that pos contains cells but ha
-% contains axes arrays.
-%p1 = pos{1};
-%p2 = pos{2};
-%p3 = pos{3};
-% The goal is to make the 3 plots take the same space with the same gaps, but
-% have the left two 2/3 the size of the first, since they represent 100 years,
-% and the first is 150 years.
-%{
-leftEnd = p1(1);
-baseWidth = p1(3);
-widthUnit = baseWidth*3/7;
-gap = p2(1) - (leftEnd + baseWidth);
-ha(1).Position(3) = 3 * widthUnit;
-ha(2).Position(1) = leftEnd + 3 * widthUnit + gap;
-ha(2).Position(3) = 2 * widthUnit;
-ha(3).Position(1) = leftEnd + 5 * widthUnit + 2 * gap;
-ha(3).Position(3) = 2 * widthUnit;
-% For some reason the operations above change the vertical locations.  1 looks
-% okay.  OuterPosition has changed, rather than Position.
-ha(2).OuterPosition(2) = ha(1).OuterPosition(2);
-ha(2).OuterPosition(4) = ha(1).OuterPosition(4);
-%}
 legText = {};
 legCount = 1;
 panels = size(rcpList, 2);
 for i = 1:panels
     rrr = rcpList{i};
+    row = ceil(i / cols);
     % Get temperature data to go with this plot
     [tYears, DT, T] = getTempDeltas(rrr, smoothT);
-    % original subplot subplot(2,2,i);
+
     % Below pick one of the axes set up by tight_subplot
     axes(ha(i)); %#ok<LAXES>
     cases = [];
     hFile = '';
     for eee = 0:1
-        for ooo = 0  %:1           
-            if ~(eee == 1 && ooo == 1)  % Skip one curve  !!!!
-                hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+        for ooo = 0:1           
+            if ~(eee == 0 && ooo == 1)  % Skip one curve  !!!!
+                % Eash row has its own path
+                if row == 1
+                    hFile = strcat(path3, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                elseif row == 2
+                    hFile = strcat(path5, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                else
+                    hFile = strcat(path10, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                end
                 fprintf("Loading non-shuffling %s\n", hFile);
 
                 load(hFile, 'yForPlot');
@@ -76,30 +67,38 @@ for i = 1:panels
                     yForPlot = centeredMovingAverage(yForPlot, smooth, 'hamming');
                 end
                 cases = [cases; yForPlot]; %#ok<AGROW>
-                legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo));
+                legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo)); %#ok<AGROW>
                 legCount = legCount + 1;
             end
         end
     end
-    
-    % //////// ADD Symbiont shuffling curves.
-    for eee = 0:1
-    for ooo = 0:0  % 1:-1:0           
-            hFile = strcat(shufflePath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
-            fprintf("Loading shuffling %s\n", hFile);
-            load(hFile, 'yForPlot');
-            if inverse
-                yForPlot = 100 - yForPlot;
-            end
-            if (smooth > 1)
-                yForPlot = centeredMovingAverage(yForPlot, smooth, 'hamming');
-            end
-            cases = [cases; yForPlot]; %#ok<AGROW>
-            legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo), ' Shuffling');
-            legCount = legCount + 1;
+    % In addition to the E and OA combinations, there is a shuffling line in
+    % each panel.
+    eee = 0;
+    for ooo = 0:1           
+        % Each row has its own path
+        if row == 1
+            hFile = strcat(path3s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+        elseif row == 2
+            hFile = strcat(path5s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+        else
+            hFile = strcat(path10s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+        end
+        fprintf("Loading shuffling %s\n", hFile);
+        load(hFile, 'yForPlot');
+        if inverse
+            yForPlot = 100 - yForPlot;
+        end
+        if (smooth > 1)
+            yForPlot = centeredMovingAverage(yForPlot, smooth, 'hamming');
+        end
+        cases = [cases; yForPlot]; %#ok<AGROW>
+        legText{legCount} = strcat("shuffling, OA=", num2str(ooo)); %#ok<AGROW>
+        legCount = legCount + 1;
     end
-    end
     
+    % Add
+      
     % x values are the same for all. Use the latest file;
     load(hFile, 'xForPlot');
     % Temperature history has every year, but xForPlot may not.  Get the
@@ -117,28 +116,28 @@ for i = 1:panels
         dtPlot(j) = DT(jj);
         tempPlot(j) = T(jj);
     end
-    
-    % Save this RCP case as a CSV so Cheryl can look at it in R:
-    % heading = {'Year', 'Tmax', 'DT', 'E0_OA1', 'E0_OA0', 'E1_OA1', 'E1_OA0'}
-    % fname = strcat("healthy_", rcpList(i), ".csv");
-    % NOTE: csvwrite can't write a cell array.  For now just add the header line
-    % with vi!
-    % csvstuff = horzcat(xForPlot', tempPlot, dtPlot, cases');
-    % csvwrite(fname, csvstuff, 1, 0); 
-    
-    oneSubplot(xForPlot, cases, dtPlot, legText, rcpName{i}, i==1);
-
+     
+    oneSubplot(xForPlot, cases, dtPlot, legText, rcpName{i}, i==1, row==rows, mod(i, cols)==1);
     if i == 1
         % position units are based on the data plotted
-        ylabel({'Percent of healthy coral reefs globally'}, ...
-            'FontSize',24,'FontWeight','bold', 'Position', [1922 50]);
+        ylabel({'Target 3%'}, ...
+            'FontSize',24,'FontWeight','bold'); %, 'Position', [1922 50]);
+    elseif i == 3
+        % next line is based on https://www.mathworks.com/matlabcentral/answers/59545-how-can-i-change-the-space-between-multiline-title
+        tall_str = sprintf(['\\fontsize{36}' blanks(1) '\\fontsize{24}']);
+
+        ylabel({'Percent of healthy coral reefs globally'; [tall_str 'Target 5%']}, ...
+            'FontSize',24,'FontWeight','bold'); %, 'Position', [1922 50]);
+    elseif i == 5
+        ylabel({'Target 10%'}, ...
+            'FontSize',24,'FontWeight','bold'); %, 'Position', [1922 50]);
     end
 
 end
 
 %  Get the right two axes positions for use in locating the colorbar and label
-posN = pos{panels};
-posNM = pos{panels-1};
+posN = pos{cols*2};
+posNM = pos{cols*2-1};
 
 % subplot positions are left, bottom, width, height
 % Align the color bar to the top and bottom of the plots.
@@ -146,29 +145,13 @@ colorbar('Position', [posN(1)+posN(3)+0.025  posN(2)  0.03  posNM(2)+posNM(4)-po
          'Ticks', 0:1:3);
 % Add a label above the colorbar
 annotation(gcf, 'textbox', ...
-    [posN(1)+posN(3)+0.015, 0.97, 0.03, 0.03], ...
+    [posN(1)+posN(3), posN(2)+posN(4)+0.01, 0.03, 0.03], ...
     'String', '\DeltaT(°C)', ...
     'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
 
-% Add a text box at top center if text is provided.
-if ~isempty(topNote)
-    ann = annotation(gcf,'textbox',...
-        [0.5 0.5 0.2 0.08],...
-        'String',topNote,...
-        'FontSize',20,...
-        'FitBoxToText','on');
-    loc = ann.Position;
-    % Shift to top center
-    newLoc = loc;
-    newLoc(1) = 0.47 - loc(3)/2;  % 0.47 roughly centers - could calculate from subplot locations.
-    newLoc(2) = 0.98 - loc(4);
-    ann.Position = newLoc;
 end
 
-
-end
-
-function oneSubplot(X, Yset, T, legText, tText, useLegend) 
+function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, labelY) 
 
     base = [0 0 0];
     light = [0.5 0.5 0.5];
@@ -179,6 +162,7 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
 
     col{3} = base;
     col{4} = other;
+    col{5} = other;
 
     
     % Color background by temperature
@@ -223,8 +207,9 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
             case 3 
                 set(plot1(i), 'LineStyle', '--');
             case 4 
-                set(plot1(i), 'LineStyle', '-');            
-
+                set(plot1(i), 'LineStyle', '-'); 
+            case 5
+                set(plot1(i), 'LineStyle', '--');
         end
     end
     
@@ -233,31 +218,44 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
     % Some things are the same for all subplots:
     % Create title
     title(tText, 'FontSize', 22);
-    xlabel('Year','FontSize',22);
+
     ylim([0 100]);
     box('on');
     grid('on');
     
     % Other things are special for the first plot vs the others
-    if useLegend
-        xlim([1950 2100]);
-        set(gca, 'FontSize',22,'XTick',[ 1950 2000 2050 2100 ],...
-           'YTick',[0  50  100], 'LineWidth', 1.0, 'GridAlpha', 0.35);        
+    xlim([1950 2100]);
+    if labelX
+        xlabel('Year','FontSize',22);
+        if labelY
+            set(gca, 'FontSize',22,'XTick',[ 1950 2000 2050 2100 ],...
+               'LineWidth', 1.0, 'GridAlpha', 0.35);
+        else
+            set(gca, 'FontSize',22,'XTick',[ 2000 2050 2100 ],...
+                'LineWidth', 1.0, 'GridAlpha', 0.35);
+        end
     else
-        xlim([2000 2100]);
-        set(gca, 'FontSize',22,'XTick',[ 2050 2100 ],...
+        % side the grid, but omit labels.
+        set(gca, 'FontSize',22,'XTick',[ 1950 2000 2050 2100 ],...
+            'LineWidth', 1.0, 'GridAlpha', 0.35);
+        set(gca, 'XTickLabel', []);
+    end
+    if labelY
+        ylim([0 100]);
+        set(gca, 'FontSize',22, ...
             'YTick',[0  50  100], 'LineWidth', 1.0, 'GridAlpha', 0.35);
+    else
         set(gca, 'YTickLabel', []);
     end
      
     % Create legend
     hold off;
     if useLegend
-        % Note that we load E=0, E=1, Shuffle E=0, Shuffle E=1, but that's not
+        % Note that we load E/OA in the order 0/0, 1/0, 1/1, but that's not
         % the order for the legend.
-        legend1 = legend([plot1(1) plot1(3) plot1(2) plot1(4)], ...                    
-            'no adaptation', 'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
-        set(legend1,'Location','southwest','FontSize',20);
+        legend1 = legend([plot1(1) plot1(3) plot1(2) plot1(4), plot1(5)], ...                    
+            'E=0, OA=0', 'E=1, OA=1', 'E=1, OA=0', 'Shuffling, OA=0', 'Shuffling, OA=1');
+        set(legend1,'Location','southwest','FontSize',16);
     end 
 end
 

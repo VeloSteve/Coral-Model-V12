@@ -17,26 +17,30 @@ SST1900 = SST(:, 1:yearEnd(1900));  % dim is 1925 reefs by 480 months
 % Get the hottest month of each year for each reef..
 SSTR = hottest(SST1900);
 typSST1900 = mean(SSTR, 2);
-MapGeneration(Reefs_latlon, typSST1900, 9, "RCP 4.5 - SST 1861-1900");
+%MapGeneration(Reefs_latlon, typSST1900, 9, "RCP 4.5 - Hottest Month SST 1861-1900");
 
-% Same for just 2050.
-SST2050 = SST(:, yearStart(2050):yearEnd(2080));
-SSTR = hottest(SST2050);
-typSST2050 = mean(SSTR, 2);
-MapGeneration(Reefs_latlon, typSST2050, 10, "RCP 4.5 - SST 2050-2080");
+% Same for a later time.
+SST2080 = SST(:, yearStart(2080):yearEnd(2080));
+SSTR = hottest(SST2080);
+typSST2080 = mean(SSTR, 2);
+%MapGeneration(Reefs_latlon, typSST2080, 10, "RCP 4.5 - Hottest Month SST 2080");
 
-% Delta 2050-historical
-dt = typSST2050-typSST1900;
-MapGeneration(Reefs_latlon, dt, 11, "RCP 4.5 - \Delta SST 1861-1900 to 2050-2080", 4);
+% Delta 2080-historical
+dt = typSST2080-typSST1900;
+MapGeneration(Reefs_latlon, dt, 11, "RCP 4.5 - Hottest Month \Delta SST 1861-1900 to 2080", [1 4]);
 
 % Now try grouping the reefs in just 3 sets - top 10%, bottom 10%, and middle.
-splits = prctile(dt, [10,90])
+if false
+    splits = prctile(dt, [10,90]);
 
-dtFlag = 2*ones(size(dt)); %, 'int8');
-dtFlag(dt < splits(1)) = 0;
-dtFlag(dt > splits(2)) = 5;
+    dtFlag = 2*ones(size(dt)); %, 'int8');
+    dtFlag(dt < splits(1)) = 0;
+    dtFlag(dt > splits(2)) = 5;
 
-MapGeneration(Reefs_latlon, dtFlag, 12, "RCP 4.5 - 10% Largest and Smallest Changes");
+    MapGeneration(Reefs_latlon, dtFlag, 12, "RCP 4.5 - Hottest Month 10% Largest and Smallest Changes");
+end
+
+drawnow nocallbacks;
 
 function i = yearStart(y)
     % Calculate the index in the monthly time array for 15 Jan of the given
