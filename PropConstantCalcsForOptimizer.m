@@ -119,17 +119,36 @@ pswInputs(:, 62) = [0.025; 1.5; 0.45; 6.4213]; % RCP 2.6, E=1, OA=1
 pswInputs(:, 63) = [0.025; 1.5; 0.45; 6.4676]; % RCP 4.5, E=1, OA=1
 pswInputs(:, 64) = [0.025; 1.5; 0.45; 6.3935]; % RCP 6, E=1, OA=1
 pswInputs(:, 65) = [0.025; 1.5; 0.45; 6.2917]; % RCP 8.5, E=1, OA=1
-
+% ===== Inputs below were computed separately =====
+% They don't have the same sort order as those above.
+% == Target 3, advantage 1 ==
+pswInputs(:, 66) = [0.025; 1.5; 0.45; 4.3657]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 67) = [0.025; 1.5; 0.45; 4.4491]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 68) = [0.025; 1.5; 0.45; 4.3704]; % RCP 6, E=0, OA=0
+pswInputs(:, 69) = [0.025; 1.5; 0.45; 4.2963]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 70) = [0.025; 1.5; 0.45; 4.6713]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 71) = [0.025; 1.5; 0.45; 4.6944]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 72) = [0.025; 1.5; 0.45; 4.6991]; % RCP 6, E=1, OA=0
+pswInputs(:, 73) = [0.025; 1.5; 0.45; 4.5139]; % RCP 8.5, E=1, OA=0
+% == Target 10, advantage 1 ==
+pswInputs(:, 74) = [0.025; 1.5; 0.45; 7.3426]; % RCP 2.6, E=0, OA=0
+pswInputs(:, 75) = [0.025; 1.5; 0.45; 7.75]; % RCP 4.5, E=0, OA=0
+pswInputs(:, 76) = [0.025; 1.5; 0.45; 7.3519]; % RCP 6, E=0, OA=0
+pswInputs(:, 77) = [0.025; 1.5; 0.45; 7.6991]; % RCP 8.5, E=0, OA=0
+pswInputs(:, 78) = [0.025; 1.5; 0.45; 7.875]; % RCP 2.6, E=1, OA=0
+pswInputs(:, 79) = [0.025; 1.5; 0.45; 8.3935]; % RCP 4.5, E=1, OA=0
+pswInputs(:, 80) = [0.025; 1.5; 0.45; 7.5602]; % RCP 6, E=1, OA=0
+pswInputs(:, 81) = [0.025; 1.5; 0.45; 8.1181]; % RCP 8.5, E=1, OA=0
 
 % Average RCP values for otherwise identical cases in sets of 4.
-currentSet = 70;
-for i = [2:4:62]
+currentSet = 100;
+for i = [2:4:78]
     sSum = 0.0;
     for j = 0:3
         sSum = sSum + pswInputs(4, i+j);
     end
     % Copy the first 3 values and use the averaged s.
-    pswInputs(:, currentSet) = [pswInputs(1:3, i), sSum/4];
+    pswInputs(:, currentSet) = [pswInputs(1, i), pswInputs(2, i), pswInputs(3, i), sSum/4];
     currentSet = currentSet + 1;
 end
 
@@ -138,13 +157,18 @@ end
 
 
 %% CALULATE PROP CONSTANT FOR EACH GRID CELL
-% But there's a twist!  RCP
+% Change, Jan 2020.
+% Instead of calculating all the cases for future use, at risk of mismatching
+% the SST data and the cases, just do case 1 for the optimizer.  Only store the
+% full list of input values, which will be used to calculate psw2 at the time of
+% each simulation.
+
 psw2_new = nan(length(Reefs_latlon),1); % initialize matrix
 for reef = 1:length(Reefs_latlon)
     SSThistReef = SST_1861_2000(reef,:)';  % extract SSTs for grid cell bn 1861-2000
     % E = exp(0.063.*SSThistReef)
     % max(pMin,min(pMax,(mean(E)./var(E)).^exponent/divisor))
-    for j = 1:pswCount
+    for j = 1:1 % pswCount
         psw2_new(reef,j) = max(pswInputs(1, j),min(pswInputs(2, j),(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^pswInputs(3, j)/pswInputs(4, j))); % John's new eqn 7/25/16
     end
     clear SSThistReef
@@ -152,5 +176,6 @@ end
 
 %% Save new psw2 values
 cd(matPath);
-save('Optimize_psw2.mat','psw2_new','Reefs_latlon','pswInputs'); %% CAL 10-3-16 based on hist SSTs!
+save('Optimize_psw2.mat', 'pswInputs'); %% CAL 10-3-16 based on hist SSTs!
+%save('Optimize_psw2.mat','psw2_new','Reefs_latlon','pswInputs'); %% CAL 10-3-16 based on hist SSTs!
 cd(basePath);
