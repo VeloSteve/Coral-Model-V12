@@ -1,8 +1,8 @@
 # Coral-Model-V12
 ## Archived versions of this software are available:
 [![DOI](https://zenodo.org/badge/113405802.svg)](https://zenodo.org/badge/latestdoi/113405802)
-The latest DOI as of 1 Feb 2020 is 10.5281/zenodo.3629878. The software is under
-a "3-Clause BSD License".  See the LICENSE file.
+The software is under a "3-Clause BSD License".  See the LICENSE file and other
+license_*.txt files for included third-party software.
 
 This is the model used for a paper submitted for publication by Logan, Dunne,
 Ryan, Baskett, and Donner in early 2020.  Publication details are not yet available and
