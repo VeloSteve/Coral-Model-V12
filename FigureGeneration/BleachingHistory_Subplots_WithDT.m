@@ -254,7 +254,7 @@ end
 
 function [years, DT, T_smooth] = getTempDeltas(RCP, smoothT) 
     % Get the global T history and crunch it down to global DT from 1861 to 2001.
-    sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
+    sstPath = "D:/GitHub/Coral-Model-V12/ClimateData/";
     dataset = "ESM2M";
     [SST, ~, ~, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);
     % For each reef get the average peak for the first 140 years. (1861 to 2000)

@@ -37,18 +37,17 @@ classdef ParameterDictionary
             
             % Paths
             addOne(p, modelCharParameter('path', 'codeBase', 'string', 'D:/GitHub/Coral-Model-V12/'));
-            addOne(p, modelCharParameter('path', 'sharedData', 'string', 'D:/GitHub/Coral-Model-Data/'));
+            addOne(p, modelCharParameter('path', 'sharedData', 'string', 'D:/GitHub/Coral-Model-V12/ClimateData/'));
             addOne(p, modelCharParameter('path', 'outputBase', 'string', 'D:/CoralTest/V12Test/'));
             % Model constants and psw2 values for each case.
             addOne(p, modelCharParameter('path', 'matPath', 'string', 'D:/GitHub/Coral-Model-V12/mat_files/'));
             % ESM2M_SSTR_JD data
-            addOne(p, modelCharParameter('path', 'sstPath', 'string', 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/'));
+            addOne(p, modelCharParameter('path', 'sstPath', 'string', 'D:/GitHub/Coral-Model-V12/ClimateData/'));
             % DHM and Omega data
-            addOne(p, modelCharParameter('path', 'sgPath', 'string', 'D:/GitHub/Coral-Model-Data/SymbiontGenetics/mat_files/'));
+            % now stored with sst data
+            %addOne(p, modelCharParameter('path', 'sgPath', 'string', 'D:/GitHub/Coral-Model-V12/ClimateData/'));
             % Mapping code - not ours, so don't publish the repository.
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
-            addOne(p, modelCharParameter('path', 'GUIBase', 'string', 'C:/'));
-
             
             % Science
             addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85'}));
@@ -70,7 +69,6 @@ classdef ParameterDictionary
             maxW = pc.NumWorkers;
             addOne(p, modelIntParameter('comp', 'useThreads', 'integer', 2, 1, maxW));
             addOne(p, modelLogicalParameter('comp', 'skipPostProcessing', 'logical', false));
-            addOne(p, modelLogicalParameter('comp', 'doProgressBar', 'logical', false));
             addOne(p, modelLogicalParameter('comp', 'optimizerMode', 'logical', false));
             % Model source
             addOne(p, modelCharParameter('comp', 'modelVersion', 'string', 'Needs to be set!'));
@@ -79,7 +77,7 @@ classdef ParameterDictionary
             addOne(p, modelIntParameter('output', 'keyReefs', 'integer', 5, 1, 1925, true));  % Note nullAllowed final argument.
             addOne(p, modelLogicalParameter('output', 'newMortYears', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
-            addOne(p, modelLogicalParameter('output', 'allPDFs', 'logical', false));
+            addOne(p, modelLogicalParameter('output', 'allFigs', 'logical', false));
             addOne(p, modelLogicalParameter('output', 'doPlots', 'logical', true));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverFigure', 'logical', true));
             addOne(p, modelLogicalParameter('output', 'doCoralCoverMaps', 'logical', true));

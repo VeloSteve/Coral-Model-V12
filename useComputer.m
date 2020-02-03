@@ -1,5 +1,8 @@
 function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
         = useComputer(n)
+    % Note: this function machine-specific and largely out of data.  The main
+    % program doesn't depend on it, but edits may be needed for some supporting
+    % scripts.
     % Set paths and anything else computer-specific
     % 1=office; 2=laptop; 3=Steve; 4=Steve laptop;
     
@@ -30,7 +33,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             defaultThreads = 5;
             top = 'D:/GitHub/';
             basePath = strcat(top, 'Coral-Model-V12/');
-            sharedData = strcat(top, 'Coral-Model-Data/');
+            sharedData = strcat(basePath, 'ClimateData/');
             %outputPath = basePath;
             outputPath = 'D:/CoralTest/V12Test/';  % C: for SSD D: for non-google directory
             %outputPath =  'D:/GoogleDrive/Coral_Model_Steve/Outputs_May8_May17/';
@@ -57,9 +60,9 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
     else
         % Steve's computers
         matPath = strcat(basePath, 'mat_files/');
-        sstPath = strcat(sharedData, 'ProjectionsPaper/');
+        sstPath = sharedData;
         m_mapPath = strcat(top, 'm_map/');
-        SGPath = strcat(sharedData, 'SymbiontGenetics/mat_files/');
+        SGPath = sharedData; % strcat(sharedData, 'SymbiontGenetics/mat_files/');
     end
     addpath(m_mapPath);
     cd(basePath);

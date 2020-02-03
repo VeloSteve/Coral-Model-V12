@@ -1,9 +1,9 @@
 function [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, superStart, ...
-          outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
+          outputPath, sstPath, matPath, m_mapPath, ...
           architecture, useThreads, everyx, specialSubset, ...
-          keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
+          keyReefs, skipPostProcessing, doPlots, ...
           doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
-          doGenotypeFigure, doDetailedStressStats, allPDFs, ...
+          doGenotypeFigure, doDetailedStressStats, allFigs, ...
           saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(p)
 %EXPLODEVARIABLES Extract parameter structure to program variables.
 %   
@@ -23,11 +23,9 @@ function [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, su
     superStart = p.superStart;
     % Bookkeeping variables
     outputPath = p.outputBase;  % Note name change.
-    sgPath = p.sgPath;
     sstPath = p.sstPath;
     matPath = p.matPath;
     m_mapPath = p.m_mapPath;
-    GUIBase = p.GUIBase;
     % Computing variables
     architecture = p.architecture;
     useThreads = p.useThreads; % Note name change
@@ -36,14 +34,13 @@ function [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, su
     % Output variables
     keyReefs = p.keyReefs;
     skipPostProcessing = p.skipPostProcessing;
-    doProgressBar = p.doProgressBar;
     doPlots = p.doPlots;
     doCoralCoverMaps = p.doCoralCoverMaps;
     doCoralCoverFigure = p.doCoralCoverFigure;
     doGrowthRateFigure = p.doGrowthRateFigure;
     doGenotypeFigure = p.doGenotypeFigure;
     doDetailedStressStats = p.doDetailedStressStats;
-    allPDFs = p.allPDFs;
+    allFigs = p.allFigs;
     saveVarianceStats = p.saveVarianceStats;
     newMortYears = p.newMortYears;
     optimizerMode = p.optimizerMode;

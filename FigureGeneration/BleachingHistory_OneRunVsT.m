@@ -4,7 +4,7 @@ relPath = 'D:/CoralTest/V12Test/bleaching/';
 %relPath = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewK_NewSeed_Target5\';
 
 % We need the temperature history for comparison.
-sstPath = 'D:/GitHub/Coral-Model-Data/ProjectionsPaper/';
+sstPath = 'D:/GitHub/Coral-Model-V12/ClimateData/';
 dataset = 'ESM2M';
 RCP = 'rcp60';
 [SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, dataset, RCP);

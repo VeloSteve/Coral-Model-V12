@@ -5,7 +5,7 @@ close all;
 addpath('d:\GitHub\Coral-Model-V12');
 addpath('d:\GitHub\Coral-Model-V12\FigureGeneration');
 addpath('D:/GitHub/m_map/');
-sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
+sstPath = "D:/GitHub/Coral-Model-V12/ClimateData/";
 
 % The calls below will generate all the maps no matter what you specify, but
 % this list defines which will be combined in the final output figure.  Select

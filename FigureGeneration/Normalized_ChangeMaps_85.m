@@ -3,7 +3,7 @@ Computer = 0; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
 addpath('d:\GitHub\Coral-Model-V12');
 addpath('d:\GitHub\Coral-Model-V12\FigureGeneration');
 addpath('D:/GitHub/m_map/');
-sstPath = "D:/GitHub/Coral-Model-Data/ProjectionsPaper/";
+sstPath = "D:/GitHub/Coral-Model-V12/ClimateData/";
 RCP = 'rcp85';
 
 % SST DATASET?

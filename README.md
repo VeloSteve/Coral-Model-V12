@@ -18,25 +18,24 @@ may change.
    single JSON string.
 4) Obtain m_map from www.eoas.ubc.ca/~rich/map.html, and edit m_mapPath to 
    point at the directory where you install it.
-5) Obtain the supporting climate model and reef cell locations from
-   https://github.com/VeloSteve/Coral-Model-Data, and edit sstPath to point to
-   its directory.
-6) Edit outputBase to point to a location for output files.
-7) In all locations, replace "D:/GitHub/Coral-Model-V12/" with the base
+5) Edit outputBase to point to a location for output files.
+6) In all locations, replace "D:/GitHub/Coral-Model-V12/" with the base
    directory in which you have placed this model.
-8) Edit useThreads to a value no greater than the number of workers allowed in
+7) Edit useThreads to a value no greater than the number of workers allowed in
    your MATLAB configuration.
-9) For Windows, the file timeIteration_23040_mex.mexw64 is already in place. On
+8) For Windows, the file timeIteration_23040_mex.mexw64 is already in place. On
    other architectures use MATLAB Coder to compile timeIteration.m for your
    machine. As an entry point, use the main program, ideally after editing everyx
    in modelVars.txt to 100 or 1000 for faster operation.  Rename the resulting
    "mex" file exactly as shown.  The number must match the number of time points
    in the computation, as reflected in the array "time".
-10) Select aCoralModel.m and run it.
+9) Select aCoralModel.m and run it.
 
 ## Definitions for all variables in modelVars.txt
 <p>&nbsp;</p>
-<p><strong>Table 2</strong>, Input options. &nbsp; These are stored at runtime in an object called parameterDictionary, and may be be modified by editing a JSON-formatted text file.</p>
+<p>Input options. &nbsp; These are the variables which may be modified by editing
+ modelVars.txt.  At runtime they are stored in an object called ParameterDictionary,
+ which provides some limited error checking.</p>
 <table border="0" cellpadding="0" cellspacing="0" >
   <tbody>
     <tr>
@@ -123,6 +122,17 @@ may change.
     </tr>
     <tr>
       <td valign="bottom" >
+        <p>superGrowthPenalty</p>
+      </td>
+      <td valign="bottom" >
+        <p>0.25</p>
+      </td>
+      <td colspan="2" valign="bottom" >
+        <p>Coral growth penalty applied when a heat-tolerant symbiont strain dominates.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="bottom" >
         <p>superStart</p>
       </td>
       <td valign="bottom" >
@@ -135,17 +145,6 @@ may change.
     <tr>
       <td colspan="4" valign="bottom" >
         <p><strong>Computation</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td valign="bottom" >
-        <p>doProgressBar</p>
-      </td>
-      <td valign="bottom" >
-        <p>false</p>
-      </td>
-      <td colspan="2" valign="bottom" >
-        <p>Produce data for a progress bar in the GUI (set automatically).</p>
       </td>
     </tr>
     <tr>
@@ -310,17 +309,6 @@ may change.
     <tr>
       <td colspan="4" valign="bottom" >
         <p><strong>Paths</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td valign="bottom" >
-        <p>GUIBase</p>
-      </td>
-      <td colspan="2" valign="bottom" >
-        <p>D:/CoralTest/GUIState/</p>
-      </td>
-      <td valign="bottom" >
-        <p>A scratch directory for the GUI to store its last state.</p>
       </td>
     </tr>
     <tr>

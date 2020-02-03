@@ -13,8 +13,7 @@ timerStart = tic;
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
 %  but also accept a JSON string directly
 if nargin < 1
-    parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars_paper.txt';
-    %parameters = 'D:\sync\Coral_Model_Steve\GUIState_AndRunHistory\modelVars.txt';
+    parameters = 'D:\GitHub\Coral-Model-V12\modelVars.txt';
     % Normal code - above is for debug only.
     % error('The coral model requires input parameters.  Either a ParameterDictionary object or a JSON-encoded parameters are accepted.');
 end
@@ -30,8 +29,6 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 % Constants NOT controllable from the GUI or scripts are set first:
 bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
-doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
-doHughesComparison = false;
 dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
 
@@ -40,11 +37,11 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
 % does serve as a list of all variable arguments.  This is intended to
 % allow A_Coral_Model to never be edited during normal use.
 [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, superStart,...
- outputPath, sgPath, sstPath, matPath, m_mapPath, GUIBase, ...
+ outputPath, sstPath, matPath, m_mapPath, ...
  architecture, useThreads, everyx, specialSubset, ...
- keyReefs, skipPostProcessing, doProgressBar, doPlots, ...
+ keyReefs, skipPostProcessing, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
- doGenotypeFigure, doDetailedStressStats, allPDFs, ...
+ doGenotypeFigure, doDetailedStressStats, allFigs, ...
  saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(ps);
 
 % Growth penalty is irrelevant for superAdvantage, but can have side
@@ -118,7 +115,7 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-    [Omega_all] = GetOmega(sgPath, RCP);
+    [Omega_all] = GetOmega(sstPath, RCP);
     if strcmp(RCP, 'control400')
         % Enlarge the array to match the extended control400 array
         copyLine = Omega_all(:, 2880);
@@ -214,9 +211,8 @@ fullYearRange = [startYear startYear+years-1];
 time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time so there's a point for every Runge-Kutta time step.
 % Set index for mean historical Temp between 1861-2000 (ESM2M_historical; yrs
 % used in Baskett et al 2009) Note: original code had a different end point for
-% SST dataset ESM2M vs. HadISST. TODO: figure out whether this index max sense
-% for runs with Dormand-Prince, which doesn't have fixed step sizes.
-% The clear makes sure a persistent variable inside the function isn't left from
+% SST dataset ESM2M vs. HadISST. 
+% The "clear" makes sure a persistent variable inside the function isn't left from
 % a previous run, which may have a different step size.  Only needed on the
 % first call in a given run.
 clear findDateIndex;
@@ -321,13 +317,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
     % How often to print progress.
-    %printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
-    % More often for progress bar
-    if doProgressBar
-        printFreq = max(2, ceil(length(toDoPart{parSet})/20)); % The last number is the number of pieces to report.
-    else
-        printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last number is the number of pieces to report.
-    end
+    printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last number is the number of pieces to report.
 
     % Variables to collect and return, since parfor won't allow direct
     % insertion into an output array.
@@ -397,110 +387,13 @@ parfor (parSet = 1:queueMax, parSwitch)
         %fprintf('super will start at index %d\n', suppressSI);
         %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
         
-        % First run the built-in Prince-Dormand solver.  For now, compare
-        % and discard the results so the existing results are not affected.
-        if doDormandPrince
-            % Compute outside the loop once this is working, but for
-            % now make a time array in month units each time.
-            % The preserve the uneven spacing of SST values, compute tMonths
-            % from TIME, recognizing that the first time of the simulation is
-            % the beginning of January 1861, but the first SST value corresponds
-            % to 1/15/1861.
-            tMonths = TIME - TIME(1);  % shift to zero
-            % span of TIME is the number of simulated months minus one, since
-            % min-month values are stored.  Add 0.5 so the interpolation matches
-            % the inputs.
-            
-            tMonths = 0.5 + (tMonths * (length(TIME)-1) / (TIME(end) - TIME(1)));
-            % Convert supersymbiont start year to months, since that's the 
-            % unit used inside.
-            if superStart < fullYearRange(2)
-                superMonth = (superStart - fullYearRange(1))*12;
-            else
-                superMonth = -1;
-            end
-            tic
-            % TODO - the fineness of the interpolated variables temp, gVec
-            % and ri (and omega) may be affecting the results of Dormand Prince.  This
-            % was observed when changing dt values for the OTHER algorithm!
-            % The interpolation done above is
-            % temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
-            % While inside the function we get values from
-            % T = interp1q(tMonths, temp, t);
-            % XXX Remove after looking at graphs! - arbitrarily use 100 to
-            % 110 months.
-            %{
-            figure(451); hold off;
-            % plot uninterpolated temp
-            mOne = linspace(0, months, length(SSThist));
-            plot(mOne, SSThist, 'o', 'DisplayName', 'Monthly'); hold on;
-                            xlim([100 200]);
 
-            % now add the values passed in below
-            plot(tMonths, temp, '+', 'DisplayName', 'Four per month');
-                            xlim([100 200]);
-
-            % interpolate as currently coded to hundredths of months and plot
-            testMonths = 100:0.01:200;
-            testMonths = testMonths';
-            iT1q = interp1q(tMonths, temp, testMonths); % "quick 1D linear interpolation (not recommended)
-            plot(testMonths, iT1q, '*', 'DisplayName', 'interp 1q');
-                            xlim([100 200]);
-
-            % use interp1, which supports a spline function (and
-            % others)
-            iT1 = interp1(tMonths, temp, testMonths, 'spline');
-            plot(testMonths, iT1, '.', 'DisplayName', 'interp1 from Four/month');
-                            xlim([100 200]);
-
-            % use interp1 direct from single months
-            iT2 = interp1(mOne, SSThist, testMonths, 'spline');
-            plot(testMonths, iT2, '.', 'DisplayName', 'interp1 from monthly');
-                            xlim([100 200]);
-
-            legend('show')
-            hold off;
-            %}
-
-            [S, C, tResults, gi, vgi, origEvolved] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
-                SSThist, OA, Omega_hist, vgi(1, :), gi(1, :), MutVx, SelVx, C_seed, S_seed, superMonth, ...
-                superSeedFraction, oneShot, coralSymConstants, dt, k); 
-            fprintf('Reef %d ', k);
-            toc
- 
-            tSteps = tResults(2:end) - tResults(1:end-1);
-            tSteps = tSteps(tSteps ~= 0);
-            fprintf('DP steps range from %d to %d (%d steps)\n', min(tSteps), max(tSteps), length(tSteps));
-            % Now convert tResults to MATLAB's "serial date number" for consistency with the code
-            % below.  tResults is in months from the start of the simulation,
-            % and temperatures are provided based on the 15th of each month
-            % (uneven number of days).
-            % TIME is the original unevenly-spaced "15th of month" times at which we have temperatures.
-            % tMonths are the evenly spaced months used to interpolate those temperatures in D-P.
-
-            tResults = interp1(tMonths, TIME, tResults, 'linear', 'extrap');     
-            % Reef 337 goes to a near-zero step size at 11-Aug-2038 07:12:00 !
-            % Is coral going negative at about 744500?
-            
-            % Interpolate to fixed time steps for easy post-processing.
-            % Would it be worth joining these arrays so that only one
-            % interpolation is needed?
-            C = interp1(tResults, C, time, 'pchip');
-            S = interp1(tResults, S, time, 'pchip');
-            gi = interp1(tMonths, gi, time, 'pchip');
-            vgi = interp1(tMonths, vgi, time, 'pchip');
-
-        else
-            % timeIteration is called here, with the version determined by
-            % iteratorHandle.
-
-            [S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
-                        temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-                        superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, ...
-                        bleachStateTemp, bleachParams, coralSymConstants);
-            tResults = time;  % Dormand-Prince creates its own time steps, R-K uses time.
-        end
-        %Plot_ArbitraryYvsYears(ri(:,2), tResults, strcat('Temperature Effect on Branching Growth, k = ', num2str(k)), 'Growth rate factor')
+        % timeIteration is called here, with the version determined by
+        % iteratorHandle.
+        [S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
+                    temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                    superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, ...
+                    bleachStateTemp, bleachParams, coralSymConstants);
                     
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
@@ -545,7 +438,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         end
 
 
-        par_C_cum = par_C_cum + C; % interp1(tResults, C, TIME, 'pchip');
+        par_C_cum = par_C_cum + C;
         par_Massive_dom = par_Massive_dom + C(:, 1) > C(:, 2);
         
         %% New clean stats section
@@ -567,10 +460,10 @@ parfor (parSet = 1:queueMax, parSwitch)
         %bleachStateOne = bleachStateTemp;
         
         
-        if doPlots && (any(keyReefs == k) || allPDFs)
+        if doPlots && (any(keyReefs == k) || allFigs)
             % Now that we have new stats, reproduce the per-reef plots.
             Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
-                  hist, dataset, sgPath, k, ...
+                  hist, dataset, sstPath, k, ...
                   pdfDirectory, E, lenTIME);
         end
 
@@ -590,24 +483,13 @@ parfor (parSet = 1:queueMax, parSwitch)
 
         if parSwitch && mod(reefCount, printFreq) == 0
             pct = (100*reefCount/length(toDoPart{parSet}));
-            if  doProgressBar
-                pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
-                fprintf(pf, '%d', round(pct));
-                fclose(pf);
-            else
-                if ~optimizerMode
-                    fprintf('Set %d is %3.0f percent complete.\n', parSet, pct);
-                end
+            if ~optimizerMode
+                fprintf('Set %d is %3.0f percent complete.\n', parSet, pct);
             end
         end
 
     end % End of reef areas for one parallel chunk
     % Progress is now 100% for this chunk.
-    if  doProgressBar
-        pf = fopen(strcat(GUIBase, '/Prog_', num2str(parSet)), 'w');
-        fprintf(pf, '%d', 100);
-        fclose(pf);
-    end
     % Collect per-worker parts back into the _chunk arrays.
     bleachEvents_chunk{parSet} = par_bleachEvents;
     bleachState_chunk{parSet} = par_bleachState;
@@ -690,47 +572,7 @@ if ~skipPostProcessing
     end
     % Count for all reefs over this time period.
     count852010 = sum(events85_2010);
-    
-    if doHughesComparison
-        %{
-        Number of reefs in each region:
-         Hughes  Logan
-         AuA   32      906
-         IO-ME 24      310
-         Pac   22      480
-         WAtl  22      199
-         Far           30
-        %}
-        % Now go back and get a running cumulative count of bleaching events for all
-        % reefs by year.
-        for y = size(bleachEvents, 2):-1:1
-            % Note: this combines branching and massive bleaching events.  When we
-            % have these in consecutive years it may look like two events where
-            % another study would call it one.
-            cumBleachEvents(y) = nnz(bleachEvents(:, y, :));
-        end
-        cumBleachEvents = cumsum(cumBleachEvents);
-    
-        % XXX - the line below is only valid when matched to the keyReefs!!!
-        %cumBleachEvents = cumBleachEvents*32.0/906.0;  % 32/906 for Au
-        
-        hughesPlot(cumBleachEvents, startYear, 'Bleaching events, m+b, Au, matched reefs');
-        
-        % Save data for external use (MS 263 project)
-        i1980 = 1980 - startYear + 1;
-        i2016 = 2016 - startYear + 1;
-        for k = maxReefs:-1:1
-            events80_2016(k) = nnz(bleachEvents(k, i1980:i2016, :));
-        end
-        events80_2016 = events80_2016';
-        % Also, save the un-summarized bleaching events for the years of
-        % interest.
-        events80_2016_detail = bleachEvents(:, i1980:i2016, :);
-        save(strcat(mapDirectory, 'HughesCompEvents', '_selV_', RCP, 'E=', num2str(E), ...
-            'OA=', num2str(OA), '.mat'), ...
-            'events80_2016', 'events80_2016_detail');
-    end
-    
+   
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
     fprintf('Bleaching by event = %6.4f\n', ...
         Bleaching_85_10_By_Event);
