@@ -22,14 +22,16 @@ may change.
 6) In all locations, replace "D:/GitHub/Coral-Model-V12/" with the base
    directory in which you have placed this model.
 7) Edit useThreads to a value no greater than the number of workers allowed in
-   your MATLAB configuration.
+   your MATLAB configuration.  Later, try changing this to optimize performance.
 8) For Windows, the file timeIteration_23040_mex.mexw64 is already in place. On
    other architectures use MATLAB Coder to compile timeIteration.m for your
    machine. As an entry point, use the main program, ideally after editing everyx
    in modelVars.txt to 100 or 1000 for faster operation.  Rename the resulting
    "mex" file exactly as shown.  The number must match the number of time points
    in the computation, as reflected in the array "time".
-9) Select aCoralModel.m and run it.
+9) Open A_Coral_Model.m and replace "D:\GitHub\Coral-Model-V12\modelVars.txt" with
+   the actual path to the modelVars file you edited above.
+9) From the base directory used above, run A_Coral_Model.m
 
 ## Definitions for all variables in modelVars.txt
 <p>&nbsp;</p>
