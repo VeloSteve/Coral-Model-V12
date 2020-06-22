@@ -58,6 +58,12 @@ function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead
     for i=1:ccol
         C_monthly(:, i) = decimate(C(:, i), stepsPerMonth , 'fir');
         C_yearly(:, i) = decimate(C(:, i), stepsPerYear, 'fir');
+        %fprintf("===== WARNING: 'fir' is the production code. Temporarily replaced by yearly mean. =====\n");
+        %y = 1;
+        %for m = 1:12:240*12
+        %    C_yearly(y, i) = mean(C_monthly(m:m+11, i));
+        %    y = y + 1;
+        %end
     end
     for i = 1:scol
         S_monthly(:, i) = decimate(S(:, i), stepsPerMonth , 'fir');

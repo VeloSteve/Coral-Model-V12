@@ -85,7 +85,7 @@ if vertical
     set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 13, 14]);
     [ha, pos] = tight_subplot(panels, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 else
-    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 8.5]);
+    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 10.5]);
     [ha, pos] = tight_subplot(panels/2, 2, [0.02, 0], [0.0, 0.05], [0.0 0.1]);
 end
 

@@ -53,7 +53,7 @@ if ~isempty(intersect(selectedMaps, [21:24])); HotMonthSST_SD_ChangeMaps_85; end
 %Fast maps 9 to 16 for testing only:
 %DummyMaps;
 
-% This uses a lot of memory.  Close unused maps befoe building the huge one.
+% This uses a lot of memory.  Close unused maps before building the huge one.
 closeMe = setdiff(1:24, selectedMaps);
 idx = ishandle(closeMe);
 close(closeMe(idx));
@@ -89,7 +89,9 @@ posCombo = [600 0 width*figRatio heightAll*figRatio];
 
 combo = figure('Units', 'pixels', 'Position', posCombo);
 % Nh, Nw, gap, marg_h, marg_w
-[ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.0 0.05]);
+% Jan 2020 version cut off the lowest axis labels.  Try a margin.
+% [ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.0 0.05]);
+[ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.025 0.025]);
 
 % tight_subplot(4, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 

@@ -27,7 +27,6 @@ end
 clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
 
 % Constants NOT controllable from the GUI or scripts are set first:
-bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;        % never changes
 dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
 
@@ -42,7 +41,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  keyReefs, skipPostProcessing, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allFigs, ...
- saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(ps);
+ saveVarianceStats, newMortYears, optimizerMode, bleachingTarget] = explodeVariables(ps);
 
 % Growth penalty is irrelevant for superAdvantage, but can have side
 % effects.
@@ -74,7 +73,7 @@ dataReefs = [];
 % 0:  runs sequentially.
 % > 0 tries to start the requested number of workers, failing if the value
 %     is greater than the value specified in Matlab's Parallel Preferences.
-fprintf('%d Threads from GUI or script\n', useThreads);
+fprintf('\n%d Threads from GUI or script\n', useThreads);
 [queueMax] = parallelSetup(useThreads);
 fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
@@ -142,13 +141,14 @@ logTwo('Modeling %d reefs.\n', reefsThisRun);
 
 %% LOAD SELECTIONAL VARIANCE (psw2)
 psw2_new = 0; % Let the system know it's a variable at parse time!
-load (strcat(matPath, 'Optimize_psw2.mat'), 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
 % Selection of variance column from psw2_new.
 if exist('optimizerMode', 'var') && optimizerMode
+    load (strcat(matPath, 'Optimize_psw2_temp.mat'), 'pswInputs')
     propTest = 1;
 else
+    load (strcat(matPath, 'Optimize_psw2.mat'), 'pswInputs')
     % propTest = getPropTest(E, RCP, superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget)
     % Send RCP = "average" to tell getPropTest to select a case which has an s
     % value averaged over all RCP scenarios matching the other parameters.
@@ -551,12 +551,22 @@ for i = 1:queueMax
     histEvSum = histEvSum + histOrigEvolved_chunk(i);
 end
 clearvars C_cum_chunk C_year_chunk S_year_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
-superSum = superSum/reefsThisRun;
-histSum = histSum/reefsThisRun;
-histEvSum = histEvSum/reefsThisRun;
-logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
-    superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
-
+if ~optimizerMode
+    superSum = superSum/reefsThisRun;
+    histSum = histSum/reefsThisRun;
+    histEvSum = histEvSum/reefsThisRun;
+    logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
+        superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
+    
+    
+    %% Temporary code to output yearly cover for and ICRS project.
+    %  We want area by year for each type or all years
+    C_area(:, :, 2) = C_yearly(:, :, 2) / coralSymConstants.KCb;
+    C_area(:, :, 1) = C_yearly(:, :, 1) / coralSymConstants.KCm;
+    save(strcat(outputPath, 'CoralArea_', RCP, 'E=', num2str(E), ...
+         'OA=', num2str(OA),'Adv=', num2str(superAdvantage), '.mat'), ...
+         'C_area', 'RCP', 'OA', 'E', 'superAdvantage');
+end
 
 
 if ~skipPostProcessing
@@ -661,7 +671,9 @@ if ~skipPostProcessing
     % New 3/7/2018: output cover in 2100.
     coralCover2100(C_yearly, coralSymConstants, startYear);
     % New 1/8/2020: consider which symbionts are dominant
-    shuffleStats(S_yearly, coralSymConstants, S_seed, startYear);
+    if ~optimizerMode && doPlots
+        shuffleStats(S_yearly, coralSymConstants, S_seed, startYear);
+    end
 
 
     % Get the years when reefs first experienced lasting mortality and 
@@ -679,10 +691,12 @@ if ~skipPostProcessing
 end % End postprocessing block.
 
 elapsed = toc(timerStart);
-logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
-logTwo('Serial sections:  %7.1f seconds.\n', elapsed-elapsedParfor);
-logTwo('Finished in       %7.1f seconds.\n', elapsed);
-logTwo('Finished at %s\n', datestr(now));
+if ~optimizerMode
+    logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
+    logTwo('Serial sections:  %7.1f seconds.\n', elapsed-elapsedParfor);
+    logTwo('Finished in       %7.1f seconds.\n', elapsed);
+    logTwo('Finished at %s\n', datestr(now));
+end
 fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
