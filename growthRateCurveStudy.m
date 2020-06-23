@@ -2,12 +2,15 @@ function growthRateCurveStudy()
     % This script is for visualizing the growth curve with representative
     % values to understand each term better
     g = 24.7;
-    SelVx = 2.8;
+    SelVx = 3.4627; % for massive: 2.7702;
     b = 0.0633;
-    a = 0.0879;
+    a = 1.0768/12; %0.0879;
     vg = .0025;
     EnvVx = 0.0114;
     
+    % Curve is offset to the right of the adapted temperature because the
+    % Norberg-Eppley exponential keeps rising.  The delta is
+    offset = (-1 + sqrt(1+ b*b*2*SelVx))/b;
    
 
     tMin = 15; %20;
@@ -22,8 +25,8 @@ function growthRateCurveStudy()
     % From timeIteration, June 19 2020:
     % ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(2, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(2, temp(i) - gi(i,:))) * rm;
     
-    rates = NaN(points, 3);
-    terms = NaN(points, 5);
+    rates = NaN(points, 5);
+    terms = NaN(points, 8);
     rates2009 = NaN(points, 2);
     for j = 1:points
         T = temps(j);
@@ -34,21 +37,32 @@ function growthRateCurveStudy()
         extraExp2 = exp(b*min(2, T - g));
         terms(j, 2) = extraExp;
         terms(j, 6) = extraExp2;
-        mainPart = (1- (vg + EnvVx + (min(0, g - T)).^2) ./ (2*SelVx));
-        mainPart2 = (1- (vg + EnvVx + (min(2, g - T)).^2) ./ (2*SelVx));
+        mainPart =  1- (vg + EnvVx + min(0, g - T).^2) ./ (2*SelVx);
+        mainPart2 = 1- (vg + EnvVx + min(2, g - T).^2) ./ (2*SelVx);
+        mainPart3 = 1- (vg + EnvVx + min(2, g - T)*(g-T)) ./ (2*SelVx);
         terms(j, 3) = mainPart; 
         terms(j, 7) = mainPart2;
+        terms(j, 8) = mainPart3;
         mainNoMin = (1- (vg + EnvVx + (g - T).^2) ./ (2*SelVx));
         terms(j, 4) = mainNoMin;
         % As used in Spring 2017 code:
         r = mainPart .* extraExp * rm;
         r2 = mainPart2 .* extraExp2 * rm;
         r3 = mainPart2 .* extraExp * rm; % TRY - extra exponential NOT shifted up 2 deg.
+        r4 = mainPart3 * rm; % Try different main, no extra.  6/22/2020
+        
+        mainPartOffset =  1- (vg + EnvVx + min(2, g - T - offset).^2) ./ (2*SelVx);
+        rmOffset = a*exp(b*(T + offset)); % maximum possible growth rate at optimal temp CK
+        extraExpOffset = exp(b*min(0, T + offset - g));
+        r5 = mainPartOffset * rmOffset * extraExpOffset;
+        
         % Baskett 2009 eq. 3
         r2009 = (1- (vg + EnvVx + (g - T).^2) ./ (2*SelVx)) * rm ;% Prevents cold water bleaching
         rates(j, 1) = r;
         rates(j, 2) = r2;
         rates(j, 3) = r3;
+        rates(j, 4) = r4;
+        rates(j, 5) = r5;
         rates2009(j, :) = r2009;
         
         %terms(j, 5) = extraExpDbl;
@@ -71,6 +85,8 @@ function growthRateCurveStudy()
     hold on;
     plot(temps, rates(:,2), '-k', 'LineWidth', 2, 'DisplayName', 'Growth, 2 min'); % rate with 2 min
     plot(temps, rates(:,3), '+k', 'DisplayName', 'Growth, 2/0 min'); % rate with 2 min in main function, zero in exponential
+    plot(temps, rates(:,4), '-.k', 'DisplayName', 'Growth, 2 min * no min'); % rate with 2 min AND no min in main function, no extra exp.
+    plot(temps, rates(:,5), 'xk', 'DisplayName', 'Growth, 2/0 min, offset'); % 2/0 but offset to have max growth at g
     plot(temps, rates2009(:,1), '--k', 'LineWidth', 1, 'DisplayName', 'Growth, Baskett 2009');
 
     plot(temps, terms(:, 1), '-g', 'LineWidth', 1, 'DisplayName', 'fixed exponential'); % rm
@@ -79,6 +95,7 @@ function growthRateCurveStudy()
     plot(temps, terms(:, 4), '--b', 'LineWidth', 1, 'DisplayName', 'main part, no min'); % mainNoMin no min
     plot(temps, terms(:, 3), 'ob', 'LineWidth', 1, 'DisplayName', 'main part, 0 min'); % mainPart  0 min
     plot(temps, terms(:, 7), '-b', 'LineWidth', 1, 'DisplayName', 'main part, 2 min'); % mainPart2 2 min
+    plot(temps, terms(:, 8), '-.b', 'LineWidth', 1, 'DisplayName', 'main part, 2 min * no min'); % mainPart2 2 min * no main (instead of squared)
     
     % optimum
     plot([g g], growthScale, '-y', 'DisplayName', 'adapted temperature');
