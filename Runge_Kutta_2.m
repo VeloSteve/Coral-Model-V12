@@ -119,7 +119,10 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     % Jan 2020: ctemp needs to be divided by 2 in BOTH places to get the average!
     %rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
     % XXX Test: partial mod to see the effect:
-    rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % June 2020: min function used 2 inside to avert cold water bleaching, but
+    % the "extra exponential" uses 0 so we don't shift the curve for temperatures above gi
+    rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
 
     % Coral population at t = t + dt/2
     hC = max(Cold + 0.5*dCk1, C_seed);    
