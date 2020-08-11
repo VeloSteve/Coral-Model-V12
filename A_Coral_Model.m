@@ -8,6 +8,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %function [SST, TIME] = A_Coral_Model(parameters)
 function [percentMortality, Bleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model(parameters)
+%function [percentMortality, WarmBleaching_85_10_By_Event, C_seed, reefsThisRun, E] = A_Coral_Model(parameters)
 timerStart = tic;
 
 %% Input parameters are to be passed in as an object of type ParameterDictionary,
@@ -24,13 +25,23 @@ end
 
 
 % Clear variables which I want to examine between runs, but not carry over.
-clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
+clearvars bleachEvents coldEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
 
 % Constants NOT controllable from the GUI or scripts are set first:
-bleachingTarget = 5;    % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
-maxReefs = 1925;        % never changes
-dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time steps
+maxReefs = 1925;    % never changes
+dt = 1/8;           % The fraction of a month for 2nd order R-K time steps
+% July 16/17 runs were 1,1,2 attempting a smoother-looking curve
+% July 17/18 runs are 2,2,1 to be as similar as possible to the original
+%     submission, but corrected.
+% The following 3 values parameterize the growth curve for symbionts,
+% particularly the parts which modify the basic Eppley function to account for
+% bleaching.  The function growthRateCurveSummary is a tool for visualizing the
+% effects.
+min1 = 2;    % minimum in the main growth function, originally 0, now 2
+min2 = 2;    % minimum in the extra exponential
+expTune = 1; % This value multiplies the cold-side exponential term to adjust growth rates.
 
+saveGi = false; % this could be in modelVars and ParameterDictionary, but hardwire for now.
 
 % New code, December 2017.  Variables were previously hardcoded in this file.
 % Now they are received as inputs.  This call is admittedly ugly, but it
@@ -42,7 +53,7 @@ dt = 1/8; % 1/64.0;         % The fraction of a month for 2nd order R-K time ste
  keyReefs, skipPostProcessing, doPlots, ...
  doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
  doGenotypeFigure, doDetailedStressStats, allFigs, ...
- saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(ps);
+ saveVarianceStats, newMortYears, optimizerMode, bleachingTarget] = explodeVariables(ps);
 
 % Growth penalty is irrelevant for superAdvantage, but can have side
 % effects.
@@ -54,7 +65,7 @@ if ~(exist('optimizerMode', 'var') && optimizerMode)
     pd.print()
 end
 
-% XXX timeIteration expects a double for superMode - that probably should be
+% timeIteration expects a double for superMode - that probably should be
 % changed, but for now just do a cast.
 superMode = double(superMode);
 
@@ -66,15 +77,15 @@ superMode = double(superMode);
 %% Put keyReefs in order without duplicates.  Shouldn't matter, but why not?
 keyReefs = unique(keyReefs);
 % A list of reefs for which to save data at maximum resolution for detailed
-%  analysis or plotting.  Not in the GUI - mainly for diagnistics.
-dataReefs = [];
-
+%  analysis or plotting.  Not in the GUI - mainly for diagnostics.
+% useful sets: [36, 46, 106, 144, 402, 420, 1239]; % [1237:1241]; %[144, 246, 402, 420, 793, 1541];
+dataReefs = []; % 1:1925 will produce many GB of data.  Use carefully.
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
 % 0:  runs sequentially.
 % > 0 tries to start the requested number of workers, failing if the value
 %     is greater than the value specified in Matlab's Parallel Preferences.
-fprintf('%d Threads from GUI or script\n', useThreads);
+fprintf('\n%d Threads from GUI or script\n', useThreads);
 [queueMax] = parallelSetup(useThreads);
 fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
@@ -93,6 +104,7 @@ mapDirectory = strcat(pd.getDirectoryName('_maps/'));
 [~, ~, ~] = mkdir(pdfDirectory);
 [~, ~, ~] = mkdir(mapDirectory);
 [~, ~, ~] = mkdir(strcat(outputPath, 'bleaching'));
+if saveGi; [~, ~, ~] = mkdir(strcat(mapDirectory, 'gi')); end
 
 % Initialize a file for logging most of what goes to the console.
 echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
@@ -142,25 +154,32 @@ logTwo('Modeling %d reefs.\n', reefsThisRun);
 
 %% LOAD SELECTIONAL VARIANCE (psw2)
 psw2_new = 0; % Let the system know it's a variable at parse time!
-load (strcat(matPath, 'Optimize_psw2.mat'), 'pswInputs')
-% pswInputs are not used in computations, but they are recorded to document
-% each run.
-% Selection of variance column from psw2_new.
 if exist('optimizerMode', 'var') && optimizerMode
+    % Get inputs from a file written by the optimizer for each case.
+    load (strcat(matPath, 'Optimize_psw2_temp.mat'), 'pswInputs')
     propTest = 1;
+    pswInputs = pswInputs(:, propTest); %#ok<NODEF>
+    logTwo("Warning: this is in Optimizer mode.  Do not trust psw value for results.\n");
 else
-    % propTest = getPropTest(E, RCP, superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget)
-    % Send RCP = "average" to tell getPropTest to select a case which has an s
+    % Get inputs from a 9D array written by previous optimization runs.
+    % Send RCP = "mean" to tell getPropTest to select a case which has an s
     % value averaged over all RCP scenarios matching the other parameters.
-    propTest = getPropTest(E, OA, "average", superMode, superAdvantage, superGrowthPenalty, superStartYear, bleachingTarget);
+    % Handle the special case of control400, which doesn't have its own
+    % normalization.
+    if superStartYear == 2261
+        ssy = 2101;
+    else
+        ssy = superStartYear;
+    end
+    [pMin, pMax, y, s] = getPSWInputs(E, OA, "mean", superMode, superAdvantage, superGrowthPenalty, ssy, bleachingTarget);
+    pswInputs = [pMin, pMax, y, s];
 end
-pswInputs = pswInputs(:, propTest); %#ok<NODEF>
-fprintf("Using psw2 case %d with an s value of %8.4f\n", propTest, pswInputs(4));
+logTwo("Using psw2 with an s value of %8.4f\n", pswInputs(4));
 
 % For figures to illustrate various input patterns, plot on a map and exit
 % the program.
 if false
-    MapInputs_Bins(mapDirectory, Reefs_latlon, SST, psw2_new, propTest, modelChoices);
+    MapInputs_Bins(mapDirectory, Reefs_latlon, SST, modelChoices);
     return;
 end
 %% Load growth, carrying capacity and other constants:
@@ -286,6 +305,7 @@ for i = queueMax:-1:1
 
     % Outputs
     bleachEvents_chunk{i} = false(1,1);
+    coldEvents_chunk{i} = false(1,1);
     bleachState_chunk{i} = false(1,1);
     mortState_chunk{i} = false(1,1);
 
@@ -324,6 +344,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     % TODO see if length(toDoPart(parSet)) should be used instead of
     % chunkSize.
     par_bleachEvents = false(length(toDoPart(parSet)), years, coralSymConstants.Cn); %#ok<PFBNS>
+    par_coldEvents = par_bleachEvents;
     par_bleachState = par_bleachEvents;
     par_mortState = par_bleachEvents;
     par_SST = SST_chunk{parSet};
@@ -359,10 +380,9 @@ parfor (parSet = 1:queueMax, parSwitch)
 
         % Interpolate data and create time stamp
         %% Set timestep and interpolate temperature, omega, and time stamp
-        temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
+        % Values are resampled from monthly to time step intervals using lowpass interpolation
+        temp = interp(SSThist,1/dt); 
         omega = interp(Omega_hist, 1/dt);
-        % new vector is 4x length of orginal
-
 
         %% Make Histogram of psw2 and map of var(SSThist)
         % hist_prop_fig     % run sub m-file to make map & histogram
@@ -393,20 +413,36 @@ parfor (parSet = 1:queueMax, parSwitch)
         [S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
                     temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, ...
-                    bleachStateTemp, bleachParams, coralSymConstants);
+                    bleachStateTemp, bleachParams, coralSymConstants, expTune, min1, min2);
                     
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.
         origHist = gi(1,1);
         superHist = gi(1,3);
+        
+        % Save the whole gi history for true post-processing since
+        % there's no telling what statistics will be requested after the fact.
+        if saveGi            
+            matName = strcat('gi/gi_Reef', num2str(k, '%04d'), '.mat');
+            % Casting to single to save space.  At most a few decimal places are significant.
+            saveGiAsMat(strcat(mapDirectory, matName), single(gi));
+            if k == 1            
+                matName = strcat('gi/time.mat');
+                saveTimeAsMat(strcat(mapDirectory, matName), time);
+            end
+        end
 
         par_HistSuperSum = par_HistSuperSum + superHist;
         par_HistOrigSum = par_HistOrigSum + origHist;
         par_HistOrigEvolvedSum = par_HistOrigEvolvedSum + origEvolved;
 
         if any(dataReefs == k) % Save detailed history
-            matName = strcat('DetailedSC_Reef', num2str(k), '_', modelChoices, '.mat');
+            if k == dataReefs(1)
+                matName = strcat('time.mat');
+                saveTimeAsMat(strcat(mapDirectory, matName), time);
+            end
+            matName = strcat('DetailedSC_Reef', num2str(k), '.mat');
             saveAsMat(strcat(mapDirectory, matName), C, S, time, temp);
         end
         if doPlots && (doGrowthRateFigure || doGenotypeFigure) && any(keyReefs == k)  % temporary genotype diagnostic
@@ -442,8 +478,9 @@ parfor (parSet = 1:queueMax, parSwitch)
         par_Massive_dom = par_Massive_dom + C(:, 1) > C(:, 2);
         
         %% New clean stats section
-        [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
-            Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+        [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEventOneReef, ...
+            coldEventOneReef, bleachStateOne, mortStateOne ] = ...
+            Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, temp, bleachParams, coralSymConstants);
      
         % Time and memory will be consumed, but we need stats on coral
         % cover.
@@ -462,9 +499,9 @@ parfor (parSet = 1:queueMax, parSwitch)
         
         if doPlots && (any(keyReefs == k) || allFigs)
             % Now that we have new stats, reproduce the per-reef plots.
-            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
-                  hist, dataset, sstPath, k, ...
-                  pdfDirectory, E, lenTIME);
+            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, coldEventOneReef, ...
+                psw2, time, temp, lat, lon, RCP, hist, dataset, sstPath, k, ...
+                pdfDirectory, E, lenTIME);
         end
 
         if ~isempty(bleachEventOneReef)
@@ -474,6 +511,7 @@ parfor (parSet = 1:queueMax, parSwitch)
             % be better to return a set or list of sparse arrays, but this
             % is much clearer.
             par_bleachEvents(reefCount, :, :) = full(bleachEventOneReef);
+            par_coldEvents(reefCount, :, :) = full(coldEventOneReef);
         end
         % Like bleachEventOneReef, but the bleaching and mortality states
         % are never empty.  Also, these aren't stored as sparse since they
@@ -492,6 +530,7 @@ parfor (parSet = 1:queueMax, parSwitch)
     % Progress is now 100% for this chunk.
     % Collect per-worker parts back into the _chunk arrays.
     bleachEvents_chunk{parSet} = par_bleachEvents;
+    coldEvents_chunk{parSet} = par_coldEvents;
     bleachState_chunk{parSet} = par_bleachState;
     mortState_chunk{parSet} = par_mortState;
     C_cum_chunk{parSet} = par_C_cum;
@@ -516,11 +555,13 @@ clearvars SST_chunk Omega_chunk LatLon_chunk;
 % reefs, sized (reefs, years, coral types).
 % old way: bleachEvents = horzcat(bleachEvents_chunk{:});
 bleachEvents = false(maxReefs, years, coralSymConstants.Cn);
+coldEvents = false(maxReefs, years, coralSymConstants.Cn);
 bleachState = false(maxReefs, years, coralSymConstants.Cn);
 mortState = false(maxReefs, years, coralSymConstants.Cn);
 for i = 1:queueMax
     tdp = toDoPart{i}';
     chunkE = bleachEvents_chunk{i};
+    chunkC = coldEvents_chunk{i};
     chunkB = bleachState_chunk{i};
     chunkM = mortState_chunk{i};
     assert(size(chunkE, 1) == length(tdp), 'Number of bleach event results must match list of reef numbers.');
@@ -529,11 +570,12 @@ for i = 1:queueMax
     for chunkIndex = 1:size(chunkE, 1)
         k = toDoPart{i}(chunkIndex);
         bleachEvents(k, :, :) = chunkE(chunkIndex, :, :);
+        coldEvents(k, :, :) = chunkC(chunkIndex, :, :);
         bleachState(k, :, :) = chunkB(chunkIndex, :, :);
         mortState(k, :, :) = chunkM(chunkIndex, :, :);
     end
 end
-clearvars bleachEvents_chunk bleachState_chunk mortState_chunk; % release some memory.
+clearvars bleachEvents_chunk coldEvents_chunk bleachState_chunk mortState_chunk; % release some memory.
 
 C_yearly = horzcat(C_year_chunk{:});
 S_yearly = horzcat(S_year_chunk{:});
@@ -551,12 +593,22 @@ for i = 1:queueMax
     histEvSum = histEvSum + histOrigEvolved_chunk(i);
 end
 clearvars C_cum_chunk C_year_chunk S_year_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
-superSum = superSum/reefsThisRun;
-histSum = histSum/reefsThisRun;
-histEvSum = histEvSum/reefsThisRun;
-logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
-    superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
-
+if ~optimizerMode
+    superSum = superSum/reefsThisRun;
+    histSum = histSum/reefsThisRun;
+    histEvSum = histEvSum/reefsThisRun;
+    logTwo('Super symbiont genotype = %5.2f C.  Base genotype %5.2f C (advantage %5.2f), Evolved base %5.2f (advantage %5.2f).\n', ...
+        superSum, histSum, (superSum-histSum), histEvSum, (superSum-histEvSum));
+    
+    
+    %% Temporary code to output yearly cover for and ICRS project.
+    %  We want area by year for each type or all years
+    C_area(:, :, 2) = C_yearly(:, :, 2) / coralSymConstants.KCb;
+    C_area(:, :, 1) = C_yearly(:, :, 1) / coralSymConstants.KCm;
+    save(strcat(outputPath, 'CoralArea_', RCP, 'E=', num2str(E), ...
+         'OA=', num2str(OA),'Adv=', num2str(superAdvantage), '.mat'), ...
+         'C_area', 'RCP', 'OA', 'E', 'superAdvantage');
+end
 
 
 if ~skipPostProcessing
@@ -568,14 +620,20 @@ if ~skipPostProcessing
     % Count by reef
     for k = maxReefs:-1:1
         events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
-        eventsAllYears(k) = nnz(bleachEvents(k, :, :));
+        eventsAllYears(k) = nnz(bleachEvents(k, :, :));        
+        cold85_2010(k) = nnz(coldEvents(k, i1985:i2010, :));
+        coldAllYears(k) = nnz(coldEvents(k, :, :));
     end
     % Count for all reefs over this time period.
     count852010 = sum(events85_2010);
+    countCold852010 = sum(cold85_2010);
    
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
-    fprintf('Bleaching by event = %6.4f\n', ...
-        Bleaching_85_10_By_Event);
+    ColdBleaching_85_10_By_Event = 100*countCold852010/reefsThisRun/(2010-1985+1);
+    WarmBleaching_85_10_By_Event = Bleaching_85_10_By_Event - ColdBleaching_85_10_By_Event;
+    logTwo('Bleaching by event = %6.4f, cold = %6.4f, warm = %6.4f\n', ...
+        Bleaching_85_10_By_Event, ColdBleaching_85_10_By_Event, ...
+        WarmBleaching_85_10_By_Event);
 
     % Build an array with the last year each reef is alive. First add a
     % column to mortState which is true when all coral types are dead.
@@ -656,12 +714,14 @@ if ~skipPostProcessing
     oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
     percentMortality = Stats_Tables(bleachState, mortState, lastYearAlive, ...
        lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
-        bleachParams, doDetailedStressStats, oMode);
+        superAdvantage, bleachParams, doDetailedStressStats, oMode);
     
     % New 3/7/2018: output cover in 2100.
     coralCover2100(C_yearly, coralSymConstants, startYear);
     % New 1/8/2020: consider which symbionts are dominant
-    shuffleStats(S_yearly, coralSymConstants, S_seed, startYear);
+    if ~optimizerMode && doPlots
+        shuffleStats(S_yearly, coralSymConstants, S_seed, startYear, mapDirectory);
+    end
 
 
     % Get the years when reefs first experienced lasting mortality and 
@@ -679,10 +739,12 @@ if ~skipPostProcessing
 end % End postprocessing block.
 
 elapsed = toc(timerStart);
-logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
-logTwo('Serial sections:  %7.1f seconds.\n', elapsed-elapsedParfor);
-logTwo('Finished in       %7.1f seconds.\n', elapsed);
-logTwo('Finished at %s\n', datestr(now));
+if ~optimizerMode
+    logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
+    logTwo('Serial sections:  %7.1f seconds.\n', elapsed-elapsedParfor);
+    logTwo('Finished in       %7.1f seconds.\n', elapsed);
+    logTwo('Finished at %s\n', datestr(now));
+end
 fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
@@ -696,7 +758,6 @@ fclose(echoFile);
 % using the file, not just Excel.
 if (~exist('optimizerMode', 'var') || optimizerMode == false) && ...
     (~skipPostProcessing)
-
     saveExcelHistory(outputPath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end

@@ -50,14 +50,15 @@ classdef ParameterDictionary
             addOne(p, modelCharParameter('path', 'm_mapPath', 'string', 'D:/GitHub/m_map/'));
             
             % Science
-            addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85'}));
+            addOne(p, modelCharParameter('science', 'RCP', 'string', 'rcp85', {'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control400'}));
             addOne(p, modelCharParameter('science', 'dataset', 'string', 'ESM2M', {'ESM2M', 'HadISST'}));
             addOne(p, modelLogicalParameter('science', 'OA', 'logical', false));
             addOne(p, modelLogicalParameter('science', 'E', 'logical', false));
             addOne(p, modelIntParameter('science', 'superStart', 'integer', 2035, 1861, 2100));
             addOne(p, modelIntParameter('science', 'superMode', 'integer', 0, 0, 9));
             addOne(p, modelDoubleParameter('science', 'superAdvantage', 'double', 0.0, 0.0, 10.0));
-            addOne(p, modelDoubleParameter('science', 'superGrowthPenalty', 'double', 0.0, 0.0, 10.0));
+            addOne(p, modelDoubleParameter('science', 'superGrowthPenalty', 'double', 0.5, 0.0, 1.0));
+            addOne(p, modelDoubleParameter('science', 'bleachingTarget', 'double', 5.0, 1.0, 15.0));
 
             
             % Computing
@@ -203,7 +204,7 @@ classdef ParameterDictionary
             s = obj.getStruct();  % Could get variables one-by-one, but this seems easier.
             mc = strcat(s.dataset, '.', s.RCP, '.E', num2str(s.E), ...
                 '.OA', num2str(s.OA), '.sM', num2str(s.superMode), '.sA', ...
-                num2str(s.superAdvantage));
+                num2str(s.superAdvantage, '%3.1f'));
         end
                
         function dName = getDirectoryName(obj, suffix)

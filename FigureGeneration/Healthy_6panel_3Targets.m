@@ -1,20 +1,20 @@
 function  Healthy_6panel_3Targets()
+addpath('..'); % for tight_subplot
 % This is a variant of BleachingHistory_Subplots_WithDT_Row() used for comparing
 % the effects of different bleaching targets.
 % The old version has 3 or 4 plots left-to-right, for different RCP values.
 % It has 4 curves on each - E=0, E=1, and those two options plus shuffling.
 %
-% The new version will omit the colored background(?) and have 3 rows of 2
-% plots.  The rows represent target bleaching of 3, 5, and 10.  Each row has
-% curves for E and OA of 0,0, 1,1, and 1,0.  Shuffling is not included.
+% As of 2020 there are two columns, representing RCP 4.5 and 8.5.  Each has
+% 3 rows, for the 3, 5, and 10% targets.  Each plot has 5 lines, 3 for E=0 with no
+% OA, with shuffling, and with shuffling and OA, and the 2 for E=1 with and
+% without OA.  More compactly, E, OA, and Shuffling advantage are
+% 000, 001, 011, 100, 110
 
-path5 = '../FigureData/healthy_4panel_figure1/bleaching_NoAdvantage_Jan14/';
-path3 = '../FigureData/healthy_4panel_figure1/target3/';
-path10 = '../FigureData/healthy_4panel_figure1/target10/';
+path5 = '../FigureData/healthy_4panel_figure1/Target5_E221/';
+path3 = '../FigureData/healthy_4panel_figure1/Target3_E221/';
+path10 = '../FigureData/healthy_4panel_figure1/Target10_E221/';
 
-path5s = '../FigureData/healthy_4panel_figure1/shuffle_1C_Jan10_17/';
-path3s = '../FigureData/healthy_4panel_figure1/target3_shuffle/';
-path10s = '../FigureData/healthy_4panel_figure1/target10_shuffle/';
 
 inverse = true;  % 100% means 100% undamaged if true.
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
@@ -51,11 +51,11 @@ for i = 1:panels
             if ~(eee == 0 && ooo == 1)  % Skip one curve  !!!!
                 % Eash row has its own path
                 if row == 1
-                    hFile = strcat(path3, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                    hFile = strcat(path3, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
                 elseif row == 2
-                    hFile = strcat(path5, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                    hFile = strcat(path5, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
                 else
-                    hFile = strcat(path10, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                    hFile = strcat(path10, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
                 end
                 fprintf("Loading non-shuffling %s\n", hFile);
 
@@ -78,11 +78,11 @@ for i = 1:panels
     for ooo = 0:1           
         % Each row has its own path
         if row == 1
-            hFile = strcat(path3s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+            hFile = strcat(path3, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
         elseif row == 2
-            hFile = strcat(path5s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+            hFile = strcat(path5, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
         else
-            hFile = strcat(path10s, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+            hFile = strcat(path10, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
         end
         fprintf("Loading shuffling %s\n", hFile);
         load(hFile, 'yForPlot');
@@ -153,17 +153,40 @@ end
 
 function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, labelY) 
 
-    base = [0 0 0];
-    light = [0.5 0.5 0.5];
-    other = [0.6 0.0 0.8]; % orange:[1.0 0.5 0.0];
+    black = [0 0 0];
+    blue =  [0.0 0.35 0.95];
+    red  =  [0.9 0.1  0.1];
+    other = [0.6 0.0  0.8]; 
 
-    col{1} = base;    
-    col{2} = light;
-
-    col{3} = base;
-    col{4} = other;
-    col{5} = other;
-
+    col{1} = black;    
+    col{2} = blue;
+    col{3} = blue;
+    col{4} = red;
+    col{5} = red;
+    
+    % Line styles for consistency between figures 1 and S5.
+    % The first 5 are for this file, in display order.
+    % The 6th is for the 3-panel Figure 1, the only non-duplicated combination.
+    % E OA Adv
+    % 0  0  0  black solid
+    % 1  1  0  blue solid
+    % 1  0  0  blue solid
+    % 0  0  1  blue dash
+    % 0  1  1  blue dash
+    % 1  0  1  purple dash
+    % 3  2  3  count of ones in each column.
+    % Let purple = advantaged
+    %     black = anything else
+    %     solid = E=0, OA=0
+    %     dash  = E=1, OA=0
+    %     dot   = E=0, OA=1
+    %     ???
+    % OR
+    % Let purple = E=1, Adv=1
+    %     black  = E=0, Adv=0 (baseline)
+    %     blue   =  Either E=1 or Adv=1
+    %     solid = OA=0
+    %     dashed = OA=1
     
     % Color background by temperature
     %colormap('redblue');
@@ -205,11 +228,11 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend, labelX, labelY)
             case 2 
                 set(plot1(i), 'LineStyle', ':');
             case 3 
-                set(plot1(i), 'LineStyle', '--');
+                set(plot1(i), 'LineStyle', '-');
             case 4 
                 set(plot1(i), 'LineStyle', '-'); 
             case 5
-                set(plot1(i), 'LineStyle', '--');
+                set(plot1(i), 'LineStyle', ':');
         end
     end
     

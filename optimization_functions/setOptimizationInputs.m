@@ -12,14 +12,4 @@ function [possible] = setOptimizationInputs(index, possible, steps)
         end
         possible{i} = v;
     end
-    %{
-    for i = 1:4
-        v = possible{i};
-        if steps(i) > 1
-            inputSet(i) = v.min + (index(i)-1)*v.range/(steps(i)-1);
-        else
-            inputSet(i) = v.min;
-        end
-    end
-    %}
 end

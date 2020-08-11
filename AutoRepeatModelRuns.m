@@ -1,7 +1,8 @@
 %% Repeatedly run the model for all cases at once.
 
 % Read the default inputs as a starting point.
-parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars_paper.txt';
+%parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHistory\modelVars_paper.txt';
+parameters = 'D:\GitHub\Coral-Model-V12\modelVars.txt';
 [~, pd] = getInputStructure(parameters);
 
 % Each use of this script will require some editing, since the selection of
@@ -10,11 +11,12 @@ parameters = 'C:\Users\Steve\Google Drive\Coral_Model_Steve\GUIState_AndRunHisto
 % with 3 different temperature deltas and 4 different rcp cases.
 
 % Every combination will be a separate run.
-rcpList = {'rcp45', 'rcp85'}; % 'rcp26', 'rcp45', 'rcp60', 'rcp85'
-deltaTList = [1]; % [0.0, 1.0];
-modeList = [9]; % [0, 7];  % 0 7
-eList = [1, 0];
-oaList = [0, 1];
+ %#ok<*NBRAK> % MATLAB warns by default when a list has one element.
+rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'}; %, 'rcp85'};
+deltaTList = [0 0.5 1.0 1.5]; % [0.0, 1.0];
+modeList = [9];
+eList = [0 1];
+oaList = [0 1];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
 
 fprintf("--------------------------------------------------\n");

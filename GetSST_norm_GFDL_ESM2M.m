@@ -20,7 +20,7 @@ function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 
             SST = SSTR_2M85_JD; clear SSTR_2M85_JD;  % RCP8.5
         elseif strcmp(RCP, 'control');load(strcat(sstPath, 'ESM2M_SSTR_JD.mat'),'ModelTime','SSTR_control_to1961','ESM2M_reefs_JD');
             SST = SSTR_control_to1961; clear SSTR_control_to1961;  % control
-        elseif strcmp(RCP, 'control400');load(strcat(sstPath, '../SSTR_ESM2M_picontrol_biascorr_lonlat_091716.mat'),'ModelTime','SSTR','ESMUnique_W');
+        elseif strcmp(RCP, 'control400');load(strcat(sstPath, 'SSTR_ESM2M_picontrol_biascorr_lonlat_091716.mat'),'ModelTime','SSTR','ESMUnique_W');
             SST = SSTR; clear SSTR;  % control
             ESM2M_reefs_JD = ESMUnique_W;  % kludge so the name fits code below.
         else

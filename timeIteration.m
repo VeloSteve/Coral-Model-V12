@@ -2,7 +2,7 @@
 function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, dt, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
         superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, bleach, bleachParams, ...
-        con)
+        con, expTune, min1, min2)
     
     % currentAdvantage may be modified in some modes.  Don't change
     % superAdvantage
@@ -95,13 +95,28 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         % equation per John/Simon/Cheryl 2/8/2017.
         %ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(0, temp(i) - gi(i,:))) * rm;
         % XXX test!
-        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(2, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(2, temp(i) - gi(i,:))) * rm;
+        %ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(2, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(2, temp(i) - gi(i,:))) * rm;
+        % June 2020: use 2 in the first minimum to avert cold water bleaching,
+        % but 0 in the second so we don't shift the curve right for temperatures
+        % above gi.
+        % July 10: go back to 0.  2 was apparently an attempt to improve
+        % symbiont switching behavior, but it may have brought back too much
+        % cold water bleaching.
+        %ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(0, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(con.b*min(0, temp(i) - gi(i,:))) * rm;
+        % July 12: normalization doesn't work well with the version above.  We
+        % either get too much 1950 mortality or not enough bleaching.  Try a
+        % compromise, multiplying the extra exponential exponent by 2.
+        % ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(min1, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(expTune*con.b*min(min2, temp(i) - gi(i,:))) * rm;
+        % July 15: The extra exponential was formed incorrectly for when the curve break
+        % was not at temp = gi.  Fixed.
+        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(min1, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(expTune*con.b*min(0, temp(i) - gi(i,:) + min2)) * rm;
               
         % Solve ordinary differential equations using 2nd order Runge Kutta
         %Runge_Kutta_2_min0_160503 %% run sub-mfile to solve ODE using min0 to prevents cold water bleaching
         [SiPlusOne, CiPlusOne] = Runge_Kutta_2(S(i, :), C(i, :), i, dt, ...
                                             ri, rm, temp, vgi, gi, SelVx, C_seed2, ...
-                                            S_seed, con, alpha, KCx, Mu, um, KSx, G);
+                                            S_seed, con, alpha, KCx, Mu, um, KSx, G, ...
+                                            expTune, min1, min2);
                                         
         % Compute bleaching state (new 8/14/2018)
         % Only check at the end of each year to be consistent with
@@ -142,7 +157,7 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
                                 shuffle(coral) = true;
                                 if superAdvantage > 0
                                     currentAdvantage = superAdvantage;
-                                    shuffleGFactor(coral) = 0.5;
+                                    shuffleGFactor(coral) = 1.0 - superGrowthPenalty;
                                     % In shuffle mode, set a seed.
                                     if superSeedFraction < 1
                                         S_seed(3:end) = superSeedFraction * S_seed(3:end);
@@ -174,22 +189,12 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
                 simYear = simYear + 1;
             end
         elseif (superMode == 9) && (con.Sn >= 2)
-            % Don't turn anything abruptly on and off, but apply a growth
-            % penalty when the tolerant symbionts dominate.   
-            if SiPlusOne(3) > SiPlusOne(1)
-                shuffleGFactor(1) = 1 - superGrowthPenalty;
-            else
-                shuffleGFactor(1) = 1.0;
-            end
-            if SiPlusOne(4) > SiPlusOne(2)
-                shuffleGFactor(2) = 1.0 - superGrowthPenalty;
-            else
-                shuffleGFactor(2) = 1.0;                
-            end
+            % Apply a growth penalty proportional to the number of tolerant
+            % symbionts.
+            oms = 1.0 - superGrowthPenalty;
+            shuffleGFactor(1) = (SiPlusOne(3) * oms + SiPlusOne(1)) / (SiPlusOne(3) + SiPlusOne(1));
+            shuffleGFactor(2) = (SiPlusOne(4) * oms + SiPlusOne(2)) / (SiPlusOne(4) + SiPlusOne(2));
         end
-        
-        
-        
 
         C(i+1, :) = CiPlusOne;
         S(i+1, :) = SiPlusOne;

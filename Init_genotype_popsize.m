@@ -101,7 +101,7 @@ function [vgi, gi, S, C, hist] = Init_genotype_popsize(time, ...
     if superMode==9
         fraction = repmat(con.Cn / ccol, 1, ccol);
     else
-        fraction = [repmat(1, 1, ccol/2) repmat(0, 1, ccol/2)];
+        fraction = [ones(1, ccol/2) zeros(1, ccol/2)];
     end
     for y=1:ccol
         if mod(y,2) == 0 % if even

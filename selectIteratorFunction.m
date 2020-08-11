@@ -65,7 +65,7 @@ function handle =  selectIteratorFunction(times, corals, arch)
         else
             mexDate = mexFile.datenum; 
             if (mexDate < sourceDate1) || (mexDate < sourceDate2)
-                disp('Warning: timeIteration has not been recompiled.  Using slower uncompiled version.');
+                fprintf('Warning: timeIteration has not been recompiled to %s.  Using slower uncompiled version.', mexName);
                 handle = @timeIteration;
             end
         end

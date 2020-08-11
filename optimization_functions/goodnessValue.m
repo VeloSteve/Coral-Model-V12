@@ -1,4 +1,4 @@
-function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, percentGone, C_seed, rtr, b8510)
+function [goodness, pg, bleach] = goodnessValue(bleachingTarget, psw2_new, percentGone, C_seed, rtr, b8510)
     % Look at variables for "goodness". We optimize for a low value.
     % Baskett 2009 gives values of
     % "0.9 for Moorea and Curac¸ao; 0.8 for St. John, U.S. Virgin Islands;
@@ -22,7 +22,7 @@ function [goodness, pg, bleach] = goodnessValue(targetBleaching, psw2_new, perce
     pg = percentGone(5, 1);
    
     bleach = b8510;
-    bleachDiff = abs(targetBleaching - bleach);
+    bleachDiff = abs(bleachingTarget - bleach);
     
     %% New experimental value - how well does new model match old?
 

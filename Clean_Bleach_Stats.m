@@ -1,11 +1,16 @@
-function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead ] ...
-    = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, bleachParams, coralConstants )
+function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, coldEvent, bleached, dead ] ...
+    = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, temp, bleachParams, coralConstants )
 %Clean_Bleach_Stats computes columns of coral health flags for plotting and tables.
     %   This is a complete rewrite of Get_Bleach_Freq to remove any unneeded
     %   code and variables. The list-of-events approach is scrapped.
     %   Required outputs, straight from the the feature request, except that
     %   some may be better computed in the per-reef plot routine.
 
+    % No longer consider drops in coral population to be bleaching.  This has
+    % little effect on overall results, and removes the objection that these
+    % drops may not be due to bleaching.
+    ignoreCoralDrops = true;
+    
     % Inside a single reef's run:
     % 
     % coral cover by month
@@ -58,6 +63,12 @@ function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead
     for i=1:ccol
         C_monthly(:, i) = decimate(C(:, i), stepsPerMonth , 'fir');
         C_yearly(:, i) = decimate(C(:, i), stepsPerYear, 'fir');
+        %fprintf("===== WARNING: 'fir' is the production code. Temporarily replaced by yearly mean. =====\n");
+        %y = 1;
+        %for m = 1:12:240*12
+        %    C_yearly(y, i) = mean(C_monthly(m:m+11, i));
+        %    y = y + 1;
+        %end
     end
     for i = 1:scol
         S_monthly(:, i) = decimate(S(:, i), stepsPerMonth , 'fir');
@@ -107,6 +118,7 @@ function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead
     bleached = false(yearCount, numCorals);
     dead = false(yearCount, numCorals);
     bleachEvent = false(yearCount, numCorals);
+    coldEvent = false(yearCount, numCorals);
     lastBleaching = nan(numCorals,1);
     for coral = 1:numCorals
         bleachFlag = false;
@@ -143,12 +155,40 @@ function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, bleached, dead
                 % Not bleached, check for bleaching.
                 % Declines in either symbionts or bleaching can define bleaching.
                 sB = Smin(y, coral) < Smin(y-1, coral) * sBleach(coral);
-                cB = Cmin(y, coral) < Cmin(y-1, coral) * cBleach(coral);
+                if ignoreCoralDrops
+                    cB = false;
+                else
+                    cB = Cmin(y, coral) < Cmin(y-1, coral) * cBleach(coral);
+                end
                 if sB || cB
                     bleached(y:end, coral) = true;
                     bleachFlag = true;
                     lastBleaching(coral) = y;
-                    bleachEvent(y, coral) = true;
+                    bleachEvent(y, coral) = true;               
+                    % Call it cold water bleaching if it was 0.5 C warmer 2 months ago.
+                    % BUT we are working with annual min/max.  Try getting the
+                    % month of the annual low, and working back to SST.
+                    % 
+                    % Are we looking for annual C min or S min?
+                    % Check if sB is true, use that, otherwise use cB (one must
+                    % be true).
+                    endStep =  y * stepsPerYear;
+                    startStep = endStep - stepsPerYear + 1;
+                    if sB
+                        % Ssum is the sum of all symbiont populations in each
+                        % coral type, at time-step frequency.
+                        [~, iMin] = min(Ssum(startStep:endStep, coral));
+                    else
+                        [~, iMin] = min(C(startStep:endStep, coral));
+                    end
+                    % iMin is the index of the minimum within the subset year.
+                    %sstMin = temp(startStep + iMin - 1);
+                    %sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth); 
+                    % There seems to be a lag.  Try comparing 2 months back to
+                    % 4.
+                    sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth);
+                    sstBack4 = temp(startStep + iMin - 1 - 4 * stepsPerMonth);
+                    coldEvent(y, coral) = sstBack4 - sstBack2 > 0.5;
                 end
             end
             

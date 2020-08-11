@@ -12,7 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
                             rm, temp, vgi, gi, SelVx, C_seed, S_seed, con, ...
-                            alpha, KCx, Mu, um, KSx, G)
+                            alpha, KCx, Mu, um, KSx, G, expTune, min1, min2)
 
 	% Inputs:
     % Sold - symbiont populations - "S old" the i'th row of the S array
@@ -119,7 +119,16 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     % Jan 2020: ctemp needs to be divided by 2 in BOTH places to get the average!
     %rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
     % XXX Test: partial mod to see the effect:
-    rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
+    %rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % June 2020: min function used 2 inside to avert cold water bleaching, but
+    % the "extra exponential" uses 0 so we don't shift the curve for temperatures above gi
+    % July 10, 2020: back to 0 in both minima.
+    % rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % July 12: curve D.
+    %rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - 0.5*ctemp)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min(min2, ctemp/2.0 - gi(i,:))) * rmk2; 
+    % July 15: The extra exponential was formed incorrectly for when the curve break
+    % was not at temp = gi.  Fixed.
+    rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - 0.5*ctemp)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min(0, ctemp/2.0 - gi(i,:) - min2)) * rmk2; 
 
     % Coral population at t = t + dt/2
     hC = max(Cold + 0.5*dCk1, C_seed);    

@@ -6,8 +6,8 @@ function BleachingHistory_Subplots_WithDT_Row()
 % The files for a new set of runs to be plotted should be copied to safe place
 % and referenced in relPath below.  This is intentionally a manual step so that
 % test runs made later can't accidentally overwrite the data we want to publish.
-relPath = '../FigureData/healthy_4panel_figure1/bleaching_NoAdvantage_Jan10/';
-shufflePath = '../FigureData/healthy_4panel_figure1/shuffle_1C_Jan10/';
+relPath = '../FigureData/healthy_4panel_figure1/Target5_E221/';
+addpath('..'); % for tight_subplot
 
 inverse = true;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
@@ -18,38 +18,15 @@ set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 19, 7.5]);
 
 % Make subplots across, each for one rcp scenario.
 % Within each, have lines for E=0/1 and OA=0/1
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-%rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 8.5'};
-rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 6.0', '(d) RCP 8.5'};
+rcpList = {'rcp26', 'rcp45', 'rcp85'};
+rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 8.5'};
+%rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 6.0', '(d) RCP 8.5'};
 
 % Use tight_subplot (license in license_tight_subplot.txt) to control spacing
 % rows, columns, gap, height, width
-[ha, pos] = tight_subplot(1, 4, 0.03, [0.15 0.06], 0.1, [3 2 2 2]);
+[ha, pos] = tight_subplot(1, 3, 0.03, [0.15 0.06], 0.1, [3 2 2]);
 
-% Can we mess with the positions now?  pos contains one array per subplot, each
-% representing left, bottom, width, height.  Note that pos contains cells but ha
-% contains axes arrays.
-%p1 = pos{1};
-%p2 = pos{2};
-%p3 = pos{3};
-% The goal is to make the 3 plots take the same space with the same gaps, but
-% have the left two 2/3 the size of the first, since they represent 100 years,
-% and the first is 150 years.
-%{
-leftEnd = p1(1);
-baseWidth = p1(3);
-widthUnit = baseWidth*3/7;
-gap = p2(1) - (leftEnd + baseWidth);
-ha(1).Position(3) = 3 * widthUnit;
-ha(2).Position(1) = leftEnd + 3 * widthUnit + gap;
-ha(2).Position(3) = 2 * widthUnit;
-ha(3).Position(1) = leftEnd + 5 * widthUnit + 2 * gap;
-ha(3).Position(3) = 2 * widthUnit;
-% For some reason the operations above change the vertical locations.  1 looks
-% okay.  OuterPosition has changed, rather than Position.
-ha(2).OuterPosition(2) = ha(1).OuterPosition(2);
-ha(2).OuterPosition(4) = ha(1).OuterPosition(4);
-%}
+%
 legText = {};
 legCount = 1;
 panels = size(rcpList, 2);
@@ -65,7 +42,7 @@ for i = 1:panels
     for eee = 0:1
         for ooo = 0  %:1           
             if ~(eee == 1 && ooo == 1)  % Skip one curve  !!!!
-                hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+                hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
                 fprintf("Loading non-shuffling %s\n", hFile);
 
                 load(hFile, 'yForPlot');
@@ -85,7 +62,7 @@ for i = 1:panels
     % //////// ADD Symbiont shuffling curves.
     for eee = 0:1
     for ooo = 0:0  % 1:-1:0           
-            hFile = strcat(shufflePath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
+            hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
             fprintf("Loading shuffling %s\n", hFile);
             load(hFile, 'yForPlot');
             if inverse
@@ -131,7 +108,7 @@ for i = 1:panels
     if i == 1
         % position units are based on the data plotted
         ylabel({'Percent of healthy coral reefs globally'}, ...
-            'FontSize',24,'FontWeight','bold', 'Position', [1922 50]);
+            'FontSize',24,'FontWeight','bold', 'Position', [1932 50]);
     end
 
 end
@@ -170,14 +147,14 @@ end
 
 function oneSubplot(X, Yset, T, legText, tText, useLegend) 
 
-    base = [0 0 0];
-    light = [0.5 0.5 0.5];
-    other = [0.6 0.0 0.8]; % orange:[1.0 0.5 0.0];
+    black = [0 0 0];
+    blue =  [0.0 0.35 0.95];
+    red  =  [0.9 0.1  0.1];
+    other = [0.6 0.0  0.8]; 
 
-    col{1} = base;    
-    col{2} = light;
-
-    col{3} = base;
+    col{1} = black;    
+    col{2} = blue;
+    col{3} = red;
     col{4} = other;
 
     
@@ -219,9 +196,9 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
             case 1 
                 set(plot1(i), 'LineStyle', '-');
             case 2 
-                set(plot1(i), 'LineStyle', ':');
+                set(plot1(i), 'LineStyle', '-');
             case 3 
-                set(plot1(i), 'LineStyle', '--');
+                set(plot1(i), 'LineStyle', '-');
             case 4 
                 set(plot1(i), 'LineStyle', '-');            
 

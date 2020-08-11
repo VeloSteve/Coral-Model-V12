@@ -5,8 +5,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapInputs_Bins(fullDir, Reefs_latlon, SST, psw2_new, propTest, ...
-        modelChoices)
+function [] = MapInputs_Bins(fullDir, Reefs_latlon, SST, modelChoices)
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -32,7 +31,7 @@ customColors = flipud(customScale());
 
 % Plot the next 3 together
 figure('color', 'w');
-[ha, pos] = tight_subplot(3, 1, [0.05, -0.09], [0.04, 0.1], [0.0 0.05]);
+[ha, ~] = tight_subplot(3, 1, [0.05, -0.09], [0.04, 0.1], [0.0 0.05]);
 
 %% Make map of  historical SST variance
 

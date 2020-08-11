@@ -1,4 +1,4 @@
-classdef modelParameter
+classdef (Abstract) modelParameter
     %modelParameter A value which controls a model option.
     %   Every parameter should be defined as an instance of this class so
     %   important information about that parameter is available.  Example
@@ -58,7 +58,7 @@ classdef modelParameter
         function vs = asString(obj)
             % Returns the value as a string - non-char parameters should
             % override this.
-            vs = obj.value;
+            vs = obj.value; %#ok<MCNPN>  % Becomes valid in subclasses.
         end
     end
 end

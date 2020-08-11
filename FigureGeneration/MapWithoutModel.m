@@ -15,6 +15,9 @@
 Computer = 0; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
 addpath('d:\GitHub\Coral-Model-V12');
 addpath('d:\GitHub\Coral-Model-V12\FigureGeneration');
+
+% Replace the "useComputer" call below with
+% sstPath = "directory where you put the SST and Lat/Lon data";
 [basePath, outputPath, sstPath, SGPath, matPath, Computer, defaultThreads] ...
     = useComputer(Computer);
 
@@ -33,6 +36,6 @@ SST = SST(:, 1:48);
 typSST = mean(SST, 2);
 
 
- MapGeneration(Reefs_latlon, typSST);
+ MapGeneration(Reefs_latlon, typSST, 1, "");
  
  CellSizes(Reefs_latlon)

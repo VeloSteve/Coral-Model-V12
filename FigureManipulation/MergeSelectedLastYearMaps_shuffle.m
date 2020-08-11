@@ -1,7 +1,7 @@
 vertical = false;
 rcps = [ 4.5 8.5];
 letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
-inputPath = '../FigureData/LastYearMaps_Figure3/';
+inputPath = '../FigureData/LastYearMaps_Figure3/CurveE_221/';
 description = strings(8,1);
 
 % Collect the maps in vectors.  Plot them later.
@@ -14,11 +14,11 @@ for rcp = rcps
     panelRCP(num) = rcp;
     description(num) = ' no adaptation';
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0.0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
-    p1 = open(strcat(n,'.fig'));
+    p1(num) = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
-    figureHandles(num) = p1; %#ok<SAGROW>
+    figureHandles(num) = p1(num); %#ok<SAGROW>
 end
 % Add shuffling panels
 eee = 0;
@@ -27,11 +27,11 @@ for rcp = rcps
     panelRCP(num) = rcp;
     description(num) = ' symbiont shuffling';
 
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA1_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA1.0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
-    p1 = open(strcat(n,'.fig'));
+    p1(num) = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
-    figureHandles(num) = p1; %#ok<SAGROW>
+    figureHandles(num) = p1(num); %#ok<SAGROW>
 end
 % And now E=1, no shuffling
 eee = 1;
@@ -42,11 +42,11 @@ for rcp = rcps
     description(num) = ' symbiont evolution';
     
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA0.0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
-    p1 = open(strcat(n,'.fig'));
+    p1(num) = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
-    figureHandles(num) = p1; %#ok<SAGROW>
+    figureHandles(num) = p1(num); %#ok<SAGROW>
 end
 % Finally, E=1 PLUS shuffling
 eee = 1;
@@ -57,11 +57,11 @@ for rcp = rcps
     description(num) = ' evolution and shuffling';
     
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA1_LastHealthyBothTypesV2');
+    n = strcat(inputPath, 'ESM2M.rcp', num2str(rcp*10), '.E', num2str(eee), '.OA0.sM9.sA1.0_LastHealthyBothTypesV2');
     fprintf('Opening map %s\n', n);
-    p1 = open(strcat(n,'.fig'));
+    p1(num) = open(strcat(n,'.fig'));
     pax(num) = gca; %#ok<SAGROW>
-    figureHandles(num) = p1; %#ok<SAGROW>
+    figureHandles(num) = p1(num); %#ok<SAGROW>
 end
 
 panels = num;
@@ -85,7 +85,7 @@ if vertical
     set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 13, 14]);
     [ha, pos] = tight_subplot(panels, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 else
-    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 8.5]);
+    set(gcf, 'Units', 'inches', 'Position', [1, 0.1, 17, 10.5]);
     [ha, pos] = tight_subplot(panels/2, 2, [0.02, 0], [0.0, 0.05], [0.0 0.1]);
 end
 
@@ -105,9 +105,12 @@ for num = 1:panels
     pos = get(ti, 'position');
     pos(2) = pos(2) - 0.2;
     set(ti, 'position', pos);
-    %close(figureHandles(num));
 end
-
+% The close works in the main loop, but keep it out because that has caused
+% trouble in other cases.
+for num = 1:panels
+   close(p1(num));
+end
 %colorbar('Ticks',ticks,...
 %    'Limits',yearRange,...
 %    'Color',[0.15 0.15 0.15],...
@@ -119,3 +122,4 @@ cb = colorbar('Position',...
     'Color',[0.15 0.15 0.15],...
     'FontSize',14);
 set(cb, 'YAxisLocation','right')
+

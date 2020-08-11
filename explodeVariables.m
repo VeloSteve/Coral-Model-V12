@@ -4,7 +4,7 @@ function [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, su
           keyReefs, skipPostProcessing, doPlots, ...
           doCoralCoverMaps, doCoralCoverFigure, doGrowthRateFigure, ...
           doGenotypeFigure, doDetailedStressStats, allFigs, ...
-          saveVarianceStats, newMortYears, optimizerMode] = explodeVariables(p)
+          saveVarianceStats, newMortYears, optimizerMode, bleachingTarget] = explodeVariables(p)
 %EXPLODEVARIABLES Extract parameter structure to program variables.
 %   
 % Note that assigning these programatically is tempting, and there are
@@ -44,5 +44,6 @@ function [dataset, RCP, E, OA, superMode, superAdvantage, superGrowthPenalty, su
     saveVarianceStats = p.saveVarianceStats;
     newMortYears = p.newMortYears;
     optimizerMode = p.optimizerMode;
+    bleachingTarget = p.bleachingTarget;
 end
 
