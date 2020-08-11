@@ -1,4 +1,4 @@
-function [Omega_all] = GetOmega(omegaPath, RCP) %#ok<STOUT>
+function [Omega_all] = GetOmega(omegaPath, RCP) 
     % Get Omega for a ALL reef grid cells
     % The regular expression expects the letters 'rcp' followed by 2-digit
     % number.  2.6, 4.5, 6.0, and 8.5 are valid.  Some others will be

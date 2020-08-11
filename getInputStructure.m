@@ -15,7 +15,7 @@ function [ps, pd] = getInputStructure(parameters)
         pd = parameters;
     else
         % If it's not a ParameterDictionary, see if it's a JSON string.
-        try ps = jsondecode(parameters);
+        try ps = jsondecode(parameters); %#ok<NASGU>
             % That worked as a test, but use the PD constructor
             % so inputs are validated.
             pd = ParameterDictionary('json', parameters);
@@ -37,7 +37,7 @@ function [ps, pd] = getInputStructure(parameters)
                 fclose(fh);
                 fprintf('Decoding %s\n', json);
                 
-                try ps = jsondecode(json);
+                try ps = jsondecode(json); %#ok<NASGU>
                     % As above, now repeat with the PD constructor.
                     pd = ParameterDictionary('json', json);
                     disp('Got input values from specified file.');

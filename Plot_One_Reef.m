@@ -27,7 +27,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
+function Plot_One_Reef(C, S, bleachEvent, coldEvent, psw2, time, temp, lat, lon, RCP, ...
             hist, dataset, sstPath, k, pdfDirectory, E, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
@@ -35,13 +35,13 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     persistent plotDHM1; % doesn't need to be modified: plotDHM2;
     persistent plotSST1 plotSST2;
     persistent plotSD1 plotSD2 plotSD3 plotSD4;
-    persistent plotCC1 scatCC2 scatCC1; 
+    persistent plotCC1 scatCC2 scatCC1 scatCold1 scatCold2;
     persistent timeY;
     if nargin == 0
         % Clear variables for a clean start
         %disp('Clean start in Plot worker');
         close all;
-        clearvars figHandle DHM Time plotDHM1 plotDHM2 plotSST1 plotSST2 plotSD1 plotSD2 plotSD3 plotSD4 plotCC1 scatCC2 scatCC1 timeY; 
+        clearvars figHandle DHM Time plotDHM1 plotDHM2 plotSST1 plotSST2 plotSD1 plotSD2 plotSD3 plotSD4 plotCC1 scatCC2 scatCC1 scatCold2 scatCold1 timeY; 
         return;
     end
     
@@ -53,10 +53,10 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     tickVals = tickStart:fiftyYears:tickEnd;
     %tickVals = 1850:50:2100;
     
-    smoothSymbiont = 6; % number of points +- for moving average. 0 = no smoothing
+    smoothSymbiont = 0; % 6; % number of points +- for moving average. 0 = no smoothing
     
     shrink = true;
-    % Shrink all time series to monthly for faster plotting.  Note that
+    % Shrink all(?) time series to monthly for faster plotting.  Note that
     % since this function does not return the variables, it is safe to
     % modify them in place.
     if shrink
@@ -146,9 +146,21 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         set(scatCC2, 'YData', subscripts);
         [subscripts, ~] = find(bleachEvent(:,1));
         tSub = timeY(subscripts);
-        subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
+        subscripts(subscripts > 0) = 3000000;  % Arbitrary value above y=0
         set(scatCC1, 'XData', tSub); 
         set(scatCC1, 'YData', subscripts); 
+        
+        % Repeat bleaching markers, but now for cold events.
+        [subscripts, ~] = find(coldEvent(:,2));
+        tSub = timeY(subscripts);
+        subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
+        set(scatCold2, 'XData', tSub);
+        set(scatCold2, 'YData', subscripts);
+        [subscripts, ~] = find(coldEvent(:,1));
+        tSub = timeY(subscripts);
+        subscripts(subscripts > 0) = 3000000;  % Arbitrary value above y=0
+        set(scatCold1, 'XData', tSub); 
+        set(scatCold1, 'YData', subscripts); 
 
         set(plotDHM1, 'YData', DHM(k,:));
     end
@@ -237,7 +249,7 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         %datestr(time(6719)) % Dec 2010
         %CoralCover_Branch_2010(k,1) = C(6718/dt*.25+1,2);
         
-        % For the scatter data, we're just drawing a circle on the x axis.
+        % For the scatter data, we're just drawing a circle near the x axis.
         % approximating to min-year will be close enough.
         
         % Note, 2/4/2018: we are only plotting bleaching events, and using open
@@ -251,9 +263,20 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
        
         [subscripts, ~] = find(bleachEvent(:,1));
         tSub = timeY(subscripts);
-        subscripts(subscripts > 0) = 1000000;
+        subscripts(subscripts > 0) = 3000000;
         scatCC1 = scatter(tSub, subscripts,'m');  % massive bleaching event
        
+        % Repeat for cold-water bleaching
+        [subscripts, ~] = find(coldEvent(:,2));
+        tSub = timeY(subscripts);
+        subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
+        scatCold2 = scatter(tSub,subscripts, 'b', 'filled');  % branching bleaching event
+       
+        [subscripts, ~] = find(coldEvent(:,1));
+        tSub = timeY(subscripts);
+        subscripts(subscripts > 0) = 3000000;
+        scatCold1 = scatter(tSub, subscripts, 'm', 'filled');  % massive bleaching event
+        
         xlabel('Time (years)')   ; 
 
         ylabel('Coral Cover (cm^2)');

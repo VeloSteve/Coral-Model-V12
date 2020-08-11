@@ -1,7 +1,11 @@
 %% The code to find new optimal inputs for psw2 calculations became overly
-%  complicated.  Rather than try to clean it up, this is a fresh start.
+%  complicated.  Rather than try to clean it up, this is a fresh start.  It is
+%  also more automated, so that the process, which can take many hours, requires
+%  less attention from the user.
 % 
 % Key points:
+% - Cases to run are selected in this script, but the actual runs are made by
+%   RunPSWCases, which also defines the range of s values to test.
 % - Set model parameters by manipulating and passing a ParameterDictionary
 %   rather than relying on manual modifications of modelVars.txt
 % - Every model or setting variation which changes historical reef behavior will
@@ -38,30 +42,22 @@ pd.set('optimizerMode', true);
 % Values are E, OA, RCP, superMode, advantage, growth penalty, start, bleachTarget
 % List all values we expect to use in the forseeable future, but note that
 % values and entire parameters are occasionally added.
-%
-% Don't change these lightly, as they define array locations for s values.
-% Any change requires discarding or manually resizing the array in the
-% stored *.mat file.
-fullE = [true, false];
-fullOA = [true, false];
-fullRCP = {'rcp26', 'rcp45', 'rcp60', 'rcp85', 'mean '};  
-fullSuperMode = 0:9;
-fullAdvantage = [0, 0.5, 1.0, 1.5, 2.0];
-fullGrowthPenalty = [0, 0.25, 0.5];
-fullStartYear = [1861, 2100];
-fullBleachTarget = [3, 5, 10];
 
-%% Edit only this section!
+% Now done in an external file for coordination with runtime code.  This sets
+% RCP scenario, adaptation options, and more.
+DefineCaseOptions
+
+%% Select the case options to be normalized in this run.
 
 % Start small!
-useE = [0 1];
-useOA = [0 1];
+useE = [0];
+useOA = [0]; %[0 1];
 useRCP = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 useSuperMode = 9;
-useAdvantage = [0 0.5 1.0 1.5]; %[0.0 0.5 1.0 1.5];
+useAdvantage = [0]; %[0.0 0.5 1.0 1.5];
 useGrowthPenalty = [0.5];
 useStartYear = [1861];
-useBleachTarget = [3 5 10];
+useBleachTarget = [5]; % [3 5 10];
 
 % XXX Just for testing:
 % pd.set('everyx', 1);
@@ -74,7 +70,7 @@ useBleachTarget = [3 5 10];
 % TODO: record how many passes were made in case we want to do
 %       a rough pass and followups.
 % TODO: verify each option.  3 is verified to replace old values.
-oldTreatment = 2;
+oldTreatment = 1;
 
 %% Recover old results or create a new empty array
 if oldTreatment == 1
@@ -85,7 +81,7 @@ if oldTreatment == 1
         length(fullStartYear), length(fullBleachTarget), length(dummyResult));
 else
     try
-        load('Optimize_checkpoint.mat', 'pswResults');
+        load('./Optimize_checkpoint.mat', 'pswResults');
     catch
         %   Values are pMin, pMax, y, s, objectiveFunction, bleachingResult, percentGone
         dummyResult = [0.25, 1.5, 0.46, 5.0, 12.1, 5.001, 0.0];
@@ -182,16 +178,14 @@ for idx = 1:length(sliceIdx)
     end
 end
 
+% A final save, so we have the averages in the file
+save('../mat_files/new_Optimize_psw2_9D.mat', 'pswResults');
+
+
 %% Print the results, both to examine them and to verify that we are storing and
 % retrieving correctly.
-pMinIndexes = find(~isnan(pswResults(:,:,:,:,:,:,:,:,1)));
-fprintf(" E   OA  RCP    Mode  Adv    Penalty Target pMin    pMax   y      s        obj      bleach   mort\n");
-for idx = 1:length(pMinIndexes)
-    i = pMinIndexes(idx);
-    [i1,i2,i3,i4,i5,i6,i7,i8,i9] = ind2sub(size(pswResults), i);
-    resultSet = squeeze(pswResults(i1, i2, i3, i4, i5, i6, i7, i8, :));  % squeeze removes singleton dimensions.
-    fprintf('%2d  %2d   %s %2d   %6.2f %6.2f  %6.2f  %6.3f %6.2f %6.2f %8.4f %8.4f %8.4f %8.4f\n', ...
-        fullE(i1), fullOA(i2), fullRCP{i3}, fullSuperMode(i4), fullAdvantage(i5), fullGrowthPenalty(i6), fullBleachTarget(i8), resultSet(:));
-end
+printResultPSW(pswResults);
 
+load handel.mat;
+sound(y);
 fprintf('Completed optimization of %d cases in %7.1f seconds.\n', caseCount, toc(OptTimerStart));

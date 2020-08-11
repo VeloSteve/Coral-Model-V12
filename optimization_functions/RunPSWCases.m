@@ -7,17 +7,23 @@ function [quality, parameters] = RunPSWCases(pd)
     % Just using 2 to 9 for all would work, but this gives things a closer
     % start.
     if bleachingTarget <= 4
+        % Target 3
+        % With the revised growth curve with min(0, 2 to 9 is no longer enough
+        % range.  Try 2 to 15 (3 was too high, 13 was too low at the top)
         useLowerS = 2;
-        useUpperS = 5;
+        useUpperS = 8;
     elseif bleachingTarget >=6
-        useLowerS = 5;
-        useUpperS = 9;
+        % Target 10
+        % Was 5 to 9.  12 and 20 failed for curve C.
+        useLowerS = 3;
+        useUpperS = 18;
     else
-        useLowerS = 4;
-        useUpperS = 6;
+        % Target 5
+        useLowerS = 3;
+        useUpperS = 12;
     end
     startSteps = 7;
-    maxPasses = 10; % 14; % 14 may be overkill, but it gets the 4th decimal place.
+    maxPasses = 14; % 14 may be overkill, but it gets the 4th decimal place.
     propInputValues = [0.025, 1.5, 0.46, NaN];
     
     
@@ -52,6 +58,12 @@ function [quality, parameters] = RunPSWCases(pd)
         assert(~isempty(minAt), 'No s matched the minimum.');
         % WARNING: do the next two checks more gracefully so work isn't lost.
         if passes < 3
+            % Assert has the required logic, but I want a notification sound, so
+            % it is repeated for that purpose.
+            if min(minAt) == 1 || max(minAt) >= size(resultList, 1)
+                load gong.mat;
+                sound(y);
+            end
             assert(min(minAt) > 1, 'Error: best result was at lower boundary.  Restart with wider limits.');
             assert(max(minAt) < size(resultList, 1), 'Error, best result was at upper boundary. Restart with wider limits.');
         end
@@ -170,12 +182,12 @@ function [quality, parameters] = RunPSWCases(pd)
     while changed && length(minAt) > 1
         changed = false;
         % Drop one from each end if the error on the last is small.
-        if abs(resultList(minAt(end), 3) - bleachingTarget) < 0.001
+        if abs(resultList(minAt(end), 3) - bleachingTarget) < 0.002
             minAt(end) = [];
             changed = true;
         end
         if length(minAt) > 1
-            if abs(resultList(minAt(1), 3) - bleachingTarget) < 0.001
+            if abs(resultList(minAt(1), 3) - bleachingTarget) < 0.002
                 minAt(1) = [];
                 changed = true;
             end

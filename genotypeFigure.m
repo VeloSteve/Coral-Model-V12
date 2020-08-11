@@ -5,8 +5,9 @@ function genotypeFigure(fullDir, suffix, k, time, gi, ssi)
     plot(time, gi(:,1), specs{1}); %, gi(:,2)); %, gi(:,3), gi(:,4));
     hold on;
     plot(time, gi(:,2), specs{2});
-    gi(1:ssi, 3) = NaN;
-    gi(1:ssi, 4) = NaN;
+    % Not relevant in mode 9
+    %gi(1:ssi, 3) = NaN;
+    %gi(1:ssi, 4) = NaN;
     plot(time, gi(:,3), specs{3});
     plot(time, gi(:,4), specs{4});
     datetick('x', 'keeplimits');

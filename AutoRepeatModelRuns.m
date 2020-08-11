@@ -11,11 +11,12 @@ parameters = 'D:\GitHub\Coral-Model-V12\modelVars.txt';
 % with 3 different temperature deltas and 4 different rcp cases.
 
 % Every combination will be a separate run.
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'}; % 'rcp26', 'rcp45', 'rcp60', 'rcp85'
-deltaTList = [0.0 1.0]; % [0.0, 1.0];
-modeList = [9]; % [0, 7];  % 0 7
-eList = [1, 0];
-oaList = [0];
+ %#ok<*NBRAK> % MATLAB warns by default when a list has one element.
+rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'}; %, 'rcp85'};
+deltaTList = [0 0.5 1.0 1.5]; % [0.0, 1.0];
+modeList = [9];
+eList = [0 1];
+oaList = [0 1];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
 
 fprintf("--------------------------------------------------\n");

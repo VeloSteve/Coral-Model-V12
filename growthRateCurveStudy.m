@@ -1,4 +1,11 @@
 function growthRateCurveStudy()
+
+% Unrelated note:
+% Commands like these are really handy for grabbing data from the figure on
+% the screen and possibly manipulating it.
+% masspop = get(gco, 'YData');
+% set(gco, 'CData', cdatacopy)
+
     % This script is for visualizing the growth curve with representative
     % values to understand each term better
     g = 24.7;
@@ -33,6 +40,18 @@ function growthRateCurveStudy()
         % Last term of Baskett 2009 eq. 3:
         rm  = a*exp(b*T); % maximum possible growth rate at optimal temp CK
         terms(j, 1) = rm;
+        E = -0.300;
+        alpha = -0.054;
+        mu = 10.50;
+        k = 8.6173e-5; % Boltzman factor, eV/K
+        % log10(dry weight) is about -2.8 for dinoflagellates.  Is dry weight =
+        % M?  Number from *suppinfo7.docx
+        M = 0.001585; % 10^-2.8
+        % why did I include this? c3 = 0.125; % Kremer et al. 2017, Table 2
+        rmMTE = mu * M^alpha * exp(-E/(k*T));
+        % Values range from about E+102 to E+44  ! Units?
+        terms(j, 9) = rmMTE;
+        
         extraExp = exp(b*min(0, T - g));
         extraExp2 = exp(b*min(2, T - g));
         terms(j, 2) = extraExp;
@@ -96,7 +115,8 @@ function growthRateCurveStudy()
     plot(temps, terms(:, 3), 'ob', 'LineWidth', 1, 'DisplayName', 'main part, 0 min'); % mainPart  0 min
     plot(temps, terms(:, 7), '-b', 'LineWidth', 1, 'DisplayName', 'main part, 2 min'); % mainPart2 2 min
     plot(temps, terms(:, 8), '-.b', 'LineWidth', 1, 'DisplayName', 'main part, 2 min * no min'); % mainPart2 2 min * no main (instead of squared)
-    
+    plot(temps, terms(:, 9), '-.b', 'LineWidth', 1, 'DisplayName', 'Kremer et al. eq. 2'); % mainPart2 2 min * no main (instead of squared)
+
     % optimum
     plot([g g], growthScale, '-y', 'DisplayName', 'adapted temperature');
     

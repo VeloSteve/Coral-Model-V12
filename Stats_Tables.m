@@ -18,7 +18,7 @@
 %   
 function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, ...
-        startYear, RCP, E, OA, bleachParams, detailStats, optimizerMode) %#ok<INUSL>
+        startYear, RCP, E, OA, superAdvantage, bleachParams, detailStats, optimizerMode) %#ok<INUSL>
     % Subset all of the input arrays which list all reefs to just those
     % which are active in this run.  We don't care about reef IDs, just the
     % number and their latitude.
@@ -51,8 +51,8 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
         else
             % Detailed output less useful as a readable table, but giving better
             % resolution for plots.
-            tenY = [1870:10:1950];
-            oneY = [1950:1:2100];
+            tenY = 1870:10:1950;
+            oneY = 1950:1:2100;
             years = unique([tenY oneY]);
         end
     else
@@ -69,7 +69,6 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
     unrecovered = permBleached;
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
     allStress = permBleached;
-    cumBleachEvents = permBleached;
      
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);
@@ -205,12 +204,14 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
     % outside program which can compare different runs.
-    xForPlot = years; %#ok<NASGU>
-    yForPlot = allStress(5, :); %#ok<NASGU>
-    yEq = allStress(2, :); %#ok<NASGU>
-    yLo = allStress(3, :); %#ok<NASGU>
-    yHi = allStress(4, :); %#ok<NASGU>
-    save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), 'OA=', num2str(OA), '.mat'), 'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
+    xForPlot = years;
+    yForPlot = allStress(5, :); 
+    yEq = allStress(2, :); 
+    yLo = allStress(3, :);
+    yHi = allStress(4, :);
+    save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), ...
+        'OA=', num2str(OA), 'Adv=', num2str(superAdvantage, '%3.1f'), '.mat'), ...
+        'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
 end
 
 

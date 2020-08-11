@@ -1,4 +1,4 @@
-function shuffleStats(S_yearly, coralSymConstants, S_seed, startYear)
+function shuffleStats(S_yearly, coralSymConstants, S_seed, startYear, saveDir)
     % S_yearly has dimensions year/reef/symbiont
     if size(S_yearly, 3) == coralSymConstants.Sn
         % No alternate symbionts, so there no shuffling.
@@ -104,6 +104,13 @@ function shuffleStats(S_yearly, coralSymConstants, S_seed, startYear)
     xlabel("year");
     ylabel("Fraction");
     legend('Location', 'NorthWest');
+    
+    if verLessThan('matlab', '8.2')
+        saveas(gcf, strcat(saveDir, 'SymbiontDominance'), 'fig');
+    else
+        fprintf('Saving coral cover as fig file.');
+        savefig(strcat(saveDir, 'SymbiontDominance', '.fig'));
+    end
     
     logTwo("Tolerant symbionts dominate in massive coral in %5.1f percent of the %5.1f percent of global reefs with significant populations.\n", 100*globalFraction(end, 1), 100*sum(stopAt(:,1)==240)/reefCount); 
     logTwo("Tolerant symbionts dominate in branching coral in %5.1f percent of the %5.1f percent of global reefs with significant populations.\n", 100*globalFraction(end, 2), 100*sum(stopAt(:,2)==240)/reefCount); 
