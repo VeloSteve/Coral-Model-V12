@@ -12,7 +12,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
                             rm, temp, vgi, gi, SelVx, C_seed, S_seed, con, ...
-                            alpha, KCx, Mu, um, KSx, G, expTune, min1, min2)
+                            alpha, KCx, Mu, um, KSx, G, expTune, min1, min2, ...
+                            riFloor)
 
 	% Inputs:
     % Sold - symbiont populations - "S old" the i'th row of the S array
@@ -103,7 +104,8 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     dCk1 = dt .* (Cold .* (G .* SA./ (KSx .* Cold).* (KCx-(alpha*Cold')')./KCx - Mu ./(1+um .* SA./(KSx .* Cold))) ); %Change in coral pops %OK
       
     ctemp = temp(i)+temp(i+1);    % current temp at half step (times 2)
-    rmk2  = a*exp(b*0.5*(ctemp)); % maximum possible growth rate at optimal temp at t=i+0.5
+    ctemp2 = ctemp / 2.0;
+    rmk2  = a*exp(b*(ctemp2)); % maximum possible growth rate at optimal temp at t=i+0.5
     
     %%
     % Note that this line is analagous to the one for ri in timeIteration,
@@ -128,7 +130,13 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     %rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - 0.5*ctemp)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min(min2, ctemp/2.0 - gi(i,:))) * rmk2; 
     % July 15: The extra exponential was formed incorrectly for when the curve break
     % was not at temp = gi.  Fixed.
-    rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - 0.5*ctemp)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min(0, ctemp/2.0 - gi(i,:) - min2)) * rmk2; 
+    min2Fn = min(0, ctemp2 - gi(i,:) + min2);
+    rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - ctemp2)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min2Fn) * rmk2; 
+    % This line puts a floor under the growth curve to the left of peak. It
+    % was not successful in improving the relationship between cold and warm
+    % bleaching and mortality.  (Tested February 2021.)
+    % rik2((ctemp2 < gi(i, :)) & (rik2 < riFloor)) = riFloor;
+
 
     % Coral population at t = t + dt/2
     hC = max(Cold + 0.5*dCk1, C_seed);    

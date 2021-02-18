@@ -2,7 +2,7 @@
 function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, dt, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
         superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, bleach, bleachParams, ...
-        con, expTune, min1, min2)
+        con, expTune, min1, min2, riFloor)
     
     % currentAdvantage may be modified in some modes.  Don't change
     % superAdvantage
@@ -109,14 +109,19 @@ function [S, C, gi, vgi, origEvolved, bleach] = timeIteration(timeSteps, S, C, d
         % ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(min1, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(expTune*con.b*min(min2, temp(i) - gi(i,:))) * rm;
         % July 15: The extra exponential was formed incorrectly for when the curve break
         % was not at temp = gi.  Fixed.
-        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(min1, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(expTune*con.b*min(0, temp(i) - gi(i,:) + min2)) * rm;
-              
+        min2Fn = min(0, temp(i) - gi(i,:) + min2);
+        ri(i,:) = (1- (vgi(i,:) + con.EnvVx + (min(min1, gi(i,:) - temp(i))).^2) ./ (2*SelVx)) .* exp(expTune*con.b*min2Fn) * rm;
+        % This line puts a floor under the growth curve to the left of peak. It
+        % was not successful in improving the relationship between cold and warm
+        % bleaching and mortality.  (Tested February 2021.)
+        % ri(i, (temp(i) < gi(i, :)) & (ri(i, :) < riFloor)) = riFloor;
+
         % Solve ordinary differential equations using 2nd order Runge Kutta
         %Runge_Kutta_2_min0_160503 %% run sub-mfile to solve ODE using min0 to prevents cold water bleaching
         [SiPlusOne, CiPlusOne] = Runge_Kutta_2(S(i, :), C(i, :), i, dt, ...
                                             ri, rm, temp, vgi, gi, SelVx, C_seed2, ...
                                             S_seed, con, alpha, KCx, Mu, um, KSx, G, ...
-                                            expTune, min1, min2);
+                                            expTune, min1, min2, riFloor);
                                         
         % Compute bleaching state (new 8/14/2018)
         % Only check at the end of each year to be consistent with
