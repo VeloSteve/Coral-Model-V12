@@ -1,6 +1,6 @@
 %% Run the model repeatedly to find the "s" value giving the best match to the
 %  bleaching target without too much reef death.
-function [quality, parameters] = RunPSWCases(pd)
+function [quality, parameters] = RunPSWCases(pd, bleachMortBalance, maxPasses)
     wrapTimerStart = tic;
 
     bleachingTarget = pd.get('bleachingTarget');
@@ -10,20 +10,20 @@ function [quality, parameters] = RunPSWCases(pd)
         % Target 3
         % With the revised growth curve with min(0, 2 to 9 is no longer enough
         % range.  Try 2 to 15 (3 was too high, 13 was too low at the top)
-        useLowerS = 2;
+        useLowerS = 1.5;
         useUpperS = 8;
     elseif bleachingTarget >=6
         % Target 10
         % Was 5 to 9.  12 and 20 failed for curve C.
-        useLowerS = 3;
-        useUpperS = 18;
+        useLowerS = 5;
+        useUpperS = 10;
     else
         % Target 5
-        useLowerS = 3;
-        useUpperS = 12;
+        useLowerS = 2;
+        useUpperS = 7;
     end
     startSteps = 7;
-    maxPasses = 14; % 14 may be overkill, but it gets the 4th decimal place.
+    % maxPasses = 14; % 14 may be overkill, but it gets the 4th decimal place.
     propInputValues = [0.025, 1.5, 0.46, NaN];
     
     
@@ -42,7 +42,7 @@ function [quality, parameters] = RunPSWCases(pd)
     clear resultList;
     idx = 1;
     for thisS = pointsToRun
-        [goodness, bleaching, pg] = runOnce(propInputValues, thisS, pd, bleachingTarget);
+        [goodness, bleaching, pg] = runOnce(propInputValues, thisS, pd, bleachingTarget, bleachMortBalance);
         
         % For return, 
         % Values are pMin, pMax, y, s, objectiveFunction, bleachingResult, percentGone  
@@ -146,7 +146,7 @@ function [quality, parameters] = RunPSWCases(pd)
         % Fill in the even-numbered rows.
         for i = 2:2:newSize-1
             thisS = (resultList(i-1, 1)+resultList(i+1, 1))/2;
-            [goodness, bleaching, pg] = runOnce(propInputValues, thisS, pd, bleachingTarget);
+            [goodness, bleaching, pg] = runOnce(propInputValues, thisS, pd, bleachingTarget, bleachMortBalance);
             resultList(i, :) = [thisS goodness bleaching pg];
         end
     end
@@ -218,12 +218,12 @@ function [quality, parameters] = RunPSWCases(pd)
     
 end
 
-function [goodness, bleaching, pg] = runOnce(propInputValues, s, pd, bleachingTarget)
+function [goodness, bleaching, pg] = runOnce(propInputValues, s, pd, bleachingTarget, bleachMortBalance)
     propInputValues(4) = s;
     SavePSWInputs
     thisPath = pwd;
     cd('..');
     [percentMortality, bleaching, ~, ~, ~] = A_Coral_Model(pd);
     cd(thisPath);
-    [goodness, pg] = goodnessValueNew(bleachingTarget, percentMortality, bleaching);
+    [goodness, pg] = goodnessValueNew(bleachingTarget, percentMortality, bleaching, bleachMortBalance);
 end

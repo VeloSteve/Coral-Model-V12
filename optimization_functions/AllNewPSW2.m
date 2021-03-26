@@ -12,7 +12,7 @@
 %   require a separate result.
 % - For each result, the model will be run enough times to find the minimum of
 %   an objective function which balances 1985-2010 bleaching, not creating dead
-%   reef in that period, and perhaps making psw2 similar to specific reefs from
+%   reefs in that period, and perhaps making psw2 similar to specific reefs from
 %   Baskett et al. (2009).
 % - Save results with "answers" and quality information for review after a batch
 %   of cases is complete.
@@ -26,7 +26,8 @@
 % Possible big performance wins:
 %  - Cut off runs after 2010, saving about 90/240 (3/8) of the run time.
 %  - Start each run at the "s" value from the last run or a similar starting
-%    point.
+%    point.  This would work very well when only OA has changed, and should be
+%    quite good when only RCP has changed.
 %  - Stop based on convergence rather than a fixed number of passes. (even more
 %    valuable when starting with a good guess)
 %  - Use a built in optimization approach from MATLAB.
@@ -37,7 +38,7 @@ OptTimerStart = tic;
 addpath('..');
 [~, pd] = getInputStructure('D:\GitHub\Coral-Model-V12\modelVars.txt');
 pd.set('optimizerMode', true);
-
+pd = minimizeOutput(pd);
 %% Define possible variations
 % Values are E, OA, RCP, superMode, advantage, growth penalty, start, bleachTarget
 % List all values we expect to use in the forseeable future, but note that
@@ -50,17 +51,31 @@ DefineCaseOptions
 %% Select the case options to be normalized in this run.
 
 % Start small!
-useE = [0];
+useE = [0 1];
 useOA = [0]; %[0 1];
-useRCP = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
+useRCP = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};  % full sets are required for production.
+%useRCP = {'rcp45', 'rcp85'};
+%useRCP = {'rcp45'}; % for quicker testing
 useSuperMode = 9;
-useAdvantage = [0]; %[0.0 0.5 1.0 1.5];
+useAdvantage = [0 1.0]; %[0.0 0.5 1.0 1.5];
 useGrowthPenalty = [0.5];
 useStartYear = [1861];
-useBleachTarget = [5]; % [3 5 10];
+useBleachTarget = [10]; % [3 5 10];
+bleachMortBalance = 2.0;  % default = 2.  weighting of bleaching target vs. mortality
+checkpoint_Name = './Optimize_checkpoint.mat'; % Default
+%checkpoint_Name = './Optimize_checkpoint_LEFT.mat'; % Alternate when running more than one process.
 
-% XXX Just for testing:
-% pd.set('everyx', 1);
+% NOTE: changed passes from 14 to 10 for initial testing.
+%maxPasses = 14; % default - very conservative
+% XXX Just for testing.  Be sure to delete the mat file if re-running for
+% production.
+% I was using 12 passes for production, but often the last few make no
+% difference at all.  Since the s values for 4 RCP cases get averaged anyway
+% there's no really need to get a stable 4 decimal places.  I'm cutting the
+% passes to 10 on 3 Mar 2021.  This will probably still give 4 places in most
+% cases.
+pd.set('everyx', 1);
+maxPasses = 10;
 
 % There are 3 ways to treat old results.
 % 1) Discard all and start over.
@@ -70,7 +85,7 @@ useBleachTarget = [5]; % [3 5 10];
 % TODO: record how many passes were made in case we want to do
 %       a rough pass and followups.
 % TODO: verify each option.  3 is verified to replace old values.
-oldTreatment = 1;
+oldTreatment = 2;
 
 %% Recover old results or create a new empty array
 if oldTreatment == 1
@@ -81,7 +96,7 @@ if oldTreatment == 1
         length(fullStartYear), length(fullBleachTarget), length(dummyResult));
 else
     try
-        load('./Optimize_checkpoint.mat', 'pswResults');
+        load(checkpoint_Name, 'pswResults');
     catch
         %   Values are pMin, pMax, y, s, objectiveFunction, bleachingResult, percentGone
         dummyResult = [0.25, 1.5, 0.46, 5.0, 12.1, 5.001, 0.0];
@@ -134,9 +149,9 @@ for ooo = useOA
                                     caseCount = caseCount + 1;
                                     fprintf("Optimizing for case %d, Target = %d, E = %d, OA = %d, RCP = %s, advantage = %d\n", ...
                                         caseCount, ttt, eee, ooo, rrr{1}, aaa);
-                                    [quality, parameters] = RunPSWCases(pd);
+                                    [quality, parameters] = RunPSWCases(pd, bleachMortBalance, maxPasses);
                                     pswResults(ee,oo,rr,mm,aa,pp,yy,tt,:) = [parameters, quality];
-                                    save('Optimize_checkpoint.mat', 'pswResults');
+                                    save(checkpoint_Name, 'pswResults');
                                 else
                                     fprintf("    Skipping completed case\n");
                                 end
@@ -189,3 +204,16 @@ printResultPSW(pswResults);
 load handel.mat;
 sound(y);
 fprintf('Completed optimization of %d cases in %7.1f seconds.\n', caseCount, toc(OptTimerStart));
+
+
+function pd = minimizeOutput(pd)
+% Better logic would allow optimizerMode to control these on the model side, but
+% do it here for now so modelVars.txt doesn't need to be edited (except for path)
+    pd.set("doCoralCoverFigure", false);
+    pd.set("doCoralCoverMaps", false);
+    pd.set("doDetailedStressStats", false);
+    pd.set("doGenotypeFigure", false);
+    pd.set("doGrowthRateFigure", false);
+    pd.set("doPlots", false);
+    pd.set("keyReefs", []);
+end
