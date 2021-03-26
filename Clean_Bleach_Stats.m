@@ -172,23 +172,46 @@ function [ C_monthly, S_monthly, C_yearly, S_yearly, bleachEvent, coldEvent, ble
                     % Are we looking for annual C min or S min?
                     % Check if sB is true, use that, otherwise use cB (one must
                     % be true).
-                    endStep =  y * stepsPerYear;
-                    startStep = endStep - stepsPerYear + 1;
+                    % However we define cold water bleaching, start by finding
+                    % the recent minimum population of the organism which
+                    % triggered the event.
+                    endStep =  y * stepsPerYear;                % last step of this year
+                    startStep = endStep - stepsPerYear + 1;     % first step of this year
                     if sB
                         % Ssum is the sum of all symbiont populations in each
                         % coral type, at time-step frequency.
-                        [~, iMin] = min(Ssum(startStep:endStep, coral));
+                        [~, iMin] = min(Ssum(startStep:endStep, coral));  % step with lowest S for each coral type
                     else
                         [~, iMin] = min(C(startStep:endStep, coral));
                     end
                     % iMin is the index of the minimum within the subset year.
-                    %sstMin = temp(startStep + iMin - 1);
-                    %sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth); 
-                    % There seems to be a lag.  Try comparing 2 months back to
-                    % 4.
-                    sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth);
-                    sstBack4 = temp(startStep + iMin - 1 - 4 * stepsPerMonth);
-                    coldEvent(y, coral) = sstBack4 - sstBack2 > 0.5;
+    
+                    coldVersion = 2;
+                    if coldVersion == 1
+                        % Is the temperature 2 months back colder than 4 months
+                        % back?
+                        
+                        %sstMin = temp(startStep + iMin - 1);
+                        %sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth); 
+                        % There seems to be a lag.  Try comparing 2 months back to
+                        % 4.
+                        sstBack2 = temp(startStep + iMin - 1 - 2 * stepsPerMonth);
+                        sstBack4 = temp(startStep + iMin - 1 - 4 * stepsPerMonth);
+                        coldEvent(y, coral) = sstBack4 - sstBack2 > 0.5;
+                    elseif coldVersion == 2
+                        % Is the T average over the 4 months leading up the the
+                        % annual minimum population lower than the
+                        % 4-year average?
+                        stepMin = startStep + iMin - 1;
+                        step4Mon = max(1, stepMin - 4 * stepsPerMonth + 1);
+                        step4Yr = max(1, stepMin - 4 * 12 * stepsPerMonth + 1);
+                        sstRecent = mean(temp(step4Mon:stepMin));
+                        sstAv = mean(temp(step4Yr:stepMin));
+                        coldEvent(y, coral) = sstAv > sstRecent;
+                    else
+                        fprintf("WARNING: undefined cold bleaching test!\n");
+                    end
+                 
                 end
             end
             
