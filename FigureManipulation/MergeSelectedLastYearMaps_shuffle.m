@@ -1,7 +1,8 @@
 vertical = false;
 rcps = [ 4.5 8.5];
 letters = ['a' 'b' 'c' 'd' 'e' 'f' 'g' 'h'];
-inputPath = '../FigureData/LastYearMaps_Figure3/CurveE_221/';
+% inputPath = '../FigureData/LastYearMaps_Figure3/CurveE_221/';
+inputPath = '../FigureData/LastYearMaps_Figure3_Feb2021/';
 description = strings(8,1);
 
 % Collect the maps in vectors.  Plot them later.

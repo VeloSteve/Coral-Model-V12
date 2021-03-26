@@ -1,23 +1,22 @@
 %% Make Maps
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Evolutionary model for coral cover (from Baskett et al. 2009)     %
-% modified by Cheryl Logan (clogan@csumb.edu)                       %
-% last updated: 1-6-15                                                          %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapGeneration(Reefs_latlon, values, figNum, tName, lowestScaleMax )
-    if nargin < 5
-        lowestScaleMax = 5;
-    end
+% MapGeneration has features wired for specific figures, but it is limiting for
+% other uses.  This is a stripped-down version.
+function [] = MapGenerationSimple(Reefs_latlon, values, figNum, tName, colorLimits, flip, values2 )
     format shortg;
 
     % A scale for "red=bad, blue=good" plots.
-    % customColors = customScale();
+    customColors = customScale();
+    if flip
+        customColors = flipud(customColors);
+    end
 
     %tName = strcat('Reef Cell Historical Temperatures, °C');
     % Green points everywhere
-    oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, parula, tName, lowestScaleMax);
-
+    if nargin < 7
+        oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, customColors, tName, colorLimits);
+    else
+        oneMap(figNum, Reefs_latlon(:, 1), Reefs_latlon(:, 2), values, customColors, tName, colorLimits, values2);
+    end
 end  % End the main MapGeneration function.
 
 % Arguments:
@@ -27,14 +26,13 @@ end  % End the main MapGeneration function.
 % values what to plot at each position
 % cRange min and max data values for color scale
 % t title
-function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
-    % Work well UNLESS subset of reefs changes!
-    % persistent LONG LAT longSort latSort;
-    usePersistent = false;
+function [] = oneMap(n, lons, lats, values, cMap, t, colorLimits, values2)
+    persistent LONG LAT longSort latSort;
     f = figure(n);
+    set(gca, 'Color', 'w');
     % Scatter the locations a bit to see them draw.
     % (left, bottom, width, height)
-    set(gcf, 'Units', 'inches', 'Position', [0.5 + n/3, 0.5 + n/4, 15, 4]);
+    set(gcf, 'Units', 'inches', 'Position', [0.5 + n/3, 0.5 + n/4, 27, 10]);
 
         clf;
         % first pass only:
@@ -46,7 +44,7 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
 
     % Assume that all maps in a run will use the same lat/lon inputs, so we
     % can save time by re-using the values computed here:
-    if ~usePersistent || (isempty(LONG) || isempty(LAT) || isempty(longSort) || isempty(latSort))
+    if isempty(LONG) || isempty(LAT) || isempty(longSort) || isempty(latSort)
         idx = find(lons < 0);
         lons(idx) = lons(idx) + 360; % for shifted map (0 to 360 rather than -180 to 180)
         [LONG,LAT] = m_ll2xy(lons,lats); % convert reef points to M-Map lat long
@@ -86,27 +84,22 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     
     % Rectangles don't do color mapping, so make a substitute.
     % If using less than 1 for max, round to tenths instead of 1s.
-    if size(lowestScaleMax) == [1 2]
-        % Take the values as gives.
-        minT = lowestScaleMax(1);
-        maxT = lowestScaleMax(2);
+    if isempty(colorLimits)
+        minT = min(values);
+        maxT = min(values);
     else
-        % Use some heuristics.
-        if lowestScaleMax < 0.999
-            minT = floor(min(values)*10)/10.0;
-            maxT = ceil(max(values)*10)/10.0;
-        else
-            minT = floor(min(values));
-            maxT = ceil(max(values));
-        end
-        if maxT < lowestScaleMax
-            maxT = lowestScaleMax;
-        end
+        minT = colorLimits(1);
+        maxT = colorLimits(2);
     end
     tRange = maxT - minT;
     cVals = length(cMap);
     fprintf('minT = %d, maxT = %d, value range %d to %d \n', minT, maxT, min(values), max(values))
     
+    % The second variable is continuous, but we only have a few symbols
+    % available.  Split at 1/3 percentiles.
+    thirds = quantile(values2, [1/3.0, 2/3.0]);
+    fprintf("Splitting value2 at %f and %f\n", thirds);
+    drawnow;
     %scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
     % Added later: report on reef cell sizes it's easy to do here since
     % the basic values are already being calculated.
@@ -116,8 +109,29 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
         w = longSort(find(longSort(:, 1) == x), 2);        
         y = LAT(i);
         h = latSort(find(latSort(:, 1) == y), 2);
-        reefColor = cMap(min(256, max(1, floor(cVals*(values(i)-minT)/tRange))), :);
-        rectangle('Position', [x - w/2, y - h/2, w, h], 'FaceColor', reefColor, 'EdgeColor', reefColor    );
+        reefColor = cMap(min(cVals, max(1, floor(cVals*(values(i)-minT)/tRange))), :);
+        % rectangle works well, but doesn't work with hatchfill.  Try a patch.
+        % rect = rectangle('Position', [x - w/2, y - h/2, w, h], 'FaceColor', reefColor, 'EdgeColor', reefColor    );
+        % Note also that building one patch with many faces could be a lot
+        % faster than doing each one in a loop - but then can hatchfill be used?
+        % patch(X, Y, C), with vertices clockwise.  I'll start from top left.
+        X = [x-w/2, x+w/2, x+w/2, x-w/2];
+        Y = [y+h/2, y+h/2, y-h/2, y-h/2];
+        ppp = patch(X, Y, reefColor, 'LineStyle', 'none');
+        if nargin > 7
+            % 3rd param is angle for hatches, width for speckling, 4th is
+            % spacing or density
+            if values2(i) > thirds(2)
+                hatchfill(ppp, 'cross', 45, 4, reefColor);
+            elseif values2(i) > thirds(1)
+                hatchfill(ppp, 'speckle', 20, 0.2, reefColor);
+            else
+                % hh1 = hatchfill(ppp, 'single', -45, 3, reefColor);
+            end
+        end
+        if mod(i, 400) == 0
+            drawnow;
+        end
     end
     
   
@@ -137,29 +151,24 @@ function [] = oneMap(n, lons, lats, values, cMap, t, lowestScaleMax)
     %ylim([-0.7 0.7])
 
     cb = colorbar;
-    % These maps were originally developed for temperature, using 5 C multiples.
-    % When using standard deviation, values will be smaller.  As a kludge, use
-    % the size of lowestScalMax (less than 5) as an indicator that the range
-    % will be small.
-    if lowestScaleMax > 5
-        cb.Ticks = [0 5 10 15 20 25 30 35];
-        cb.TickLabels = [{'0 °C'} {'5 °C'} {'10 °C'} {'15 °C'} {'20 °C'} {'25 °C'} {'30 °C'} {'35 °C'}];
-    elseif lowestScaleMax < 0.999
-        cb.Ticks = [-1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1];
-        %cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
-    elseif lowestScaleMax == 1.0
-        cb.Ticks = [-1 -0.5 0 0.5 1];
-        %cb.TickLabels = [{'-1'} {'-0.8'} {'-0.6'} {'-0.4'} {'-0.2'} {'0'} {'0.2'} {'0.4'} {'0.6'} {'0.8'} {'1'}]; 
-    elseif lowestScaleMax == 1.5
-        cb.Ticks = [0 0.5 1 1.5];
-        cb.TickLabels = [{'0'} {'0.5'} {'1'} {'1.5'}]; 
-    else
-        cb.Ticks = [-1 0 1 2 3 4 5 6];
-        cb.TickLabels = [{'-1'} {'0'} {'1'} {'2'} {'3'} {'4'} {'5'} {'6'}];        
-    end
+
+    %cb.Ticks = [0 0.5 1 1.5];
+    %cb.TickLabels = [{'0'} {'0.5'} {'1'} {'1.5'}]; 
+
     aaa = gca;
     aaa.FontSize = 32;
     title(t)
+    
+    % Eliminate wasted whitespace per 
+    % https://www.mathworks.com/help/releases/R2019b/matlab/creating_plots/save-figure-with-minimal-white-space.html
+    ax = gca;
+    outerpos = ax.OuterPosition;
+    ti = ax.TightInset; 
+    left = outerpos(1) + ti(1);
+    bottom = outerpos(2) + ti(2);
+    ax_width = outerpos(3) - ti(1) - ti(3);
+    ax_height = outerpos(4) - ti(2) - ti(4);
+    ax.Position = [left bottom ax_width-0.005 ax_height];
     
 
     hold off;

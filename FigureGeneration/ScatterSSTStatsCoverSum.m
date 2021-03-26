@@ -1,14 +1,18 @@
 % See whether SST measures correlate to coral cover or bleaching.
-rcp = 'rcp26';
+rcp = 'rcp45';
+E = 1;
+adv = 0;
 coralAreaDir = "D:\CoralTest\July2020_CurveE221_Target5_TempForFigures\";
-areaFile = coralAreaDir + "CoralArea_" + rcp + "E=1OA=0Adv=0.mat";
+%areaFile = coralAreaDir + "CoralArea_" + rcp + "E=1OA=0Adv=0.mat";
+areaFile = coralAreaDir + "CoralArea_" + rcp + "E=" + num2str(E, 1) + "OA=0Adv=" + num2str(adv, 1) + ".mat";
+
 load(areaFile, "C_area");
 C_area2100 = squeeze(C_area(end, :, :));
 % Fold the two types together.
 C_area2100 = sum(C_area2100,2);
 
 sstPath = "D:/GitHub/Coral-Model-V12/ClimateData/";
-[SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 'ESM2M', RCP);
+[SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 'ESM2M', rcp);
 
 % Use the measures defined in these files - and then possibly add more.
 %SST_SD_ChangeMaps_45
@@ -57,7 +61,7 @@ compare(hotSdSST2050, C_area2100, "Hottest Month std[SST] 2050-2080", 9);
 dt = hotSdSST2050-hotSdSST1900;
 compare(dt, C_area2100, "Hottest Month \Delta std[SST] 1861-1900 to 2050-2080", 10);
 
-
+sgtitle("2100 cover  " + rcp + " E = " + num2str(E, 1) + " Shuffle = " + num2str(adv, 1));
 
 function compare(stat, area, name, sp)
     subplot(5, 2, sp);
@@ -71,6 +75,8 @@ function compare(stat, area, name, sp)
     if sp > 8
         xlabel('\circ C');
     end
+    ylim([0 1.1]);
+    yticks([0 1]);
     
     title(name);
     set(gca, 'FontSize', 14);

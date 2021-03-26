@@ -1,20 +1,36 @@
-function BleachingHistory_Subplots_WithDT_Row()
+function BleachingHistory_Subplots_WithDT_Row_direct(dataDir, outDir, runID)
 % This figure displays data from multiple runs.  The bleaching history output
 % for each run is written by Stats_Tables.m into the bleaching/BleachingHistory
 % directory within the base output directory for model runs.  For detailed
 % yearly output after 1950, set the model parameter doDetailedStressStats true.
-% The files for a new set of runs to be plotted should be copied to safe place
-% and referenced in relPath below.  This is intentionally a manual step so that
-% test runs made later can't accidentally overwrite the data we want to publish.
-relPath = '../FigureData/healthy_4panel_figure1/Feb2021_adjustRi2.5_2.5_y0.40_leveled_min0.35/';
+
+% This script was originally designed to use input files hand-copied to a
+% special directory.  With the proliferating number of possible runs, it will
+% now go straight to that output directory, as most other scripts do.
+
+% Without arguments directories are set in this function.  When called with all
+% arguments those are used.
+if nargin == 0
+    % set manually!
+elseif nargin == 3
+    % files for all runs are combined in this subdirectory.
+    dataDir = strcat(dataDir, 'bleaching/');
+else
+    error("There must be exactly 0 or 3 arguments.");
+end
+
 addpath('..'); % for tight_subplot
 
 inverse = true;  % 100% means 100% undamaged if true.
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 smooth = 5;  % 1 means no smoothing, n smooths over a total of n adjacent points.
 smoothT = 7; % same, but applied to the background temps
-figure('color', 'w');
-set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 19, 7.5]);
+fh1 = figure('color', 'w');
+% set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 19, 7.5]);
+% Vector output calls require the figure to fit on a page.  I'll  shift the
+% position to 0,0 at output time, but size changes mess up fonts, so do that
+% now.
+set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 8.5, 3.6]);
 
 % Make subplots across, each for one rcp scenario.
 % Within each, have lines for E=0/1 and OA=0/1
@@ -23,8 +39,8 @@ rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 8.5'};
 %rcpName = {'(a) RCP 2.6', '(b) RCP 4.5', '(c) RCP 6.0', '(d) RCP 8.5'};
 
 % Use tight_subplot (license in license_tight_subplot.txt) to control spacing
-% rows, columns, gap, height, width
-[ha, pos] = tight_subplot(1, 3, 0.03, [0.15 0.06], 0.1, [3 2 2]);
+% rows, columns, gap, height[bot top], width, column ratios
+[ha, pos] = tight_subplot(1, 3, 0.03, [0.20, 0.15], 0.1, [3 2 2]);
 
 %
 legText = {};
@@ -42,7 +58,7 @@ for i = 1:panels
     for eee = 0:1
         for ooo = 0  %:1           
             if ~(eee == 1 && ooo == 1)  % Skip one curve  !!!!
-                hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
+                hFile = strcat(dataDir, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=0.0.mat');
                 fprintf("Loading non-shuffling %s\n", hFile);
 
                 load(hFile, 'yForPlot');
@@ -62,7 +78,7 @@ for i = 1:panels
     % //////// ADD Symbiont shuffling curves.
     for eee = 0:1
     for ooo = 0:0  % 1:-1:0           
-            hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
+            hFile = strcat(dataDir, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), 'Adv=1.0.mat');
             fprintf("Loading shuffling %s\n", hFile);
             load(hFile, 'yForPlot');
             if inverse
@@ -111,7 +127,7 @@ for i = 1:panels
     if i == 1
         % position units are based on the data plotted
         ylabel({'Percent of healthy coral reefs globally'}, ...
-            'FontSize',24,'FontWeight','bold', 'Position', [1932 50]);
+            'FontSize', 12,'FontWeight','bold', 'Position', [1931 50]);
     end
 
 end
@@ -122,20 +138,20 @@ posNM = pos{panels-1};
 
 % subplot positions are left, bottom, width, height
 % Align the color bar to the top and bottom of the plots.
-colorbar('Position', [posN(1)+posN(3)+0.025  posN(2)  0.03  posNM(2)+posNM(4)-posN(2)], ...
-         'Ticks', 0:1:3);
-% Add a label above the colorbar
+cb = colorbar('Position', [posN(1)+posN(3)+0.025  posN(2)  0.03  posNM(2)+posNM(4)-posN(2)], ...
+         'Ticks', [0:1:3]*200/3, 'TickLabels', [0:1:3]);
+% Add a label above the colorbar [was 0.015, 0.97, 0.03, 0.03]
 annotation(gcf, 'textbox', ...
-    [posN(1)+posN(3)+0.015, 0.97, 0.03, 0.03], ...
+    [posN(1)+posN(3)+0.0, 0.92, 0.03, 0.03], ...
     'String', '\DeltaT(°C)', ...
-    'FontSize', 20, 'FitBoxToText', 'on', 'LineStyle', 'none');
+    'FontSize', 14, 'FitBoxToText', 'on', 'LineStyle', 'none');
 
 % Add a text box at top center if text is provided.
 if ~isempty(topNote)
     ann = annotation(gcf,'textbox',...
         [0.5 0.5 0.2 0.08],...
         'String',topNote,...
-        'FontSize',20,...
+        'FontSize',14,...
         'FitBoxToText','on');
     loc = ann.Position;
     % Shift to top center
@@ -145,6 +161,15 @@ if ~isempty(topNote)
     ann.Position = newLoc;
 end
 
+
+if exist('outDir', 'var') && outDir ~= ""
+    figure(fh1);  %Once saved the wrong figure!  Maybe an explicit set will help.
+    fullName = strcat(outDir, 'Figure1_', runID);
+    %saveas(fh, strcat(fullName, ".png"));
+    savefig(strcat(fullName, '.fig'));
+    addpath('..');
+    saveCurrentFigure(fullName);
+end
 
 end
 
@@ -178,10 +203,34 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
     
     fprintf("T from %d to %d for %s\n", min(T), max(T), tText);
     TFrame = [T, T]';
-    [~, h] = contourf(X, [0 100], TFrame, 0:0.005:3.0); %-0.22:0.2:3.2);
-    h.LineStyle = 'none';
-    caxis([0 3.0]);
-    % colorbar();
+    
+
+    if false
+        % Makes the right colors, but striations are visible after postscript
+        % conversion.
+        colormap(cmap);
+        [~, h] = contourf(X, [0 100], TFrame, 0:0.05:3.0); %-0.22:0.2:3.2);
+        h.LineStyle = 'none';
+        h.EdgeColor = 'none';
+        caxis([0 3.0]);
+    else
+        % Try pcolor.  The C argument must be the map index of the required color.
+
+        dMin = 0.0;
+        dMax = 3.0;
+        C = min(200, 1 + floor(200*T/(dMax-dMin)));
+        CFrame = [C, C]';
+        % pcolor has the odd habit of using the full range of the colormap, and
+        % after-the-fact caxis changes create odd results.  Try just setting the map
+        % to the part we want in this panel
+        % work on panels separately, but the others get reset!
+        %colormap(cmap(1:max(C), :));
+        s = pcolor(X, [0 100], CFrame);
+        s.FaceColor = 'interp';
+        s.EdgeColor = 'none';
+        s.LineStyle = 'none';
+        caxis([1 200]); % Scale relative to the full map, even if only part is used.
+    end
 
     hold on;
     
@@ -212,8 +261,8 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
     
     % Some things are the same for all subplots:
     % Create title
-    title(tText, 'FontSize', 22);
-    xlabel('Year','FontSize',22);
+    title(tText, 'FontSize', 14);
+    xlabel('Year','FontSize',14);
     ylim([0 100]);
     box('on');
     grid('on');
@@ -221,11 +270,11 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
     % Other things are special for the first plot vs the others
     if useLegend
         xlim([1950 2100]);
-        set(gca, 'FontSize',22,'XTick',[ 1950 2000 2050 2100 ],...
+        set(gca, 'FontSize',12,'XTick',[ 1950 2000 2050 2100 ],...
            'YTick',[0  50  100], 'LineWidth', 1.0, 'GridAlpha', 0.35);        
     else
         xlim([2000 2100]);
-        set(gca, 'FontSize',22,'XTick',[ 2050 2100 ],...
+        set(gca, 'FontSize',12,'XTick',[ 2050 2100 ],...
             'YTick',[0  50  100], 'LineWidth', 1.0, 'GridAlpha', 0.35);
         set(gca, 'YTickLabel', []);
     end
@@ -237,7 +286,7 @@ function oneSubplot(X, Yset, T, legText, tText, useLegend)
         % the order for the legend.
         legend1 = legend([plot1(1) plot1(3) plot1(2) plot1(4)], ...                    
             'no adaptation', 'symbiont shuffling', 'symbiont evolution', 'shuffling & evolution');
-        set(legend1,'Location','southwest','FontSize',20);
+        set(legend1,'Location','southwest','FontSize',12);
     end 
 end
 

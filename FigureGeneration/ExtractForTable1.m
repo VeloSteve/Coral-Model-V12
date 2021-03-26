@@ -1,5 +1,5 @@
 % Table 1 in the paper required numbers from the console output of many
-% different runs, which was tedious.  This reads the save console.txt files and
+% different runs, which was tedious.  This reads the saved console.txt files and
 % pulls out the required values.
 %
 % The directory containing all relevant cases for bleaching target 5 and the

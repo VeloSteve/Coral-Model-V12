@@ -1,8 +1,9 @@
 % A utility script to plot symbiont densities from one-reef S and C
-% arrays which have been loaded by hand.
+% arrays which have been loaded by hand.  This is typically from files named as
+% DetailedSC_Reef36.mat which include C, S, temperature, and time.
 
-v1 = figure();
-set(gcf, 'Units', 'inches', 'Position', [2, 0, 7, 5]);
+V1 = figure();
+set(gcf, 'Units', 'inches', 'Position', [2, 0, 10, 5]);
 
 plot(time, S(:,1)./C(:,1), '-r', 'LineWidth', 1, 'DisplayName', 'Mounding')
 hold on
@@ -10,62 +11,70 @@ plot(time, S(:,2)./C(:,2), '-b', 'LineWidth', 1, 'DisplayName', 'Branching')
 plot(time, S(:,3)./C(:,1), '--r', 'LineWidth', 1, 'DisplayName', 'Mounding, 1C advantage')
 plot(time, S(:,4)./C(:,2), '--b', 'LineWidth', 1, 'DisplayName', 'Branching, 1C advantage')
 ylabel('Symbiont Density in Coral');
+yticks([0 1e6 2e6 3e6 3.5e6]);
 yyaxis right
-plot(time, S(:,1), 'Color', [0 1 0], 'DisplayName', 'Mounding Population', 'Marker','.',...
-    'LineStyle','none');
-ylabel('Symbiont Density in Reef Cell');
 
-set(gca,'XGrid','on','XTick',...
-    [693402 700763 702603 702971 703339 703707 704444 711804 722846 726526 730206 733887 735727 737568 739408],...
-    'XTickLabel',...
-    {'1900','1920','1925','1926','1927','1928','1930','1950','1980','1990','2000','2010', '2015', '2020', '2025'});
+% Now we plot SST in response to a reviewer suggestion.
+plot(time, temp, 'Color', [0 0 0], 'DisplayName', 'SST (\circ C)', 'Marker','none',...
+    'LineStyle','-');
+ylabel('SST ({\circ}C)');
+yticks([26 27 28 29 30 31]);
 
-xlim([702603, 703707])
+axisYears =  {'1900','1920','1925','1926','1927','1928','1930'};
+axisNums = firstDayNum(axisYears)';
+set(gca,'XGrid','on','XTick', axisNums, 'XTickLabel', axisYears);
+
+xlim([firstDayNum(1925), firstDayNum(1928)])
 xlabel('Year');
 legend('Location', 'southwest')
 
+% ====================
 % Another time range
 % Copy the previous figure's contents
-yyaxis left
-childrenL = get(gca, 'Children');
-yyaxis right
-childrenR = get(gca, 'Children');
-% Make a new one and populate it
-V2 = figure();
-set(gcf, 'Units', 'inches', 'Position', [2, 4, 7, 5]);
+axisYears =  {'1980','1990','2000', '2010'};
+V2 = reRange(gca, axisYears, 4);
 
-axNew = axes();
-copyobj(childrenL, axNew);
-yyaxis right
-copyobj(childrenR, gca);
 
-set(gca,'XGrid','on','XTick',...
-    [693402 700763 702603 702971 703339 703707 704444 711804 722846 726526 730206 733887 735727 737568 739408],...
-    'XTickLabel',...
-    {'1900','1920','1925','1926','1927','1928','1930','1950','1980','1990','2000','2010', '2015', '2020', '2025'});
-
-xlim([722846, 733887])
-legend('Location', 'north')
-
+% ====================
 % A THIRD time range
 % Copy the previous figure's contents
-yyaxis left
-childrenL = get(gca, 'Children');
-yyaxis right
-childrenR = get(gca, 'Children');
-% Make a new one and populate it
-V3 = figure();
-set(gcf, 'Units', 'inches', 'Position', [2, 8, 7, 5]);
+axisYears =  {'2000', '2005', '2010', '2015', '2020'};
+V3 = reRange(gca, axisYears, 8);
+ylim([26 32]);
 
-axNew = axes();
-copyobj(childrenL, axNew);
-yyaxis right
-copyobj(childrenR, gca);
 
-set(gca,'XGrid','on','XTick',...
-    [693402 700763 702603 702971 703339 703707 704444 711804 722846 726526 730206 733887 735727 737568 739408],...
-    'XTickLabel',...
-    {'1900','1920','1925','1926','1927','1928','1930','1950','1980','1990','2000','2010', '2015', '2020', '2025'});
+% Use data from an existing figure but adjust ranges.
+function [newFig] = reRange(original, axisYears, yPlace) 
+    % Copy parts of the old plot.
+    axes(original);
+    yyaxis left
+    childrenL = get(original, 'Children');
 
-xlim([733887, 739408])
-legend('Location', 'north')
+    yyaxis right
+    childrenR = get(original, 'Children');
+    % Make a new one and populate it
+    newFig = figure();
+    set(gcf, 'Units', 'inches', 'Position', [2, yPlace, 10, 5]);
+
+    % Build the new plot.
+    axNew = axes();
+    set(axNew,'FontSize',14,'FontWeight','bold');
+    copyobj(childrenL, axNew);
+    ylabel('Symbiont Density in Coral');  % not copied
+    ylim([0 3.5e6]);
+    yticks([0 1e6 2e6 3e6 3.5e6]);
+
+    yyaxis right
+    copyobj(childrenR, gca);
+    ylabel('SST ({\circ}C)');
+    yticks([24 26  28  30  32]);
+    temp = gca;
+    temp.YColor = 'black';
+
+    axisNums = firstDayNum(axisYears)';
+    set(gca,'XGrid','on','XTick', axisNums, 'XTickLabel', axisYears);
+
+    xlim([firstDayNum(axisYears(1)), firstDayNum(axisYears(end))])
+    legend('Location', 'north')
+   
+end

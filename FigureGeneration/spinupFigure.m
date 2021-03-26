@@ -68,7 +68,7 @@ set(plot1(3),'DisplayName','Branching, inverse start',...
 
 
 % Create ylabel
-ylabel('Percent of Carrying Capacity, K');
+ylabel('Relative Coral Extent');
 
 % Create xlabel
 xlabel({'Year'});
