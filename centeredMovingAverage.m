@@ -1,4 +1,24 @@
+% This was written for 1D vectors only, but now 2D inputs are required and do
+% not work as written.  For now, just build the 2D results using calls to the 1D
+% function.
 function out = centeredMovingAverage(x, n, method)
+    if nargin == 3
+        alg = method;
+    else
+        alg = 'rectangle';
+    end
+    if isvector(x)
+        out = centeredMovingAverage_1D(x, n, alg);
+    else
+        % Assume that the a x b array is to be averaged along the SECOND index.
+        out = zeros(size(x));
+        for i = 1:size(x, 1)
+            out(i, :) = centeredMovingAverage_1D(x(i, :), n, alg);
+        end
+    end
+end
+
+function out = centeredMovingAverage_1D(x, n, alg)
 % Calculates a moving average of the values in vector x, over n points, where n
 % is odd.
 % Within n/2 points of each end of the vector, the mask is shrunk so that
@@ -11,12 +31,6 @@ function out = centeredMovingAverage(x, n, method)
 % going to write this crudely (but maybe more clearly).
 
     assert(mod(n, 2) == 1, 'Centered moving average requires an odd n value.');
-    
-    if nargin == 3
-        alg = method;
-    else
-        alg = 'rectangle';
-    end
     
     out = zeros(1, length(x));
     weight = zeros(n, 1);

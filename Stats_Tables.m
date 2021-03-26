@@ -18,7 +18,8 @@
 %   
 function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, ...
-        startYear, RCP, E, OA, superAdvantage, bleachParams, detailStats, optimizerMode) %#ok<INUSL>
+        startYear, RCP, E, OA, superAdvantage, bleachParams, detailStats, ...
+        bleachEvents, optimizerMode) %#ok<INUSL>
     % Subset all of the input arrays which list all reefs to just those
     % which are active in this run.  We don't care about reef IDs, just the
     % number and their latitude.
@@ -28,11 +29,18 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
         lastYearAlive = lastYearAlive(thisRun);
         lastBleachEvent = lastBleachEvent(thisRun, :);
         frequentBleaching = frequentBleaching(thisRun, :, :);
+        bleachEvents = bleachEvents(thisRun, :, :);
+
         % And here we only need latitude. Discard longitude.
         latitude = allLatLon(thisRun, 2);
     else
         latitude = allLatLon(:, 2);
     end
+
+    % For this one variable either coral type bleached counts as 1.  We don't
+    % need latitude subsets.  Added November 2020.
+    bleachEither = bleachEvents(:, :, 1) | bleachEvents(:, :, 2);
+
     
     % Divide the world's reefs into 3 equal parts by latitude.
     % For everyx = 1 an equal split into 3 parts by latitude would be 642.
@@ -47,7 +55,7 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
         years = [1950 2100];
     elseif detailStats
         if strcmp(RCP, 'control400')
-            years = [1860 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
+            years = [1870 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
         else
             % Detailed output less useful as a readable table, but giving better
             % resolution for plots.
@@ -70,6 +78,11 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
     allStress = permBleached;
      
+    % Except just one row here:
+    bleachedThisYear = zeros(1, length(years));
+    liveThisYear = bleachedThisYear;
+    canBleachCount = bleachedThisYear;
+    
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);
     indLo = find((abs(latitude) > eqLim) & (abs(latitude) <= loLim));
@@ -122,6 +135,13 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
         A = mortLat(:, :, 1) | bleachLat(:, :, 1) | frequentBleachingLat(:, :, 1);
         B = mortLat(:, :, 2) | bleachLat(:, :, 2) | frequentBleachingLat(:, :, 2);
         stressCombo = A & B;
+        
+        % For figures, Nov 2020, reefs that can still be bleached.
+        A = ~mortLat(:, :, 1) & ~bleachLat(:, :, 1);
+        B = ~mortLat(:, :, 2) & ~bleachLat(:, :, 2);
+        % Use OR because if either coral can bleach we may get a bleaching count
+        % the next year.
+        canBleach = A | B;
 
         
         for n = 1:length(years)
@@ -161,27 +181,39 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
             allStress(1, n) = yr;
             sc = nnz(stressCombo(:, yIndex));
             allStress(lat+1, n) = 100 * sc / latCounts(lat);
+
+            if lat == 4
+                % This counts the events in each year needed in the table,
+                % skipping other years.
+                bleachedThisYear(n) = sum(bleachEither(:, yIndex));
+                liveThisYear(n) = live;
+                % Another for the table.  Reefs that can't be bleached because
+                % they are in mortality or already bleached.  This is like
+                % allStress without frequent bleaching.
+                canBleachCount(n) = nnz(canBleach(:, yIndex));
+            end
         end
     end
        
     % All tables have the same label columns.
-    labels = cell(5, 3);
-    labels{1,1} = 'Year      ';
-    labels{2,1} = 'Equatorial';
-    labels{3,1} = 'Low       ';
-    labels{4,1} = 'High      ';
-    labels{5,1} = 'All Reefs ';
-    labels{1, 2} = 'Total Reefs';
-    labels{2, 2} = numEq;
-    labels{3, 2} = numLo;
-    labels{4, 2} = numHi;
-    labels{5, 2} = numTotal;
-    labels{1, 3} = 'Max Latitude';
-    labels{2, 3} = eqLim;
-    labels{3, 3} = loLim;
-    labels{4, 3} = max(latitude(:));
-
     if ~optimizerMode
+
+        labels = cell(5, 3);
+        labels{1,1} = 'Year      ';
+        labels{2,1} = 'Equatorial';
+        labels{3,1} = 'Low       ';
+        labels{4,1} = 'High      ';
+        labels{5,1} = 'All Reefs ';
+        labels{1, 2} = 'Total Reefs';
+        labels{2, 2} = numEq;
+        labels{3, 2} = numLo;
+        labels{4, 2} = numHi;
+        labels{5, 2} = numTotal;
+        labels{1, 3} = 'Max Latitude';
+        labels{2, 3} = eqLim;
+        labels{3, 3} = loLim;
+        labels{4, 3} = max(latitude(:));
+
         logTwo('Permanently bleached reefs as of the date given:\n');
         printTable(labels, permBleached, length(years));
 
@@ -204,14 +236,23 @@ function [percentMortality] = Stats_Tables(bleachState, mortState, lastYearAlive
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
     % outside program which can compare different runs.
-    xForPlot = years;
-    yForPlot = allStress(5, :); 
-    yEq = allStress(2, :); 
-    yLo = allStress(3, :);
-    yHi = allStress(4, :);
-    save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), ...
-        'OA=', num2str(OA), 'Adv=', num2str(superAdvantage, '%3.1f'), '.mat'), ...
-        'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
+    
+    
+   
+    % Added Nov 2020: bleachEvents is dimensioned reefs,years, coral types and
+    % is output for plotting but does not appear in the printed tables.             
+    % Another plotting output added November 2020
+    % bleachEvents is dimensioned reefs,years, coral types 
+    if ~optimizerMode
+        xForPlot = years;
+        yForPlot = allStress(5, :); 
+        yEq = allStress(2, :); 
+        yLo = allStress(3, :);
+        yHi = allStress(4, :);
+        save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), ...
+            'OA=', num2str(OA), 'Adv=', num2str(superAdvantage, '%3.1f'), '.mat'), ...
+            'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams', 'bleachedThisYear', 'liveThisYear', 'canBleachCount');
+    end
 end
 
 

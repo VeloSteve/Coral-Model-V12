@@ -90,13 +90,30 @@ else
     figRatio = 1.0;
 end
 
-posCombo = [600 0 width*figRatio heightAll*figRatio];
+% posCombo = [600 0 width*figRatio heightAll*figRatio];
+posCombo = [10 0 width*figRatio heightAll*figRatio];
 
 combo = figure('Units', 'pixels', 'Position', posCombo);
-% Nh, Nw, gap, marg_h, marg_w
+
+% Place a line above the top row, and RCP numbers above that
+%annotation(combo, 'line',[0.1 0.95], [0.95 0.95], 'LineWidth', 1.5);
+%annotation(combo, 'line',[0.1 0.95], [0.955 0.955], 'LineWidth', 1.5);
+annotation(combo, 'line',[0.08 0.945], [0.955 0.955], 'LineWidth', 1.5);
+annotation(combo, 'textbox', ...
+    [0.25, 0.96, 0.03, 0.03], ...
+    'String', 'RCP 4.5', 'FontWeight', 'bold',  ...
+    'FontSize', 22, 'FitBoxToText', 'on', 'LineStyle', 'none');
+annotation(combo, 'textbox', ...
+    [0.70, 0.96, 0.03, 0.03], ...
+    'String', 'RCP 8.5', 'FontWeight', 'bold', ...
+    'FontSize', 22, 'FitBoxToText', 'on', 'LineStyle', 'none');
+
+% Nh, Nw, gap, marg_h (bot, top), marg_w
 % Jan 2020 version cut off the lowest axis labels.  Try a margin.
 % [ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.0 0.05]);
-[ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.025 0.025]);
+% [ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.025 0.025]);
+% Wide top margin for   RCP headers.
+[ha, pos] = tight_subplot(size(selectedMaps, 2)/2, 2, 0, [0.025 0.06]);
 
 % tight_subplot(4, 1, [0.0, 0.0], [0.0, 0.0], [0.0 0.05]);
 
@@ -111,8 +128,18 @@ for i = selectedMaps
     hOld = figure(i);
     figOld = gcf;
     axOld = gca;
-    tText = get(axOld.Title);
-    title(strcat(panel(num), tText.String));
+    %tText = get(axOld.Title);
+    % Remove "RCP x.y - " from all titles
+    % unfortunately some have a hyphen and some don't
+    if num == 8 || num == 10
+        remove = 2;
+    else
+        remove = 3;
+    end
+    oldTitle = get(axOld.Title).String;
+    parts = split(oldTitle); 
+    tText = join(parts(remove+1:end));
+    title(strcat(panel(num), tText));
 
 
     % Shrink all fonts before copying to old figure.  figRatio should scale
@@ -135,10 +162,18 @@ for i = selectedMaps
     moveTo = get(ha(num), 'Position');
     moveTo(3) = moveTo(3) * 0.95;
     moveTo(4) = moveTo(4) * 0.8;
-    set(axcp(2), 'Position', moveTo);
-    moveTo(1) = moveTo(1) + moveTo(3);
+    set(axcp(2), 'Position', moveTo); % The axes
+    % Nov 30 2020 moveTo(1) = moveTo(1) + moveTo(3);
+    moveTo(1) = moveTo(1) + moveTo(3) - 0.03;
     moveTo(3) = cb.Position(3);
-    set(axcp(1), 'Position', moveTo);
+    set(axcp(1), 'Position', moveTo); % Place the colorbar.
+    
+    % Add units
+    if mod(num, 2) == 0
+        annotation('textbox',[moveTo(1)+moveTo(3)*2.5 moveTo(2) .02 .1], ...
+            'String',[char(176) 'C'],'EdgeColor','none', 'FontSize', 20);
+    end
+
     
     ppp = axcp(2).Title.Position;
     ppp(1) = -2.8;
@@ -148,7 +183,7 @@ for i = selectedMaps
     axcp(2).Title.FontSize = 21;
     
     % Replace colormap
-    % colormap(cmap);
+    colormap(cmap);
     axis off;
     close(i);
     drawnow nocallbacks;

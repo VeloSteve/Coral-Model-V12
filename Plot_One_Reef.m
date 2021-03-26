@@ -339,6 +339,8 @@ function Plot_One_Reef(C, S, bleachEvent, coldEvent, psw2, time, temp, lat, lon,
         saveas(gcf, fullname, 'fig');
     else
         savefig(strcat(fullName, '.fig'));
+        saveas(gcf, strcat(fullName,  ".png"));
+
     end
     
 end

@@ -41,7 +41,7 @@ function shuffleStats(S_yearly, coralSymConstants, S_seed, startYear, saveDir)
         end
     end
    
-    foo = 1861:2100;
+    foo = 1861:1861+yearCount-1;
     %{
     % Note that the DisplayNames will be wrong if not all reefs are used, since
     % they are just numbered consecutively.
@@ -128,7 +128,7 @@ function shuffleStats(S_yearly, coralSymConstants, S_seed, startYear, saveDir)
     if size(C_yearly,2) == 1
         C_2100 = C_yearly(y, 1, :);
         % remove the leading "1" dimension, but not the second.
-        C_2100 = reshape(C_2100, [1, size(C_yearly, 3)])
+        C_2100 = reshape(C_2100, [1, size(C_yearly, 3)]);
     else
         C_2100 = squeeze(C_yearly(y, :, :));
     end

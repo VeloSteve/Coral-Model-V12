@@ -21,7 +21,7 @@ function coralCover2100(C_yearly, coralSymConstants, startYear)
     if size(C_yearly,2) == 1
         C_2100 = C_yearly(y, 1, :);
         % remove the leading "1" dimension, but not the second.
-        C_2100 = reshape(C_2100, [1, size(C_yearly, 3)])
+        C_2100 = reshape(C_2100, [1, size(C_yearly, 3)]);
     else
         C_2100 = squeeze(C_yearly(y, :, :));
     end

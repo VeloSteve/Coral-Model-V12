@@ -7,7 +7,7 @@ function growthRateCurveSummary()
     SelVx = 3.4627; % for massive: 2.7702;
     b = 0.0633;
     a = 1.0768/12; %0.0879;
-    vg = .0025;
+    vg = .0025;  % Zero when E=0!
     EnvVx = 0.0114;
     advantage = 1;
     g2 = g0 + advantage; % for heat tolerant symbiont; could be 0.5,1 or 1.5C advantage

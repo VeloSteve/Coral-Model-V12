@@ -1,4 +1,3 @@
-
 %% Select the appropriate version of the time iteration function.  Different
 %  compiled MEX versions exist for common array sizes, and an uncompiled version
 %  is used for anything else.  For now, the Mac computers get the uncompiled

@@ -190,7 +190,11 @@ classdef ParameterDictionary
               val = str.(name);
 
               % Set the value of the existing object.
+              try
               p = obj.params(name);
+              catch ME
+                  error("Map seems not to contain " + name);
+              end
               % Setting p.value directly is a bug, because it bypasses error
               % and range checking!
               % p.value = val;

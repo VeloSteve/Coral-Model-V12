@@ -23,30 +23,26 @@ end
 % generate path names.
 [ps, pd] = getInputStructure(parameters);
 
-
-% Clear variables which I want to examine between runs, but not carry over.
-clearvars bleachEvents coldEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
-
 % Constants NOT controllable from the GUI or scripts are set first:
 maxReefs = 1925;    % never changes
 dt = 1/8;           % The fraction of a month for 2nd order R-K time steps
-% July 16/17 runs were 1,1,2 attempting a smoother-looking curve
-% July 17/18 runs are 2,2,1 to be as similar as possible to the original
-%     submission, but corrected.
-% The following 3 values parameterize the growth curve for symbionts,
+
+% The following values parameterize the growth curve for symbionts,
 % particularly the parts which modify the basic Eppley function to account for
 % bleaching.  The function growthRateCurveSummary is a tool for visualizing the
 % effects.
-min1 = 2;    % minimum in the main growth function, originally 0, now 2
-min2 = 2;    % minimum in the extra exponential
-expTune = 1; % This value multiplies the cold-side exponential term to adjust growth rates.
-% Value of 20 below is ridiculous, but will trigger errors if something was
-% missed.
-riFloor = 20.0; % Keep growth rates above this floor on the cool side of the growth curve.
-% 36, 46, 106, 144, 402, 420, 610, 1239
-
+expTune = -2; % This value multiplies the cold-side exponential term to adjust growth rates.
+adjustRi = [2.6 2.6]; % Baseline and advantaged symbionts.
+% Reverting to E221 for a test.  Not that the last arguments to the iterator
+% must be edited as well.
+%min1 = 2;
+%min2 = 2;
+%expTune = 1;
+curveType = "SimplerL";  % Consider this a reminder to put the correct PSW files in place!
+% 36, 46, 106, 144, 225, 238, 402, 420, 610, 1239, 1487
 saveGi = false; % this could be in modelVars and ParameterDictionary, but hardwire for now.
-saveReefParams = true;
+saveReefParams = false;  % Note that this requires commenting/uncommenting some code in the parfor, and enabling/disabling the parfor.
+saveS7 = false;  % Use sparingly - this generates multiple output graphics files for each reef.
 
 if saveReefParams
     collectSelV(1925, 2) = 0.0; 
@@ -90,10 +86,9 @@ keyReefs = unique(keyReefs);
 % A list of reefs for which to save data at maximum resolution for detailed
 %  analysis or plotting.  Not in the GUI - mainly for diagnostics.
 % useful sets: 
-%dataReefs = [36, 46, 106, 144, 402, 420, 1239]; % [1237:1241]; %[144, 246, 402, 420, 793, 1541];
-dataReefs = [36, 46, 106, 144, 225, 238, 402, 420, 1239];
-%dataReefs = []; % 1:1925 will produce many GB of data.  Use carefully.
-%dataReefs = [1:1925]; % XXX - big output!
+%dataReefs = [36, 46, 106, 144, 402, 420, 1239]; 
+%dataReefs = [36, 46, 58, 100, 106, 144, 225, 238, 402, 420, 495, 610, 844, 1010, 1066, 1157, 1239, 1487];
+dataReefs = []; % 1:1925 will produce many GB of data.  Use carefully.
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
 % 0:  runs sequentially.
@@ -119,6 +114,7 @@ mapDirectory = strcat(pd.getDirectoryName('_maps/'));
 [~, ~, ~] = mkdir(mapDirectory);
 [~, ~, ~] = mkdir(strcat(outputPath, 'bleaching'));
 if saveGi; [~, ~, ~] = mkdir(strcat(mapDirectory, 'gi')); end
+if saveS7; [~, ~, ~] = mkdir(strcat(mapDirectory, 'S7')); addpath('FigureGeneration'); end
 
 % Initialize a file for logging most of what goes to the console.
 echoFile = fopen(strcat(mapDirectory, 'console.txt'), 'w+');
@@ -187,7 +183,18 @@ else
     else
         ssy = superStartYear;
     end
-    [pMin, pMax, y, s] = getPSWInputs(E, OA, "mean", superMode, superAdvantage, superGrowthPenalty, ssy, bleachingTarget);
+    
+    %% XXX - HARDWIRE GROWTH PENALTY!
+    
+    
+    
+    [pMin, pMax, y, s] = getPSWInputs(E, OA, "mean", superMode, superAdvantage, 0.5, ssy, bleachingTarget);
+    %[pMin, pMax, y, s] = getPSWInputs(E, OA, "mean", superMode, superAdvantage, superGrowthPenalty, ssy, bleachingTarget);
+  
+    
+    
+    
+    
     pswInputs = [pMin, pMax, y, s];
 end
 logTwo("Using psw2 with an s value of %8.4f\n", pswInputs(4));
@@ -348,8 +355,8 @@ timerStartParfor = tic;
 % To run serially for debug or when generating a mex file, comment the parfor
 % and uncomment the for on the following line.
 
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -409,11 +416,11 @@ for parSet = 1:queueMax
         SelV = [1.25 1]*psw2*var(SSThist(1:initSSTIndex));
         SelVx = repmat(SelV,1,coralSymConstants.Sn);     % Selectional variance matrix for coral calcs
         %SelV = [1.25 1]*psw2*var(SSThist_anom(:))
-        if saveReefParams
-            collectSelV(k, :) = SelV;
-            collectpsw2(k) = psw2;
-            collectVar(k) = var(SSThist(1:initSSTIndex));
-        end
+        %if saveReefParams
+        %    collectSelV(k, :) = SelV;
+        %    collectpsw2(k) = psw2;
+        %    collectVar(k) = var(SSThist(1:initSSTIndex));
+        %end
 
 
         % Initialize symbiont genotype, sym/coral population sizes, carrying capacity
@@ -433,11 +440,14 @@ for parSet = 1:queueMax
 
         % timeIteration is called here, with the version determined by
         % iteratorHandle.
+        %[S, C, gi, vgi, origEvolved, bleachStateTemp] = timeIteration(timeSteps, S, C, dt, ...
         [S, C, gi, vgi, origEvolved, bleachStateTemp] = iteratorHandle(timeSteps, S, C, dt, ...
                     temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, superMode, superAdvantage, superGrowthPenalty, oneShot, ...
-                    bleachStateTemp, bleachParams, coralSymConstants, expTune, min1, min2, riFloor);
-                    
+                    bleachStateTemp, bleachParams, coralSymConstants, expTune, adjustRi);        
+                    %bleachStateTemp, bleachParams, coralSymConstants, expTune, min1, min2);        
+
+
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.
@@ -450,7 +460,7 @@ for parSet = 1:queueMax
             matName = strcat('gi/gi_Reef', num2str(k, '%04d'), '.mat');
             % Casting to single to save space.  At most a few decimal places are significant.
             saveGiAsMat(strcat(mapDirectory, matName), single(gi));
-            if k == 1            
+            if parSet == 1 && reefCount == 1          
                 matName = strcat('gi/time.mat');
                 saveTimeAsMat(strcat(mapDirectory, matName), time);
             end
@@ -484,7 +494,7 @@ for parSet = 1:queueMax
                     %growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),suppressSI)), 'yyyy'), ...
                     growthRateFigure(mapDirectory, suff, datestr(time(min(length(time),hardIndex)), 'yyyy'), ...
                         k, temp, fullYearRange, gi, vgi, hardIndex, ...
-                        coralSymConstants, SelVx, RCP, expTune, min1, min2, riFloor);         
+                        coralSymConstants, SelVx, RCP, adjustRi);         
                 end
             end
         end
@@ -498,6 +508,16 @@ for parSet = 1:queueMax
             coldEventOneReef, bleachStateOne, mortStateOne ] = ...
             Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, temp, bleachParams, coralSymConstants);
      
+                            
+        if saveS7
+            % Use sparingly.  This slows down the run and creates a lot of
+            % output, but it is useful if you want to look at symbiont details
+            % for a large number of reefs. 
+            % Note that inputs are monthly, not per time step.
+            S7_inline(k, RCP, S_monthly, C_monthly, gi, TIME, SSThist, bleachEventOneReef, ...
+                coldEventOneReef, strcat(mapDirectory, 'S7/'));
+        end
+        
         % Summary data is always computed and presented in tables, but detailed
         % per-reef plots and analysis require more output.  Do that for only a
         % specified list of reefs, since it is storage-intensive and potentially
@@ -649,11 +669,12 @@ if ~skipPostProcessing
         if saveReefParams
             save(strcat(outputPath, 'ColdEvents_', RCP, 'E=', num2str(E), ...
                 'OA=', num2str(OA), 'Adv=', num2str(superAdvantage), '.mat'), ...
-                'coldEvents', 'bleachEvents', 'collectSelV', 'collectpsw2', 'collectVar');  
+                'coldEvents', 'bleachEvents', 'mortState', ...
+                'collectSelV', 'collectpsw2', 'collectVar');  
         else
             save(strcat(outputPath, 'ColdEvents_', RCP, 'E=', num2str(E), ...
                 'OA=', num2str(OA), 'Adv=', num2str(superAdvantage), '.mat'), ...
-                'coldEvents', 'bleachEvents'); %, 'collectSelV', 'collectpsw2');
+                'coldEvents', 'bleachEvents', 'mortState'); %, 'collectSelV', 'collectpsw2');
         end
     end
     

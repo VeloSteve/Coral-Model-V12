@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2018b">
-  <configuration build-checksum="2696053421" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration build-checksum="159304994" file="D:\GitHub\Coral-Model-V12\timeIteration.prj" location="D:\GitHub\Coral-Model-V12" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
       <param.BuiltInstrumentedMex>false</param.BuiltInstrumentedMex>
       <param.RanInstrumentedMex>false</param.RanInstrumentedMex>
@@ -848,7 +848,7 @@
     <param.AutoInferUnboundedSizeThreshold>2048</param.AutoInferUnboundedSizeThreshold>
     <param.EnableFixedPointStep>false</param.EnableFixedPointStep>
     <param.EnableScreener>true</param.EnableScreener>
-    <param.AnnotationChecksum>1752363594</param.AnnotationChecksum>
+    <param.AnnotationChecksum>1946778816</param.AnnotationChecksum>
     <var.LegacyTarget />
     <var.MirrorOnOpen>false</var.MirrorOnOpen>
     <param.FixedPointEnabled>false</param.FixedPointEnabled>
@@ -857,12 +857,12 @@
     <param.unifiedParamStorage />
     <var.gc.lastOutputRoot>codegen\mex\timeIteration</var.gc.lastOutputRoot>
     <var.gc.lastOutputType>MEX_FILE</var.gc.lastOutputType>
-    <var.gc.preBuildChecksum>2696053421</var.gc.preBuildChecksum>
+    <var.gc.preBuildChecksum>159304994</var.gc.preBuildChecksum>
     <var.cfi.lastOutputRoot>codegen\mex\timeIteration</var.cfi.lastOutputRoot>
-    <var.cfi.preBuildChecksum>2988565144</var.cfi.preBuildChecksum>
+    <var.cfi.preBuildChecksum>468561175</var.cfi.preBuildChecksum>
     <var.lastCfiTestSnippet>A_Coral_Model</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
-    <var.lastUserSourceChecksum>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;checksum&gt;&lt;includedFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/includedFiles&gt;&lt;value&gt;2703232982&lt;/value&gt;&lt;/checksum&gt;</var.lastUserSourceChecksum>
+    <var.lastUserSourceChecksum>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;checksum&gt;&lt;includedFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/includedFiles&gt;&lt;value&gt;1365817986&lt;/value&gt;&lt;/checksum&gt;</var.lastUserSourceChecksum>
     <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\Runge_Kutta_2.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V12\timeIteration.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
     <param.forceMexBuild>false</param.forceMexBuild>
     <param.NoDefaultJIT>false</param.NoDefaultJIT>
@@ -1068,7 +1068,7 @@
     </unset>
     <fileset.entrypoints>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Marker>1595689217770</Marker>
+        <Marker>1616717926079</Marker>
       </file>
     </fileset.entrypoints>
     <fileset.testbench>
@@ -1136,8 +1136,7 @@
             <Field Name="EnvVx" typeId="6" />
           </Input>
           <Input Name="expTune" typeId="0" />
-          <Input Name="min1" typeId="0" />
-          <Input Name="min2" typeId="0" />
+          <Input Name="adjustRi" typeId="7" />
           <idpTable>
             <type typeId="0">
               <Class>double</Class>
@@ -1150,7 +1149,7 @@
             </type>
             <type typeId="1">
               <Class>double</Class>
-              <Size>38400 x 4</Size>
+              <Size>23040 x 4</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -1159,7 +1158,7 @@
             </type>
             <type typeId="2">
               <Class>double</Class>
-              <Size>38400 x 2</Size>
+              <Size>23040 x 2</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -1168,7 +1167,7 @@
             </type>
             <type typeId="3">
               <Class>double</Class>
-              <Size>38400 x 1</Size>
+              <Size>23040 x 1</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -1185,7 +1184,7 @@
             </type>
             <type typeId="5">
               <Class>double</Class>
-              <Size>1 x 38400</Size>
+              <Size>1 x 23040</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -1212,7 +1211,7 @@
             </type>
             <type typeId="8">
               <Class>logical</Class>
-              <Size>400 x 2</Size>
+              <Size>240 x 2</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>

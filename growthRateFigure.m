@@ -1,4 +1,12 @@
-function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, vgi, ssi, con, SelVx, RCP)
+function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, ...
+    vgi, ssi, con, SelVx, RCP, adjustRi)
+
+% XXX - need to update for adjustRi's effect on curves with each SelV.
+    return;
+% TODO: this should get its growth curve from a function which is called from
+% both here and the timeIteration code, so that they can never be out of sync.
+% Would that affect compilation?
+
     % To compare native and enhanced symbionts, take gi and vgi
     % values just past the start point ssi and the plot above and below
     % the two genotypes for massive only.
@@ -45,8 +53,16 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
         T = temps(j);
         % As used in Spring 2017 code:
         %r = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(0, T - g)) * rm;
-        % XXX - testing
-        r = (1- (vg + con.EnvVx(1:2:3) + (min(2, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(con.b*min(2, T - g)) * rm;
+        % Update to match late 2020 code:
+        min2Fn = min(0, T - g + min2);
+        % Split into more parts for comparison to other code.
+        % WAS: r = (1- (vg + con.EnvVx(1:2:3) + (min(min1, g - T)).^2) ./ (2*SelVx(1:2:3))) .* exp(expTune*con.b*min2Fn) * rm;
+        extraExp = exp(expTune*con.b*min2Fn);
+        mainPart = 1- (vg + con.EnvVx(1:2:3) + (min(min1, g - T)).^2) ./ (2*SelVx(1:2:3));
+        r =  mainPart .* extraExp * rm;
+        %if (r < riFloor) & (T < g)
+            r((r < riFloor) & (T < g)) = riFloor;
+        %end
         %r2014 = (1- (vg + con.EnvVx(1:2:3) + (min(0, g - T)).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching
         % Baskett 2009 eq. 3
         r2009 = (1- (vg + con.EnvVx(1:2:3) + (g - T).^2) ./ (2*SelVx(1:2:3))) * rm ;% Prevents cold water bleaching

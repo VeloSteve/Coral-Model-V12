@@ -1,10 +1,10 @@
-{"E":true,"OA":false,"RCP":"rcp45",
+{"E":true,"OA":false,"RCP":"rcp26",
 "codeBase":"D:\\GitHub\\Coral-Model-V12\\",
-"dataset":"ESM2M","doCoralCoverFigure":true,"doCoralCoverMaps":false,
+"dataset":"ESM2M","doCoralCoverFigure":true,"doCoralCoverMaps":true,
 "doDetailedStressStats":true,"doGenotypeFigure":false,"doGrowthRateFigure":false,
-"doPlots":true,"everyx":1,"keyReefs":[36, 46, 106, 144, 402, 420, 1239],"allFigs":false,
+"doPlots":true,"everyx":1,"keyReefs":[36, 46, 58, 106, 144, 402, 420, 495, 610, 1010,  1239, 1487],"allFigs":false,
 "m_mapPath":"D:/GitHub/m_map/","matPath":"D:/GitHub/Coral-Model-V12/mat_files/",
-"newMortYears":false,"outputBase":"D:\\CoralTest\\July2020_CurveE221_Target5\\",
+"newMortYears":false,"outputBase":"D:/CoralTest/Mar2021_DeleteMe/",
 "saveVarianceStats":false,"specialSubset":"useEveryx","sstPath":"D:/GitHub/Coral-Model-V12/ClimateData/",
-"superAdvantage":0.0,"superMode":9,"superGrowthPenalty":0.5,"superStart":1861,
-"bleachingTarget":5,"useThreads":6,"optimizerMode":false}
+"superAdvantage":1.0,"superMode":9,"superGrowthPenalty":0.5,"superStart":1861,
+"bleachingTarget":5,"useThreads":5,"optimizerMode":false}

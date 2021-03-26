@@ -12,8 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
                             rm, temp, vgi, gi, SelVx, C_seed, S_seed, con, ...
-                            alpha, KCx, Mu, um, KSx, G, expTune, min1, min2, ...
-                            riFloor)
+                            alpha, KCx, Mu, um, KSx, G, expTune, adjustAllRi)
 
 	% Inputs:
     % Sold - symbiont populations - "S old" the i'th row of the S array
@@ -97,7 +96,7 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
     dSk1 = dt .* Sold ./ currentKS .* (ri(i,:) .*currentKS - rm .* SAs ) ;  %Change in symbiont pops %OK
-    % The dot-product used here works for 2 corals, but for we need a proper
+    % The dot-product used here works for 2 corals, but for more we need a proper
     % matrix multiplication.
     % Also, dimension everything to match the actual number of corals.
     % dCk1 = dt .* (C2 .* (G .* SA./ (KS .* C2).* (KC-A .* C1-C2)./KC - Mu ./(1+um .* SA./(KS .* C2))) ); %Change in coral pops %OK
@@ -105,38 +104,18 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
       
     ctemp = temp(i)+temp(i+1);    % current temp at half step (times 2)
     ctemp2 = ctemp / 2.0;
-    rmk2  = a*exp(b*(ctemp2)); % maximum possible growth rate at optimal temp at t=i+0.5
+    rmk2  = a*exp(b*ctemp2); % maximum possible growth rate at optimal temp at t=i+0.5
     
     %%
     % Note that this line is analagous to the one for ri in timeIteration,
     % so it should be modified in sync with it!
-    %rik2  =   (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2)./(2*SelVx)) * rmk2; % symbiont average growth rate at t=i+0.5
-    % modified rik2 above to prevent cold water bleaching Prevents cold water bleaching
-    % Test without the mod, 2/1/2017
-    %rik2  =   (1- (vgi(i,:) + EnvVx + (gi(i,:) - 0.5*ctemp).^2)./(2*SelVx)) * rmk2; % symbiont average growth rate at t=i+0.5
-    % And with partial mod to limit:
-    %rik2  =   (1- (vgi(i,:) + EnvVx + (min(1.0, gi(i,:) - 0.5*ctemp)).^2)./(2*SelVx)) * rmk2; % symbiont average growth rate at t=i+0.5
-    % Try decreasing growth rate in cooler water based on Eppley
-    % equation per John/Simon/Cheryl 2/8/2017.
-    % Jan 2020: ctemp needs to be divided by 2 in BOTH places to get the average!
-    %rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
-    % XXX Test: partial mod to see the effect:
-    %rik2   = (1- (vgi(i,:) + EnvVx + (min(2, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(2, ctemp/2.0 - gi(i,:))) * rmk2; 
-    % June 2020: min function used 2 inside to avert cold water bleaching, but
-    % the "extra exponential" uses 0 so we don't shift the curve for temperatures above gi
-    % July 10, 2020: back to 0 in both minima.
-    % rik2   = (1- (vgi(i,:) + EnvVx + (min(0, gi(i,:) - 0.5*ctemp)).^2) ./ (2*SelVx)) .* exp(b*min(0, ctemp/2.0 - gi(i,:))) * rmk2; 
-    % July 12: curve D.
-    %rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - 0.5*ctemp)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min(min2, ctemp/2.0 - gi(i,:))) * rmk2; 
-    % July 15: The extra exponential was formed incorrectly for when the curve break
-    % was not at temp = gi.  Fixed.
-    min2Fn = min(0, ctemp2 - gi(i,:) + min2);
-    rik2   = (1- (vgi(i,:) + EnvVx + (min(min1, gi(i,:) - ctemp2)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min2Fn) * rmk2; 
-    % This line puts a floor under the growth curve to the left of peak. It
-    % was not successful in improving the relationship between cold and warm
-    % bleaching and mortality.  (Tested February 2021.)
-    % rik2((ctemp2 < gi(i, :)) & (rik2 < riFloor)) = riFloor;
 
+    % Replace min1 and min2 with L, calculated from adjustAllRi 3 Mar 2021
+    % This allows the point where the left side of the growth curve flattens out
+    % to move with selectional variance width. 
+    L = sqrt(adjustAllRi.*SelVx);
+    min2Fn = min(0, ctemp2 - gi(i,:) + L);
+    rik2   = (1- (vgi(i,:) + EnvVx + (min(L, gi(i,:) - ctemp2)).^2 ) ./ (2*SelVx)) .* exp(expTune*b*min2Fn) .* rmk2; 
 
     % Coral population at t = t + dt/2
     hC = max(Cold + 0.5*dCk1, C_seed);    
@@ -157,7 +136,7 @@ function [Snew, Cnew] = Runge_Kutta_2(Sold, Cold, i, dt, ri, ...
     hSAs = repmat(hSA, 1, multForS);
 
 
-    dSk2 = dt*(Sold+0.5*dSk1) ./ currentKS .* (rik2.* currentKS - rmk2 * (hSAs+0.5*dSk1) ); %Change in symbiont pops at t=i+0.5 %OK
+    dSk2 = dt*(Sold+0.5*dSk1) ./ currentKS .* (rik2.* currentKS - rmk2 .* (hSAs+0.5*dSk1) ); %Change in symbiont pops at t=i+0.5 %OK
     dCk2 = dt* (hC.*(G.*hSA./(KSx.*hC).*(KCx-(alpha*hC')')./KCx-Mu./(1+um.*hSA./(KSx.*hC)))); %Change in coral pops at t=i+0.5
 
     Snew = max(Sold + dSk2, S_seed);              % Symbiont pops at t=i+1

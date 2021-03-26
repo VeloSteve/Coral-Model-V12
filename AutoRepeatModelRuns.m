@@ -12,11 +12,12 @@ parameters = 'D:\GitHub\Coral-Model-V12\modelVars.txt';
 
 % Every combination will be a separate run.
  %#ok<*NBRAK> % MATLAB warns by default when a list has one element.
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'}; %, 'rcp85'};
-deltaTList = [0 0.5 1.0 1.5]; % [0.0, 1.0];
+rcpList = {'control400'};
+%rcpList = {'rcp26','rcp45', 'rcp60', 'rcp85' }; % {'control400'}; %  %, 'rcp85'};
+deltaTList = [1.0]; % [0 0.5 1.0 1.5]; % [0.0, 1.0];
 modeList = [9];
-eList = [0 1];
-oaList = [0 1];
+eList = [0];
+oaList = [0]; %[0 1];
 nRuns = length(rcpList)*length(deltaTList)*length(modeList)*length(eList)*length(oaList);
 
 fprintf("--------------------------------------------------\n");
@@ -32,8 +33,8 @@ pause(1);
 timeAutoRuns = tic;
 autoRunCount = 0;
 for ooo = oaList  % 0:1
-    for eee = eList  %0:1
-        for rrr = rcpList
+    for rrr = rcpList
+        for eee = eList  %0:1
             for ttt = deltaTList
                 for mmm = modeList
                     % We modes 0 AND 7 are the same when the advantage is zero, so skip one.
@@ -54,7 +55,7 @@ for ooo = oaList  % 0:1
                         fprintf('   and keyReefs = %d', pd.get('keyReefs'))
                         close all
                         A_Coral_Model(pd)
-                        fprintf('Completed %d of %d runs.\n', autoRunCount, nRuns);
+                        fprintf('Completed %d of %d runs.\n\n', autoRunCount, nRuns);
                     end
                 end
             end
