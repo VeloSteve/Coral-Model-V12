@@ -1,6 +1,6 @@
 # Coral-Model-V12
 ## Archived versions of this software are available:
-[![DOI](https://zenodo.org/badge/113405802.svg)](https://zenodo.org/badge/latestdoi/113405802)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4640536.svg)](https://doi.org/10.5281/zenodo.4640536)
 The software is under a "3-Clause BSD License".  See the LICENSE file and other
 license_*.txt files for included third-party software.
 
